@@ -1,12 +1,13 @@
 import { defineConfig } from "drizzle-kit"
 // import { pg } from "drizzle-orm/pg/server"
+const dbUrl = `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.POSTGRES_DB}`
 
 export default defineConfig({
   schema: "./src/server/db/schema.ts",
   out: "./src/server/db/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL as string || "postgres://user:password@localhost:5432/mydatabase",
+    url: dbUrl,
   },
   verbose: true,
   strict: true,
