@@ -1,9 +1,27 @@
 # bun-react-tailwind-shadcn-template
 
+### `create .env file and copy contents of env.example`
+
+Adds environment variables
+
+## Scripts
+
 To install dependencies:
 
 ```bash
 bun install
+```
+
+To create a docker container with the postgres db:
+
+```bash
+bun docker:dev
+```
+
+To run all the database migrations (up functions):
+
+```bash
+bun db:migrate
 ```
 
 To start a development server:
