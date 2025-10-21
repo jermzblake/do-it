@@ -7,7 +7,8 @@
     "dev": "bun --hot src/index.tsx",
     "start": "NODE_ENV=production bun src/index.tsx",
     "build": "bun run build.ts",
-    "migration:generate": "bunx drizzle-kit generate"
+    "migration:generate": "bunx drizzle-kit generate --name=$1",
+    "db:migrate": "bunx drizzle-kit migrate"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.7",
