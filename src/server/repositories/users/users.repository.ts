@@ -1,7 +1,7 @@
 import { db } from '../../db/db'
 import { UserTable, SessionTable } from '../../db/schema'
 import type { NewUser, User } from '../../db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, isNull, gt, and } from 'drizzle-orm'
 import type { UserResponse } from '../../../types/user.types.js'
 
 export const upsertUser = async (userPayload: NewUser) => {
@@ -29,7 +29,13 @@ export const getUserBySessionToken = async (sessionToken: string): Promise<UserR
     .select({ id: UserTable.id, email: UserTable.email, name: UserTable.name })
     .from(UserTable)
     .innerJoin(SessionTable, eq(UserTable.id, SessionTable.userId))
-    .where(eq(SessionTable.sessionToken, sessionToken))
+    .where(
+      and(
+        eq(SessionTable.sessionToken, sessionToken),
+        isNull(SessionTable.deletedAt),
+        gt(SessionTable.expiresAt, new Date()),
+      ),
+    )
     .limit(1)
   return user[0] || null
 }
