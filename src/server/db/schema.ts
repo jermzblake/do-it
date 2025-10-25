@@ -1,50 +1,43 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  varchar,
-  boolean,
-  pgEnum,
-  integer,
-  timestamp,
-  smallint,
-  check,
-} from "drizzle-orm/pg-core";
-import { timestampColumns } from "./columns.helpers";
-import { sql } from "drizzle-orm";
+import { pgTable, uuid, text, varchar, boolean, pgEnum, integer, timestamp, smallint, check } from 'drizzle-orm/pg-core'
+import { timestampColumns } from './columns.helpers'
+import { sql } from 'drizzle-orm'
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 
-export const priorityEnum = pgEnum("priority", ["low", "medium", "high"]);
+export const priorityEnum = pgEnum('priority', ['low', 'medium', 'high'])
 
-export const UserTable = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").notNull().unique(),
-  name: varchar("name", { length: 256 }).notNull(),
+export const UserTable = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  name: varchar('name', { length: 256 }).notNull(),
   ...timestampColumns,
-});
+})
+
+export type User = InferSelectModel<typeof UserTable>
+export type NewUser = InferInsertModel<typeof UserTable>
 
 export const TaskTable = pgTable(
-  "tasks",
+  'tasks',
   {
-    id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
       .notNull()
-      .references(() => UserTable.id, { onDelete: "cascade" }),
-    title: varchar("title", { length: 512 }),
-    description: text("description").notNull(),
-    notes: text("notes"),
-    isDone: boolean("is_done").notNull().default(false),
-    isBlocked: boolean("is_blocked").notNull().default(false),
-    blockedReason: text("blocked_reason"),
-    priority: smallint("priority").notNull().default(2), // 1: low, 2: medium, 3: high
-    effort: integer("effort").notNull().default(1),
-    dueDate: timestamp("due_date"),
+      .references(() => UserTable.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 512 }),
+    description: text('description').notNull(),
+    notes: text('notes'),
+    isDone: boolean('is_done').notNull().default(false),
+    isBlocked: boolean('is_blocked').notNull().default(false),
+    blockedReason: text('blocked_reason'),
+    priority: smallint('priority').notNull().default(2), // 1: low, 2: medium, 3: high
+    effort: integer('effort').notNull().default(1),
+    dueDate: timestamp('due_date'),
     ...timestampColumns,
   },
   (table) => [
-    check(
-      "priority_check1",
-      sql`${table.priority} >= 1 AND ${table.priority} <= 3`
-    ),
-    check("effort_check1", sql`${table.effort} >= 1 AND ${table.effort} <= 5`),
-  ]
-);
+    check('priority_check1', sql`${table.priority} >= 1 AND ${table.priority} <= 3`),
+    check('effort_check1', sql`${table.effort} >= 1 AND ${table.effort} <= 5`),
+  ],
+)
+
+export type Task = InferSelectModel<typeof TaskTable>
+export type NewTask = InferInsertModel<typeof TaskTable>
