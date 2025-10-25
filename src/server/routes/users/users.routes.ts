@@ -7,3 +7,11 @@ export const usersRoutes = {
     },
   },
 }
+
+export const meRoutes = {
+  '/api/users/me': {
+    async GET(req: Request) {
+      return UsersController.getMe(req)
+    },
+  },
+}

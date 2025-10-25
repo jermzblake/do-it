@@ -1,0 +1,14 @@
+import * as SessionRepository from '../../repositories/auth/sessions.repository'
+import type { NewSession, Session } from '../../db/schema'
+
+export const createSession = async (sessionPayload: NewSession): Promise<Session> => {
+  try {
+    const newSession = await SessionRepository.createSession(sessionPayload)
+    if (!newSession) {
+      throw new Error('Failed to create session')
+    }
+    return newSession
+  } catch (error: any) {
+    throw new Error('Error creating session: ' + error.message)
+  }
+}

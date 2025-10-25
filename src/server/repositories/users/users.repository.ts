@@ -1,15 +1,36 @@
-import { db } from '../../db/db.js'
-import { UserTable } from '../../db/schema.js'
-import type { NewUser, User } from '../../db/schema.js'
+import { db } from '../../db/db'
+import { UserTable, SessionTable } from '../../db/schema'
+import type { NewUser, User } from '../../db/schema'
 import { eq } from 'drizzle-orm'
+import type { UserResponse } from '../../../types/user.types.js'
 
-export const createUser = async (name: string, email: string) => {
-  const result = await db.insert(UserTable).values({ name, email }).returning()
+export const upsertUser = async (userPayload: NewUser) => {
+  const result = await db
+    .insert(UserTable)
+    .values(userPayload)
+    .onConflictDoUpdate({
+      target: UserTable.email,
+      set: {
+        ssoId: userPayload.ssoId,
+        ssoType: userPayload.ssoType,
+      },
+    })
+    .returning()
   return result[0]
 }
 
 export const getUserById = async (id: string) => {
   const user = await db.select().from(UserTable).where(eq(UserTable.id, id)).limit(1)
+  return user[0] || null
+}
+
+export const getUserBySessionToken = async (sessionToken: string): Promise<UserResponse | null> => {
+  const user = await db
+    .select({ id: UserTable.id, email: UserTable.email, name: UserTable.name })
+    .from(UserTable)
+    .innerJoin(SessionTable, eq(UserTable.id, SessionTable.userId))
+    .where(eq(SessionTable.sessionToken, sessionToken))
+    .limit(1)
   return user[0] || null
 }
 
