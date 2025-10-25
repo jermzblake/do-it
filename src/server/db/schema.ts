@@ -9,11 +9,26 @@ export const UserTable = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
   name: varchar('name', { length: 256 }).notNull(),
+  ssoType: varchar('sso_type', { length: 256 }).notNull().default('google'),
+  ssoId: varchar('sso_id', { length: 256 }).notNull().unique(),
   ...timestampColumns,
 })
 
 export type User = InferSelectModel<typeof UserTable>
 export type NewUser = InferInsertModel<typeof UserTable>
+
+export const SessionTable = pgTable('sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => UserTable.id, { onDelete: 'cascade' }),
+  sessionToken: text('session_token').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  ...timestampColumns,
+})
+
+export type Session = InferSelectModel<typeof SessionTable>
+export type NewSession = InferInsertModel<typeof SessionTable>
 
 export const TaskTable = pgTable(
   'tasks',
