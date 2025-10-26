@@ -143,7 +143,30 @@ export const handleAuthCallback = async (request: Request) => {
     return Response.json(response, { status: 500 })
   }
 
+  // consumed the state value - remove it so it can't be reused
+  STATE_STORE.delete(state)
+
+  // Build cookie attributes in a safe, configurable way
+  const isProd = process.env.NODE_ENV === 'production'
+  // Max-Age in seconds (7 days)
+  const maxAgeSeconds = Math.floor((expires.getTime() - Date.now()) / 1000)
+
+  const cookieParts: string[] = [
+    `session=${sessionToken}`,
+    'HttpOnly',
+    'Path=/',
+    `Max-Age=${maxAgeSeconds}`,
+    `Expires=${expires.toUTCString()}`,
+    // default SameSite to Lax which allows the OAuth redirect to set the cookie
+    `SameSite=${process.env.COOKIE_SAME_SITE ?? 'Lax'}`,
+  ]
+
+  // in production we should require Secure; if you are using cross-site cookies
+  // set COOKIE_SAME_SITE=None and ensure Secure is present
+  if (isProd) cookieParts.push('Secure')
+  if (process.env.COOKIE_DOMAIN) cookieParts.push(`Domain=${process.env.COOKIE_DOMAIN}`)
+
   const res = new Response(null, { status: 302, headers: { Location: '/' } })
-  res.headers.set('Set-Cookie', `session=${sessionToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax`)
+  res.headers.set('Set-Cookie', cookieParts.join('; '))
   return res
 }
