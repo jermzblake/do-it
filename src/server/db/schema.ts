@@ -44,7 +44,7 @@ export const TaskTable = pgTable(
     isBlocked: boolean('is_blocked').notNull().default(false),
     blockedReason: text('blocked_reason'),
     priority: smallint('priority').notNull().default(2), // 1: low, 2: medium, 3: high
-    effort: integer('effort').notNull().default(1),
+    effort: smallint('effort').notNull().default(1),
     dueDate: timestamp('due_date'),
     ...timestampColumns,
   },
