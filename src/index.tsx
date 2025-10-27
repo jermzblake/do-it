@@ -3,6 +3,7 @@ import { serve } from 'bun'
 import index from './index.html'
 import { usersRoutes } from './server/routes/users/users.routes.ts'
 import { authRoutes } from './server/routes/auth/auth.routes.ts'
+import { tasksRoutes } from './server/routes/tasks/tasks.routes.ts'
 
 const server = serve({
   routes: {
@@ -12,6 +13,22 @@ const server = serve({
     // Register API routes
     ...authRoutes,
     ...usersRoutes,
+    ...tasksRoutes,
+
+    //fallback route
+    '/api/*': () => {
+      return new Response(
+        JSON.stringify({
+          message: 'API route not found',
+        }),
+        {
+          status: 404,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+    },
   },
 
   development: process.env.NODE_ENV !== 'production' && {
