@@ -1,9 +1,10 @@
-export interface PagingParams {
+export interface PagingParams<T = unknown> {
   page: number
   pageSize: number
-  totalCount: number
+  totalCount?: number
   direction?: 'asc' | 'desc'
   sortBy?: string
+  data?: T[]
 }
 
 export interface ResponseSchema<T> {
@@ -13,7 +14,7 @@ export interface ResponseSchema<T> {
     status: string
     timestamp: string
     responseCode?: number
-    pagination?: PagingParams
+    pagination?: PagingParams<T>
   }
   error?: {
     code: number
@@ -73,7 +74,7 @@ export const createResponse = <T>(
   message = ResponseMessage.SUCCESS,
   status = StatusCode.SUCCESS,
   responseCode = ResponseCode.SUCCESS,
-  pagination?: PagingParams,
+  pagination?: PagingParams<T>,
 ): ResponseSchema<T> => ({
   data,
   metaData: {
