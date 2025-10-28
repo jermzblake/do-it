@@ -1,5 +1,7 @@
 import { createResponse, createErrorResponse, ResponseMessage, StatusCode, ResponseCode } from '../../utils/response.ts'
 import * as TasksService from '../../services/tasks/tasks.service.ts'
+import type { TaskStatus } from '../../db/schema'
+import { TaskStatus as TaskStatusEnum } from '../../db/schema'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   try {
@@ -71,22 +73,34 @@ export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promis
 export const getTasksByStatus = async (req: Bun.BunRequest): Promise<Response> => {
   const url = new URL(req.url)
   const userId = url.searchParams.get('userId') || ''
-  const isDoneParam = url.searchParams.get('isDone')
+  const statusParam = url.searchParams.get('status')
   const pageParam = url.searchParams.get('page')
   const pageSizeParam = url.searchParams.get('pageSize')
 
-  if (!userId || isDoneParam === null) {
-    const response = createErrorResponse('Missing required query parameters: userId and isDone', 400)
+  if (!userId || statusParam === null) {
+    const response = createErrorResponse('Missing required query parameters: userId and status', 400)
     return Response.json(response, { status: 400 })
   }
-
-  const isDone = isDoneParam.toLowerCase() === 'true'
+  if (
+    statusParam !== TaskStatusEnum.TODO &&
+    statusParam !== TaskStatusEnum.IN_PROGRESS &&
+    statusParam !== TaskStatusEnum.COMPLETED &&
+    statusParam !== TaskStatusEnum.BLOCKED &&
+    statusParam !== TaskStatusEnum.CANCELLED
+  ) {
+    const response = createErrorResponse(
+      'Invalid status value. Allowed values are: TODO, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED',
+      400,
+    )
+    return Response.json(response, { status: 400 })
+  }
+  const status = statusParam as TaskStatus
   const page = pageParam ? parseInt(pageParam, 10) : 1
   const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10
   const params = { page, pageSize }
 
   try {
-    const result = await TasksService.getTasksByStatus(userId, isDone, params)
+    const result = await TasksService.getTasksByStatus(userId, status, params)
     const { data, ...pagination } = result
     const response = createResponse(data, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS, pagination)
     return Response.json(response, { status: 200 })

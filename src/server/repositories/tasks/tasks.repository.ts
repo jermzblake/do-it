@@ -1,8 +1,26 @@
 import { db } from '../../db/db'
 import { TaskTable } from '../../db/schema'
-import type { NewTask, Task } from '../../db/schema'
-import { eq, and, sql, count } from 'drizzle-orm'
+import type { NewTask, TaskStatus } from '../../db/schema'
+import { eq, and, sql, count, isNull } from 'drizzle-orm'
 import type { PagingParams } from '../../../types'
+
+const returnColumns = {
+  id: TaskTable.id,
+  userId: TaskTable.userId,
+  title: TaskTable.title,
+  description: TaskTable.description,
+  notes: TaskTable.notes,
+  status: TaskTable.status,
+  blockedReason: TaskTable.blockedReason,
+  priority: TaskTable.priority,
+  effort: TaskTable.effort,
+  dueDate: TaskTable.dueDate,
+  startedAt: TaskTable.startedAt,
+  completedAt: TaskTable.completedAt,
+  createdAt: TaskTable.createdAt,
+  updatedAt: TaskTable.updatedAt,
+  deletedAt: TaskTable.deletedAt,
+}
 
 export const createTask = async (taskData: NewTask) => {
   try {
@@ -32,7 +50,7 @@ export const getAllTasksByUserId = async (userId: string) => {
 
 export const getTasksByStatus = async (
   userId: string,
-  isDone: boolean,
+  status: TaskStatus,
   params: PagingParams,
 ): Promise<PagingParams> => {
   const offSet = (((params.page as number) < 1 ? 1 : params.page) - 1) * params.pageSize
@@ -40,7 +58,7 @@ export const getTasksByStatus = async (
   const tasks = await db
     .select()
     .from(TaskTable)
-    .where(and(eq(TaskTable.userId, userId), eq(TaskTable.isDone, isDone)))
+    .where(and(eq(TaskTable.userId, userId), eq(TaskTable.status, status), isNull(TaskTable.deletedAt)))
     .orderBy(
       sql`${TaskTable.dueDate} ASC NULLS LAST,
           ${TaskTable.priority} DESC,
@@ -51,7 +69,7 @@ export const getTasksByStatus = async (
   const totalCount = await db
     .select({ value: count(TaskTable.id) })
     .from(TaskTable)
-    .where(and(eq(TaskTable.userId, userId), eq(TaskTable.isDone, isDone)))
+    .where(and(eq(TaskTable.userId, userId), eq(TaskTable.status, status), isNull(TaskTable.deletedAt)))
   params.totalCount = Number(totalCount[0]?.value || 0)
   params.data = tasks
   return params
@@ -63,13 +81,18 @@ export const updateTaskById = async (id: string, taskData: Partial<NewTask>) => 
     // mutate safe copy if you want to avoid changing caller object:
     taskData = { ...taskData, dueDate: new Date(taskData.dueDate) } as NewTask
   }
-  const result = await db
-    .update(TaskTable)
-    .set({ ...taskData, updatedAt: new Date() })
-    .where(eq(TaskTable.id, id))
-    .returning()
+  try {
+    const result = await db
+      .update(TaskTable)
+      .set({ ...taskData, updatedAt: new Date() })
+      .where(eq(TaskTable.id, id))
+      .returning(returnColumns)
 
-  return result[0]
+    return result[0]
+  } catch (error) {
+    console.error('Error updating task in database:', error)
+    throw new Error('Error updating task: ' + (error as Error).message)
+  }
 }
 
 export const deleteTaskById = async (id: string) => {

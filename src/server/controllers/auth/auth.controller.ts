@@ -126,7 +126,6 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
   //TODO: generate a secure random token (JWT or similar)
   const sessionToken = randomUUID()
   const expires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7) // 7 days
-  console.log('Creating session for user:', user.id)
   try {
     await SessionService.createSession({
       userId: user.id,
