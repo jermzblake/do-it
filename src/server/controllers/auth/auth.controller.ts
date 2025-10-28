@@ -47,7 +47,7 @@ export const handleAuthStart = async () => {
   return new Response(null, { status: 302, headers: { Location: url.toString() } })
 }
 
-export const handleAuthCallback = async (request: Request) => {
+export const handleAuthCallback = async (request: Bun.BunRequest) => {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
   const state = url.searchParams.get('state')

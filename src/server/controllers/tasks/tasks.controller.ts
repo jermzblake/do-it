@@ -1,7 +1,7 @@
 import { createResponse, createErrorResponse, ResponseMessage, StatusCode, ResponseCode } from '../../utils/response.ts'
 import * as TasksService from '../../services/tasks/tasks.service.ts'
 
-export const createTask = async (req: Request): Promise<Response> => {
+export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   try {
     const taskData = await req.json()
     const newTask = await TasksService.createTask(taskData)
@@ -13,13 +13,8 @@ export const createTask = async (req: Request): Promise<Response> => {
   }
 }
 
-export const updateTaskById = async (req: Request): Promise<Response> => {
-  console.log('Update task request received:', req.url)
-  //TODO introduce middleware to parse URL params (elysia)?
-  const url = new URL(req.url)
-  // example pathname: /api/tasks/123
-  const match = url.pathname.match(/\/api\/tasks\/([^\/]+)$/)
-  const taskId = match ? match[1] : ''
+export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
+  const { id: taskId } = req.params
 
   if (!taskId) {
     const response = createErrorResponse('Missing task id in URL', 400)
@@ -37,12 +32,8 @@ export const updateTaskById = async (req: Request): Promise<Response> => {
   }
 }
 
-export const deleteTaskById = async (req: Request): Promise<Response> => {
-  //TODO introduce middleware to parse URL params (elysia)?
-  const url = new URL(req.url)
-  // example pathname: /api/tasks/123
-  const match = url.pathname.match(/\/api\/tasks\/([^\/]+)$/)
-  const taskId = match ? match[1] : ''
+export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
+  const { id: taskId } = req.params
 
   if (!taskId) {
     const response = createErrorResponse('Missing task id in URL', 400)
@@ -59,12 +50,8 @@ export const deleteTaskById = async (req: Request): Promise<Response> => {
   }
 }
 
-export const getTaskById = async (req: Request): Promise<Response> => {
-  //TODO introduce middleware to parse URL params (elysia)?
-  const url = new URL(req.url)
-  // example pathname: /api/tasks/123
-  const match = url.pathname.match(/\/api\/tasks\/([^\/]+)$/)
-  const taskId = match ? match[1] : ''
+export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
+  const { id: taskId } = req.params
 
   if (!taskId) {
     const response = createErrorResponse('Missing task id in URL', 400)
@@ -81,7 +68,7 @@ export const getTaskById = async (req: Request): Promise<Response> => {
   }
 }
 
-export const getTasksByStatus = async (req: Request): Promise<Response> => {
+export const getTasksByStatus = async (req: Bun.BunRequest): Promise<Response> => {
   const url = new URL(req.url)
   const userId = url.searchParams.get('userId') || ''
   const isDoneParam = url.searchParams.get('isDone')

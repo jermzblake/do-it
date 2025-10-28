@@ -1,7 +1,7 @@
 import { createResponse, createErrorResponse, ResponseCode, StatusCode } from '../../utils/response.ts'
 import * as UsersService from '../../services/users/users.service.ts'
 
-export const createUser = async (req: Request) => {
+export const createUser = async (req: Bun.BunRequest) => {
   const userPayload = await req.json()
   if (!userPayload.name || !userPayload.email) {
     const response = createErrorResponse(
@@ -25,7 +25,7 @@ export const createUser = async (req: Request) => {
   }
 }
 
-export const getMe = async (req: Request) => {
+export const getMe = async (req: Bun.BunRequest) => {
   const cookies = req.headers.get('cookie') || ''
   const sessionToken = cookies.match(/session=([^;]+)/)?.[1]
   if (!sessionToken) {
