@@ -12,7 +12,7 @@ export const authRoutes = {
   },
 
   '/api/auth/callback': {
-    GET: async (req: Request) => {
+    GET: async (req: Bun.BunRequest) => {
       return AuthController.handleAuthCallback(req)
     },
   },
