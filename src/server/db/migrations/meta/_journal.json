@@ -29,6 +29,13 @@
       "when": 1761517209949,
       "tag": "0003_alter-tasks-effort-smallint",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1761684430553,
+      "tag": "0004_alter-tasks-add-status-and-completed_at",
+      "breakpoints": true
     }
   ]
 }
