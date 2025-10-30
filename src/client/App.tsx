@@ -1,9 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APITester } from "./APITester";
-import "./index.css";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/card'
+import { APITester } from './APITester'
+import '.././index.css'
 
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
+import logo from '.././logo.svg'
+import reactLogo from '.././react.svg'
+import { SignInButton } from '@/client/components/ui/button'
 
 export function App() {
   return (
@@ -20,6 +21,7 @@ export function App() {
           className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#61dafbaa] [animation:spin_20s_linear_infinite]"
         />
       </div>
+      <SignInButton />
       <Card>
         <CardHeader className="gap-4">
           <CardTitle className="text-3xl font-bold">Bun + React</CardTitle>
@@ -33,7 +35,7 @@ export function App() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
