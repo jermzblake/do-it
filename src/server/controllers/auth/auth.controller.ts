@@ -2,6 +2,7 @@ import { createResponse, createErrorResponse, ResponseCode, StatusCode } from '.
 import { randomUUID } from 'crypto'
 import * as SessionService from '../../services/auth/sessions.service.ts'
 import * as UsersService from '../../services/users/users.service.ts'
+import { setCookie, getCookie, deleteCookie } from '../../utils/cookies'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
@@ -142,7 +143,46 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
     return Response.json(response, { status: 500 })
   }
 
-  const res = new Response(null, { status: 302, headers: { Location: '/' } })
-  res.headers.set('Set-Cookie', `session=${sessionToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Lax`)
+  const res = new Response(null, { status: 302, headers: { Location: '/dashboard' } })
+  res.headers.set('Set-Cookie', setCookie('session_token', sessionToken, { httpOnly: true }))
   return res
+}
+
+export const handleLogout = async (request: Bun.BunRequest) => {
+  const sessionToken = getCookie(request, 'session_token')
+  if (sessionToken) {
+    await SessionService.deleteSessionByToken(sessionToken)
+  }
+  const res = createResponse(null, 'Logged out successfully', StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
+  const response = new Response(JSON.stringify(res), { status: 200, headers: { 'Content-Type': 'application/json' } })
+  response.headers.set('Set-Cookie', deleteCookie('session_token'))
+  return response
+}
+
+export const handleAuthStatus = async (request: Bun.BunRequest) => {
+  const sessionToken = getCookie(request, 'session_token')
+  if (!sessionToken) {
+    const response = createResponse(null, 'Not authenticated', StatusCode.UNAUTHORIZED, ResponseCode.UNAUTHORIZED)
+    return Response.json(response, { status: 401 })
+  }
+
+  const session = await SessionService.getSessionByToken(sessionToken)
+  if (!session) {
+    const response = createResponse(null, 'Invalid session', StatusCode.UNAUTHORIZED, ResponseCode.UNAUTHORIZED)
+    return Response.json(response, { status: 401 })
+  }
+
+  const user = await UsersService.getUserById(session.userId)
+  if (!user) {
+    const response = createResponse(null, 'User not found', StatusCode.UNAUTHORIZED, ResponseCode.UNAUTHORIZED)
+    return Response.json(response, { status: 401 })
+  }
+
+  const response = createResponse(
+    { authenticated: true, user },
+    'Authenticated',
+    StatusCode.SUCCESS,
+    ResponseCode.SUCCESS,
+  )
+  return Response.json(response, { status: 200 })
 }
