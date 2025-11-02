@@ -12,3 +12,20 @@ export const createSession = async (sessionPayload: NewSession): Promise<Session
     throw new Error('Error creating session: ' + error.message)
   }
 }
+
+export const getSessionByToken = async (token: string): Promise<Session | null> => {
+  try {
+    const session = await SessionRepository.getSessionByToken(token)
+    return session
+  } catch (error: any) {
+    throw new Error('Error retrieving session: ' + error.message)
+  }
+}
+
+export const deleteSessionByToken = async (token: string): Promise<void> => {
+  try {
+    await SessionRepository.deleteSessionByToken(token)
+  } catch (error: any) {
+    throw new Error('Error deleting session: ' + error.message)
+  }
+}
