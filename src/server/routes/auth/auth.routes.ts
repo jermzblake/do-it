@@ -16,4 +16,15 @@ export const authRoutes = {
       return AuthController.handleAuthCallback(req)
     },
   },
+
+  '/api/auth/logout': {
+    GET: async (req: Bun.BunRequest) => {
+      return AuthController.handleLogout(req)
+    },
+  },
+  '/api/auth/me': {
+    GET: async (req: Bun.BunRequest) => {
+      return AuthController.handleAuthStatus(req)
+    },
+  },
 }
