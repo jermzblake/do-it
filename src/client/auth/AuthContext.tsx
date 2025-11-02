@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { UserResponse } from '@/types'
+import { apiClient } from '../lib/axios'
 
 type AuthContextType = {
   isAuthenticated: boolean
-  login: () => void
+  login: (sso?: string) => void
   logout: () => Promise<void>
   user: UserResponse | null
   isLoading: boolean
@@ -27,23 +28,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const logout = async () => {
-    await fetch('/api/auth/logout')
-    setIsAuthenticated(false)
-    setUser(null)
+    try {
+      await apiClient.get('/auth/logout')
+      setIsAuthenticated(false)
+      setUser(null)
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
   }
 
   useEffect(() => {
     setIsLoading(true)
-    fetch('/api/auth/me', { credentials: 'include' })
-      .then(async (res) => {
-        if (!res.ok) {
-          // not authenticated or server error
-          setIsAuthenticated(false)
-          setUser(null)
-          return
-        }
-        const response = await res.json()
-        if (response?.data?.authenticated) {
+    apiClient
+      .get<{
+        authenticated: boolean
+        userId: string
+        name: string
+        email: string
+      }>('/auth/me')
+      .then((response) => {
+        if (response.data?.authenticated) {
           const data = response.data
           setUser({ id: data.userId, name: data.name, email: data.email })
           setIsAuthenticated(true)
@@ -52,8 +56,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(null)
         }
       })
-      .catch((err) => {
-        console.error(err)
+      .catch((error) => {
+        console.error('Authentication check failed:', error)
         setIsAuthenticated(false)
         setUser(null)
       })
