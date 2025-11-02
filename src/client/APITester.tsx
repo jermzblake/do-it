@@ -4,6 +4,7 @@ import { Label } from '@/client/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
 import { Textarea } from '@/client/components/ui/textarea'
 import { useRef, type FormEvent } from 'react'
+import axios from 'axios'
 
 export function APITester() {
   const responseInputRef = useRef<HTMLTextAreaElement>(null)
@@ -17,9 +18,8 @@ export function APITester() {
       const endpoint = formData.get('endpoint') as string
       const url = new URL(endpoint, location.href)
       const method = formData.get('method') as string
-      const res = await fetch(url, { method })
-
-      const data = await res.json()
+      const res = await axios.request({ url: url.toString(), method: method as any })
+      const data = res.data
       responseInputRef.current!.value = JSON.stringify(data, null, 2)
     } catch (error) {
       responseInputRef.current!.value = String(error)
