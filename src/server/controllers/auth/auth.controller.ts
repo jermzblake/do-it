@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto'
 import * as SessionService from '../../services/auth/sessions.service.ts'
 import * as UsersService from '../../services/users/users.service.ts'
 import { setCookie, getCookie, deleteCookie } from '../../utils/cookies'
+import axios from 'axios'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
@@ -75,34 +76,38 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
     code_verifier: stored.verifier,
   })
 
-  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body,
-  })
-  if (!tokenRes.ok) {
+  let tokenData: any
+  try {
+    const tokenRes = await axios.post('https://oauth2.googleapis.com/token', body.toString(), {
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    })
+    tokenData = tokenRes.data
+  } catch (error) {
+    const status = (error as any)?.response?.status
     const response = createErrorResponse(
       'Error fetching tokens',
       ResponseCode.BAD_REQUEST,
-      `Token endpoint returned ${tokenRes.status}`,
+      `Token endpoint returned ${status ?? 'error'}`,
     )
     return Response.json(response, { status: 400 })
   }
-  const tokenData = await tokenRes.json()
 
   // Fetch user info
-  const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${tokenData.access_token}` },
-  })
-  if (!userInfoRes.ok) {
+  let userInfo: any
+  try {
+    const userInfoRes = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    })
+    userInfo = userInfoRes.data
+  } catch (error) {
+    const status = (error as any)?.response?.status
     const response = createErrorResponse(
       'Error fetching user info',
       ResponseCode.BAD_REQUEST,
-      `Userinfo endpoint returned ${userInfoRes.status}`,
+      `Userinfo endpoint returned ${status ?? 'error'}`,
     )
     return Response.json(response, { status: 400 })
   }
-  const userInfo = await userInfoRes.json()
 
   //upsert user
   const userPayload = {
