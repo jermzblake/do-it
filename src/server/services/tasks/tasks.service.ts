@@ -1,15 +1,15 @@
 import * as TasksRepository from '../../repositories/tasks/tasks.repository'
-import type { NewTask, Task } from '../../db/schema.js'
+import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import type { PagingParams } from '../../../types/index'
+import { TaskStatus as TaskStatusEnum } from '../../db/schema'
 
 export const createTask = async (taskPayload: NewTask): Promise<Task> => {
   if (!taskPayload.userId) {
     throw new Error('User ID is required to create a task')
   }
+  handleTaskStatusCheck(taskPayload.status as string)
   try {
-    console.log('Creating task with payload:', taskPayload)
     const newTask = await TasksRepository.createTask(taskPayload)
-    console.log('Task created successfully:', newTask)
     if (!newTask) {
       throw new Error('Failed to create task')
     }
@@ -39,22 +39,23 @@ export const getAllTasksByUserId = async (userId: string): Promise<Task[]> => {
 
 export const getTasksByStatus = async (
   userId: string,
-  isDone: boolean,
+  status: TaskStatus,
   params: PagingParams,
 ): Promise<PagingParams> => {
   try {
-    const tasks = await TasksRepository.getTasksByStatus(userId, isDone, params)
+    const tasks = await TasksRepository.getTasksByStatus(userId, status, params)
     return tasks
   } catch (error) {
     throw new Error('Error retrieving tasks by status: ' + (error as Error).message)
   }
 }
 
-export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>): Promise<Task> => {
+export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>): Promise<any> => {
+  handleTaskStatusCheck(taskPayload.status as string)
   try {
     const updatedTask = await TasksRepository.updateTaskById(id, taskPayload)
     if (!updatedTask) {
-      throw new Error('Failed to update task')
+      throw new Error('No task found to update with the provided ID')
     }
     return updatedTask
   } catch (error) {
@@ -67,5 +68,12 @@ export const deleteTaskById = async (id: string): Promise<void> => {
     await TasksRepository.deleteTaskById(id)
   } catch (error) {
     throw new Error('Error deleting task: ' + (error as Error).message)
+  }
+}
+
+/* Helper functions */
+const handleTaskStatusCheck = (status: string): void => {
+  if (!Object.values(TaskStatusEnum).includes(status as TaskStatusEnum)) {
+    throw new Error('Invalid task status value')
   }
 }
