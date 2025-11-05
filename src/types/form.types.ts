@@ -27,7 +27,7 @@ export const TaskFormSchema = z
     description: z.string().trim().optional(),
     status: z.string().max(20).optional(),
     priority: z.number().optional(),
-    effort: z.number().optional(),
+    effort: z.number('Enter a number').optional(),
     dueDate: z.date().optional(),
     blockedReason: z.string().trim().optional(),
     notes: z.string().optional(),
