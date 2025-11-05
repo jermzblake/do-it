@@ -99,7 +99,7 @@ export function TaskForm() {
 
   const onSubmit = async (payload: z.infer<typeof TaskFormSchema>) => {
     try {
-      const res = await apiClient.post('/tasks', payload)
+      const res = await apiClient.post('/tasks', payload) //TODO move this to a api service (with react query?)
       const data = res.data
       console.log('SUCCESS', data) //TODO show success message or replace with toast
       reset()
@@ -116,7 +116,7 @@ export function TaskForm() {
       {/* Name Field */}
       <div className="space-y-2">
         <Label htmlFor="name">
-          Task Name <span className="text-red-500">*</span>
+          Task <span className="text-red-500">*</span>
         </Label>
         <Input
           id="name"
@@ -196,11 +196,13 @@ export function TaskForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="effort">Effort</Label>
+          <Label htmlFor="effort">
+            Effort <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="effort"
             type="number"
-            // {...register('effort', { valueAsNumber: true })}
+            {...register('effort', { valueAsNumber: true })}
             placeholder="1-5"
             min="1"
             max="5"
