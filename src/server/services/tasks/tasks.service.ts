@@ -73,6 +73,9 @@ export const deleteTaskById = async (id: string): Promise<void> => {
 
 /* Helper functions */
 const handleTaskStatusCheck = (status: string): void => {
+  if (!status) {
+    return
+  }
   if (!Object.values(TaskStatusEnum).includes(status as TaskStatusEnum)) {
     throw new Error('Invalid task status value')
   }
