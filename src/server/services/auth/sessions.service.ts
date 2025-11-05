@@ -29,3 +29,12 @@ export const deleteSessionByToken = async (token: string): Promise<void> => {
     throw new Error('Error deleting session: ' + error.message)
   }
 }
+
+export const getUserIdBySessionToken = async (token: string): Promise<string | null> => {
+  try {
+    const userId = await SessionRepository.getUserIdBySessionToken(token)
+    return userId
+  } catch (error: any) {
+    throw new Error('Error retrieving user ID from session token: ' + error.message)
+  }
+}

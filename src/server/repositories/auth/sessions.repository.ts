@@ -20,3 +20,15 @@ export const getSessionByToken = async (token: string): Promise<Session | null> 
 export const deleteSessionByToken = async (token: string): Promise<void> => {
   await db.update(SessionTable).set({ deletedAt: new Date() }).where(eq(SessionTable.sessionToken, token))
 }
+
+export const getUserIdBySessionToken = async (token: string): Promise<string | null> => {
+  const session = await db
+    .select({ userId: SessionTable.userId })
+    .from(SessionTable)
+    .where(and(eq(SessionTable.sessionToken, token), isNull(SessionTable.deletedAt)))
+    .limit(1)
+  if (session.length > 0 && session[0]) {
+    return session[0].userId
+  }
+  return null
+}
