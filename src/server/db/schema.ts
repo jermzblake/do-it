@@ -47,7 +47,7 @@ export const TaskTable = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => UserTable.id, { onDelete: 'cascade' }),
-    title: varchar('title', { length: 512 }),
+    name: varchar('name', { length: 512 }),
     description: text('description').notNull(),
     notes: text('notes'),
     status: varchar('status', { length: 20 }).notNull().default(TaskStatus.TODO).$type<TaskStatus>(),

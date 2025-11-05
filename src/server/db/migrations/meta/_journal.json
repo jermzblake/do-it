@@ -36,6 +36,13 @@
       "when": 1761684430553,
       "tag": "0004_alter-tasks-add-status-and-completed_at",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1762298505979,
+      "tag": "0005_alter-tasks-change-title-to-name",
+      "breakpoints": true
     }
   ]
 }

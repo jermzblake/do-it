@@ -7,7 +7,7 @@ import type { PagingParams } from '../../../types'
 const returnColumns = {
   id: TaskTable.id,
   userId: TaskTable.userId,
-  title: TaskTable.title,
+  name: TaskTable.name,
   description: TaskTable.description,
   notes: TaskTable.notes,
   status: TaskTable.status,
