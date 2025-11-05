@@ -101,7 +101,7 @@ export function TaskForm() {
     try {
       const res = await apiClient.post('/tasks', payload)
       const data = res.data
-      console.log('SUCCESS', data)
+      console.log('SUCCESS', data) //TODO show success message or replace with toast
       reset()
     } catch (error) {
       console.log('ERROR', error)
