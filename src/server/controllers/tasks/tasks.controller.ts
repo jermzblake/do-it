@@ -2,10 +2,13 @@ import { createResponse, createErrorResponse, ResponseMessage, StatusCode, Respo
 import * as TasksService from '../../services/tasks/tasks.service.ts'
 import type { TaskStatus } from '../../db/schema'
 import { TaskStatus as TaskStatusEnum } from '../../db/schema'
+import { getUserFromSessionCookie } from '../../utils/session.cookies.ts'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   try {
+    const userId = await getUserFromSessionCookie(req)
     const taskData = await req.json()
+    taskData.userId = userId
     const newTask = await TasksService.createTask(taskData)
     const response = createResponse(newTask, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
     return Response.json(response, { status: 201 })
