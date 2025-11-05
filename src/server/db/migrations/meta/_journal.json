@@ -43,6 +43,13 @@
       "when": 1762298505979,
       "tag": "0005_alter-tasks-change-title-to-name",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1762378147958,
+      "tag": "0006_alter-tasks-name-required-description-not",
+      "breakpoints": true
     }
   ]
 }
