@@ -38,6 +38,7 @@ export function TaskForm() {
   const status = watch('status')
   const priority = watch('priority')
   const dueDate = watch('dueDate')
+  const isValid = !!watch('name') && !!watch('effort')
 
   const onSubmit = async (payload: z.infer<typeof TaskFormSchema>) => {
     try {
@@ -179,7 +180,7 @@ export function TaskForm() {
       </div>
 
       {/* Submit Button */}
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      <Button type="submit" disabled={isSubmitting || !isValid} className="w-full">
         {isSubmitting ? 'Creating Task...' : 'Create Task'}
       </Button>
     </form>
