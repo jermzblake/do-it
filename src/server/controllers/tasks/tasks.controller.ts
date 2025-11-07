@@ -73,40 +73,52 @@ export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promis
   }
 }
 
-export const getTasksByStatus = async (req: Bun.BunRequest): Promise<Response> => {
+export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const url = new URL(req.url)
   const userId = url.searchParams.get('userId') || ''
   const statusParam = url.searchParams.get('status')
   const pageParam = url.searchParams.get('page')
   const pageSizeParam = url.searchParams.get('pageSize')
 
-  if (!userId || statusParam === null) {
-    const response = createErrorResponse('Missing required query parameters: userId and status', 400)
+  if (!userId) {
+    const response = createErrorResponse('Missing required query parameters: userId', 400)
     return Response.json(response, { status: 400 })
   }
-  if (
-    statusParam !== TaskStatusEnum.TODO &&
-    statusParam !== TaskStatusEnum.IN_PROGRESS &&
-    statusParam !== TaskStatusEnum.COMPLETED &&
-    statusParam !== TaskStatusEnum.BLOCKED &&
-    statusParam !== TaskStatusEnum.CANCELLED
-  ) {
-    const response = createErrorResponse(
-      'Invalid status value. Allowed values are: TODO, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED',
-      400,
-    )
-    return Response.json(response, { status: 400 })
-  }
-  const status = statusParam as TaskStatus
   const page = pageParam ? parseInt(pageParam, 10) : 1
   const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10
   const params = { page, pageSize }
 
   try {
-    const result = await TasksService.getTasksByStatus(userId, status, params)
-    const { data, ...pagination } = result
-    const response = createResponse(data, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS, pagination)
-    return Response.json(response, { status: 200 })
+    if (statusParam) {
+      if (
+        statusParam !== TaskStatusEnum.TODO &&
+        statusParam !== TaskStatusEnum.IN_PROGRESS &&
+        statusParam !== TaskStatusEnum.COMPLETED &&
+        statusParam !== TaskStatusEnum.BLOCKED &&
+        statusParam !== TaskStatusEnum.CANCELLED
+      ) {
+        const response = createErrorResponse(
+          'Invalid status value. Allowed values are: TODO, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED',
+          400,
+        )
+        return Response.json(response, { status: 400 })
+      }
+      const status = statusParam as TaskStatus
+      const result = await TasksService.getTasksByStatus(userId, status, params)
+      const { data, ...pagination } = result
+      const response = createResponse(
+        data,
+        ResponseMessage.SUCCESS,
+        StatusCode.SUCCESS,
+        ResponseCode.SUCCESS,
+        pagination,
+      )
+      return Response.json(response, { status: 200 })
+    } else {
+      const result = await TasksService.getAllTasksByUserId(userId)
+      const response = createResponse(result, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
+      return Response.json(response, { status: 200 })
+    }
   } catch (error: any) {
     const response = createErrorResponse('Failed to retrieve tasks: ' + error.message, 500)
     return Response.json(response, { status: 500 })

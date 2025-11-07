@@ -5,10 +5,8 @@ export const tasksRoutes = {
     async POST(req: Bun.BunRequest) {
       return TasksController.createTask(req)
     },
-  },
-  '/api/tasks/status': {
     async GET(req: Bun.BunRequest) {
-      return TasksController.getTasksByStatus(req)
+      return TasksController.getTasks(req)
     },
   },
   '/api/tasks/:id': {
