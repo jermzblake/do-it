@@ -8,7 +8,6 @@ export const createTask = async (taskPayload: NewTask): Promise<Task> => {
     throw new Error('User ID is required to create a task')
   }
 
-  // Validate payload using Zod schema
   const validatedData = insertTaskSchema.parse(taskPayload)
 
   try {
@@ -54,7 +53,6 @@ export const getTasksByStatus = async (
 }
 
 export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>): Promise<any> => {
-  // Validate payload using Zod schema
   const validatedData = updateTaskSchema.parse(taskPayload)
 
   try {

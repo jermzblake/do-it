@@ -2,7 +2,6 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { TaskTable } from '../db/schema'
 import { z } from 'zod'
 
-// Generate base schemas from Drizzle table
 export const insertTaskSchema = createInsertSchema(TaskTable, {
   name: z.string().min(1, 'Task name is required').max(512, 'Task name must be 512 characters or less'),
   description: z.string().optional(),
@@ -23,7 +22,6 @@ export const updateTaskSchema = insertTaskSchema.partial().omit({
 
 export const selectTaskSchema = createSelectSchema(TaskTable)
 
-// Type inference
 export type InsertTaskSchema = z.infer<typeof insertTaskSchema>
 export type UpdateTaskSchema = z.infer<typeof updateTaskSchema>
 export type SelectTaskSchema = z.infer<typeof selectTaskSchema>

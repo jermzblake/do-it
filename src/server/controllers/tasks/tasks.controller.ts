@@ -14,14 +14,12 @@ export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
     const response = createResponse(newTask, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
     return Response.json(response, { status: 201 })
   } catch (error: any) {
-    // Check if it's a Zod validation error
     if (error instanceof z.ZodError) {
       const formattedErrors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ')
       const response = createErrorResponse(`Validation error: ${formattedErrors}`, 400)
       return Response.json(response, { status: 400 })
     }
 
-    // Check for other validation errors
     if (
       error.message.includes('Invalid field') ||
       error.message.includes('must be') ||
@@ -51,14 +49,12 @@ export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
     const response = createResponse(updatedTask, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
     return Response.json(response, { status: 200 })
   } catch (error: any) {
-    // Check if it's a Zod validation error
     if (error instanceof z.ZodError) {
       const formattedErrors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ')
       const response = createErrorResponse(`Validation error: ${formattedErrors}`, 400)
       return Response.json(response, { status: 400 })
     }
 
-    // Check for other validation errors
     if (
       error.message.includes('Invalid field') ||
       error.message.includes('must be') ||
