@@ -98,17 +98,9 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
 
   try {
     if (statusParam) {
-      if (
-        statusParam !== TaskStatusEnum.TODO &&
-        statusParam !== TaskStatusEnum.IN_PROGRESS &&
-        statusParam !== TaskStatusEnum.COMPLETED &&
-        statusParam !== TaskStatusEnum.BLOCKED &&
-        statusParam !== TaskStatusEnum.CANCELLED
-      ) {
-        const response = createErrorResponse(
-          'Invalid status value. Allowed values are: TODO, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED',
-          400,
-        )
+      if (!(Object.values(TaskStatusEnum) as TaskStatus[]).includes(statusParam as TaskStatus)) {
+        const validValues = Object.values(TaskStatusEnum).join(', ')
+        const response = createErrorResponse('Invalid status value. Allowed values are: ' + validValues, 400)
         return Response.json(response, { status: 400 })
       }
       const status = statusParam as TaskStatus
