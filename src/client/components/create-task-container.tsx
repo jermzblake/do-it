@@ -11,30 +11,10 @@ export const CreateTaskContainer = () => {
     setShowCreateTaskForm(totalTaskCount < 1)
   }, [totalTaskCount])
 
-  const CreateTaskButton = () => {
-    if (!showCreateTaskForm) {
-      return <Button onClick={() => setShowCreateTaskForm(true)}>Create Task</Button>
-    } else {
-      return null
-    }
-  }
-
-  const CreateTaskForm = () => {
-    if (showCreateTaskForm) {
-      return <TaskForm />
-    } else {
-      return null
-    }
-  }
-
   return (
     <div>
-      <CreateTaskButton />
-      <CreateTaskForm />
+      {!showCreateTaskForm && <Button onClick={() => setShowCreateTaskForm(true)}>Create Task</Button>}
+      {showCreateTaskForm && <TaskForm setShowForm={setShowCreateTaskForm} />}
     </div>
   )
-
-  //   let showCreateTaskForm = totalTaskCount < 1;
-
-  //   return showCreateTaskForm ? <TaskForm /> : null;
 }
