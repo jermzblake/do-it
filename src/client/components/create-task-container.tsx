@@ -8,7 +8,6 @@ export const CreateTaskContainer = () => {
   const [showCreateTaskForm, setShowCreateTaskForm] = React.useState(totalTaskCount < 1)
 
   React.useEffect(() => {
-    console.log({ totalTaskCount })
     setShowCreateTaskForm(totalTaskCount < 1)
   }, [totalTaskCount])
 
