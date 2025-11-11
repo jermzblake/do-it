@@ -3,6 +3,7 @@ import * as TasksService from '../../services/tasks/tasks.service.ts'
 import type { TaskStatus } from '../../db/schema'
 import { TaskStatus as TaskStatusEnum } from '../../db/schema'
 import { getUserFromSessionCookie } from '../../utils/session.cookies.ts'
+import { z } from 'zod'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   try {
@@ -13,6 +14,22 @@ export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
     const response = createResponse(newTask, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
     return Response.json(response, { status: 201 })
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      const formattedErrors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ')
+      const response = createErrorResponse(`Validation error: ${formattedErrors}`, 400)
+      return Response.json(response, { status: 400 })
+    }
+
+    if (
+      error.message.includes('Invalid field') ||
+      error.message.includes('must be') ||
+      error.message.includes('is required') ||
+      error.message.includes('Invalid task status')
+    ) {
+      const response = createErrorResponse('Validation error: ' + error.message, 400)
+      return Response.json(response, { status: 400 })
+    }
+
     const response = createErrorResponse('Failed to create task: ' + error.message, 500)
     return Response.json(response, { status: 500 })
   }
@@ -32,6 +49,22 @@ export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
     const response = createResponse(updatedTask, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
     return Response.json(response, { status: 200 })
   } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      const formattedErrors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ')
+      const response = createErrorResponse(`Validation error: ${formattedErrors}`, 400)
+      return Response.json(response, { status: 400 })
+    }
+
+    if (
+      error.message.includes('Invalid field') ||
+      error.message.includes('must be') ||
+      error.message.includes('is required') ||
+      error.message.includes('Invalid task status')
+    ) {
+      const response = createErrorResponse('Validation error: ' + error.message, 400)
+      return Response.json(response, { status: 400 })
+    }
+
     const response = createErrorResponse('Failed to update task: ' + error.message, 500)
     return Response.json(response, { status: 500 })
   }
@@ -73,40 +106,52 @@ export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promis
   }
 }
 
-export const getTasksByStatus = async (req: Bun.BunRequest): Promise<Response> => {
+export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const url = new URL(req.url)
   const userId = url.searchParams.get('userId') || ''
   const statusParam = url.searchParams.get('status')
   const pageParam = url.searchParams.get('page')
   const pageSizeParam = url.searchParams.get('pageSize')
 
-  if (!userId || statusParam === null) {
-    const response = createErrorResponse('Missing required query parameters: userId and status', 400)
+  if (!userId) {
+    const response = createErrorResponse('Missing required query parameters: userId', 400)
     return Response.json(response, { status: 400 })
   }
-  if (
-    statusParam !== TaskStatusEnum.TODO &&
-    statusParam !== TaskStatusEnum.IN_PROGRESS &&
-    statusParam !== TaskStatusEnum.COMPLETED &&
-    statusParam !== TaskStatusEnum.BLOCKED &&
-    statusParam !== TaskStatusEnum.CANCELLED
-  ) {
-    const response = createErrorResponse(
-      'Invalid status value. Allowed values are: TODO, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED',
-      400,
-    )
-    return Response.json(response, { status: 400 })
-  }
-  const status = statusParam as TaskStatus
   const page = pageParam ? parseInt(pageParam, 10) : 1
   const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10
   const params = { page, pageSize }
 
   try {
-    const result = await TasksService.getTasksByStatus(userId, status, params)
-    const { data, ...pagination } = result
-    const response = createResponse(data, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS, pagination)
-    return Response.json(response, { status: 200 })
+    if (statusParam) {
+      if (
+        statusParam !== TaskStatusEnum.TODO &&
+        statusParam !== TaskStatusEnum.IN_PROGRESS &&
+        statusParam !== TaskStatusEnum.COMPLETED &&
+        statusParam !== TaskStatusEnum.BLOCKED &&
+        statusParam !== TaskStatusEnum.CANCELLED
+      ) {
+        const response = createErrorResponse(
+          'Invalid status value. Allowed values are: TODO, IN_PROGRESS, COMPLETED, BLOCKED, CANCELLED',
+          400,
+        )
+        return Response.json(response, { status: 400 })
+      }
+      const status = statusParam as TaskStatus
+      const result = await TasksService.getTasksByStatus(userId, status, params)
+      const { data, ...pagination } = result
+      const response = createResponse(
+        data,
+        ResponseMessage.SUCCESS,
+        StatusCode.SUCCESS,
+        ResponseCode.SUCCESS,
+        pagination,
+      )
+      return Response.json(response, { status: 200 })
+    } else {
+      const result = await TasksService.getAllTasksByUserId(userId)
+      const response = createResponse(result, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
+      return Response.json(response, { status: 200 })
+    }
   } catch (error: any) {
     const response = createErrorResponse('Failed to retrieve tasks: ' + error.message, 500)
     return Response.json(response, { status: 500 })

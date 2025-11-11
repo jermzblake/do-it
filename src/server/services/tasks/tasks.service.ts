@@ -1,15 +1,17 @@
 import * as TasksRepository from '../../repositories/tasks/tasks.repository'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import type { PagingParams } from '../../../types/index'
-import { TaskStatus as TaskStatusEnum } from '../../db/schema'
+import { insertTaskSchema, updateTaskSchema } from '../../validators/task.validator'
 
 export const createTask = async (taskPayload: NewTask): Promise<Task> => {
   if (!taskPayload.userId) {
     throw new Error('User ID is required to create a task')
   }
-  handleTaskStatusCheck(taskPayload.status as string)
+
+  const validatedData = insertTaskSchema.parse(taskPayload)
+
   try {
-    const newTask = await TasksRepository.createTask(taskPayload)
+    const newTask = await TasksRepository.createTask(validatedData)
     if (!newTask) {
       throw new Error('Failed to create task')
     }
@@ -51,9 +53,10 @@ export const getTasksByStatus = async (
 }
 
 export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>): Promise<any> => {
-  handleTaskStatusCheck(taskPayload.status as string)
+  const validatedData = updateTaskSchema.parse(taskPayload)
+
   try {
-    const updatedTask = await TasksRepository.updateTaskById(id, taskPayload)
+    const updatedTask = await TasksRepository.updateTaskById(id, validatedData)
     if (!updatedTask) {
       throw new Error('No task found to update with the provided ID')
     }
@@ -68,15 +71,5 @@ export const deleteTaskById = async (id: string): Promise<void> => {
     await TasksRepository.deleteTaskById(id)
   } catch (error) {
     throw new Error('Error deleting task: ' + (error as Error).message)
-  }
-}
-
-/* Helper functions */
-const handleTaskStatusCheck = (status: string): void => {
-  if (!status) {
-    return
-  }
-  if (!Object.values(TaskStatusEnum).includes(status as TaskStatusEnum)) {
-    throw new Error('Invalid task status value')
   }
 }
