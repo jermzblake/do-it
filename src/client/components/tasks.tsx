@@ -15,7 +15,7 @@ export const Tasks = () => {
     isPlaceholderData,
   } = useTasksByStatus({ status, userId, page, pageSize })
 
-  const tasks = tasksResponse?.data
+  const tasks = tasksResponse?.data as Task[]
   const hasMore = tasksResponse?.hasMore
 
   if (isLoading) {
@@ -30,7 +30,7 @@ export const Tasks = () => {
     <div>
       <h1>Tasks</h1>
       <ul>
-        {(tasks as Task[]).map((task: any) => (
+        {tasks?.map((task: Task) => (
           <li key={task.id}>{task.name}</li>
         ))}
       </ul>
