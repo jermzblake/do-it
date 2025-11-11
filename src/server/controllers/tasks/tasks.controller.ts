@@ -4,6 +4,7 @@ import type { TaskStatus } from '../../db/schema'
 import { TaskStatus as TaskStatusEnum } from '../../db/schema'
 import { getUserFromSessionCookie } from '../../utils/session.cookies.ts'
 import { z } from 'zod'
+import { handleValidationError } from '../../utils/validation-error-handler.ts'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   try {
@@ -14,21 +15,8 @@ export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
     const response = createResponse(newTask, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
     return Response.json(response, { status: 201 })
   } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      const formattedErrors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ')
-      const response = createErrorResponse(`Validation error: ${formattedErrors}`, 400)
-      return Response.json(response, { status: 400 })
-    }
-
-    if (
-      error.message.includes('Invalid field') ||
-      error.message.includes('must be') ||
-      error.message.includes('is required') ||
-      error.message.includes('Invalid task status')
-    ) {
-      const response = createErrorResponse('Validation error: ' + error.message, 400)
-      return Response.json(response, { status: 400 })
-    }
+    const validation = handleValidationError(error)
+    if (validation) return validation
 
     const response = createErrorResponse('Failed to create task: ' + error.message, 500)
     return Response.json(response, { status: 500 })
@@ -49,21 +37,8 @@ export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
     const response = createResponse(updatedTask, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
     return Response.json(response, { status: 200 })
   } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      const formattedErrors = error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join(', ')
-      const response = createErrorResponse(`Validation error: ${formattedErrors}`, 400)
-      return Response.json(response, { status: 400 })
-    }
-
-    if (
-      error.message.includes('Invalid field') ||
-      error.message.includes('must be') ||
-      error.message.includes('is required') ||
-      error.message.includes('Invalid task status')
-    ) {
-      const response = createErrorResponse('Validation error: ' + error.message, 400)
-      return Response.json(response, { status: 400 })
-    }
+    const validation = handleValidationError(error)
+    if (validation) return validation
 
     const response = createErrorResponse('Failed to update task: ' + error.message, 500)
     return Response.json(response, { status: 500 })
