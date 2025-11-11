@@ -1,6 +1,6 @@
-import { fetchTasksByStatus } from '@/client/services/tasks.service'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { TasksByStatusProps } from '@/types/tasks.types'
+import { fetchTasksByStatus, createTask } from '@/client/services/tasks.service'
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import type { Task, TasksByStatusProps } from '@/types/tasks.types'
 
 export const tasksKeys = {
   all: ['tasks'],
@@ -15,5 +15,17 @@ export const useTasksByStatus = ({ status, userId, page, pageSize = 5 }: TasksBy
     queryKey: tasksKeys.statusList({ status, userId, page, pageSize }),
     queryFn: () => fetchTasksByStatus({ status, userId, page, pageSize }),
     placeholderData: keepPreviousData,
+  })
+}
+
+export const useCreateTask = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (taskPayload: Partial<Task>) => createTask(taskPayload),
+    onSuccess: () => {
+      // Invalidate and refetch all task lists
+      queryClient.invalidateQueries({ queryKey: tasksKeys.lists() })
+    },
   })
 }
