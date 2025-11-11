@@ -8,12 +8,7 @@ export const Tasks = () => {
   const userId = '00233001-6292-4c8c-a27d-3094debec0bb' //TODO remove hard coded userId
   const status = 'todo' //TODO move status to state?
 
-  const {
-    data: tasksResponse,
-    isLoading,
-    isError,
-    isPlaceholderData,
-  } = useTasksByStatus({ status, userId, page, pageSize })
+  const { data: tasksResponse, isLoading, isError, isPlaceholderData } = useTasksByStatus({ status, page, pageSize })
 
   const tasks = tasksResponse?.data as Task[]
   const hasMore = tasksResponse?.hasMore

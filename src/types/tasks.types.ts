@@ -14,7 +14,6 @@ export interface Task {
 
 export interface TasksByStatusProps {
   status: string
-  userId: string
   page?: number
   pageSize?: number
 }

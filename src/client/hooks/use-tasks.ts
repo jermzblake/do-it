@@ -10,10 +10,10 @@ export const tasksKeys = {
   byUserId: (userId: string) => [...tasksKeys.all, userId],
 }
 
-export const useTasksByStatus = ({ status, userId, page, pageSize = 5 }: TasksByStatusProps) => {
+export const useTasksByStatus = ({ status, page, pageSize = 5 }: TasksByStatusProps) => {
   return useQuery({
-    queryKey: tasksKeys.statusList({ status, userId, page, pageSize }),
-    queryFn: () => fetchTasksByStatus({ status, userId, page, pageSize }),
+    queryKey: tasksKeys.statusList({ status, page, pageSize }),
+    queryFn: () => fetchTasksByStatus({ status, page, pageSize }),
     placeholderData: keepPreviousData,
   })
 }

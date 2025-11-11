@@ -83,7 +83,7 @@ export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promis
 
 export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const url = new URL(req.url)
-  const userId = url.searchParams.get('userId') || ''
+  const userId = await getUserFromSessionCookie(req)
   const statusParam = url.searchParams.get('status')
   const pageParam = url.searchParams.get('page')
   const pageSizeParam = url.searchParams.get('pageSize')
