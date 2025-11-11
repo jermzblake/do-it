@@ -4,27 +4,26 @@ import { Label } from '@/client/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
 import { Textarea } from '@/client/components/ui/textarea'
 import { DateTimePicker } from '@/client/components/datetime-picker'
-import { useRef, type FormEvent } from 'react'
-import { apiClient } from '../lib/axios'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { TaskFormSchema } from '../../types/form.types'
+import { useCreateTask } from '@/client/hooks/use-tasks'
 
 interface TaskFormProps {
   setShowForm?: (show: boolean) => void
 }
 
 export function TaskForm({ setShowForm }: TaskFormProps) {
+  const createTaskMutation = useCreateTask()
+
   const {
     register,
     handleSubmit,
-    control,
     reset,
     setValue,
     watch,
     formState: { errors, isSubmitting },
-    setError,
   } = useForm<z.infer<typeof TaskFormSchema>>({
     resolver: zodResolver(TaskFormSchema),
     defaultValues: {
@@ -46,13 +45,13 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
 
   const onSubmit = async (payload: z.infer<typeof TaskFormSchema>) => {
     try {
-      const res = await apiClient.post('/tasks', payload) //TODO move this to a api service (with react query?)
-      const data = res.data
-      console.log('SUCCESS', data) //TODO show success message or replace with toast
+      await createTaskMutation.mutateAsync(payload)
+      console.log('SUCCESS: Task created successfully')
       reset()
       setShowForm?.(false)
     } catch (error) {
-      console.log('ERROR', error)
+      console.log('ERROR:', error)
+      // You can set form errors here if needed
     }
   }
 
@@ -185,8 +184,8 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
       </div>
 
       {/* Submit Button */}
-      <Button type="submit" disabled={isSubmitting || !isValid} className="w-full">
-        {isSubmitting ? 'Creating Task...' : 'Create Task'}
+      <Button type="submit" disabled={isSubmitting || !isValid || createTaskMutation.isPending} className="w-full">
+        {createTaskMutation.isPending ? 'Creating Task...' : 'Create Task'}
       </Button>
     </form>
   )
