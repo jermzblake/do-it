@@ -11,7 +11,11 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { TaskFormSchema } from '../../types/form.types'
 
-export function TaskForm() {
+interface TaskFormProps {
+  setShowForm?: (show: boolean) => void
+}
+
+export function TaskForm({ setShowForm }: TaskFormProps) {
   const {
     register,
     handleSubmit,
@@ -46,6 +50,7 @@ export function TaskForm() {
       const data = res.data
       console.log('SUCCESS', data) //TODO show success message or replace with toast
       reset()
+      setShowForm?.(false)
     } catch (error) {
       console.log('ERROR', error)
     }
