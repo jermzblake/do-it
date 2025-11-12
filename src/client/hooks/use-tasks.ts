@@ -1,4 +1,4 @@
-import { fetchTasksByStatus, createTask } from '@/client/services/tasks.service'
+import { fetchTasksByStatus, createTask, updateTaskById, deleteTaskById } from '@/client/services/tasks.service'
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Task, TasksByStatusProps } from '@/types/tasks.types'
 
@@ -23,6 +23,32 @@ export const useCreateTask = () => {
 
   return useMutation({
     mutationFn: (taskPayload: Partial<Task>) => createTask(taskPayload),
+    onSuccess: () => {
+      // Invalidate and refetch all task lists
+      queryClient.invalidateQueries({ queryKey: tasksKeys.lists() })
+    },
+  })
+}
+
+export const useUpdateTask = (taskId: string) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (taskPayload: Partial<Task>) => updateTaskById(taskId, taskPayload),
+    onSuccess: () => {
+      // Invalidate and refetch all task lists
+      queryClient.invalidateQueries({ queryKey: tasksKeys.lists() })
+      // Invalidate and refetch the specific task
+      queryClient.invalidateQueries({ queryKey: tasksKeys.byId(taskId) })
+    },
+  })
+}
+
+export const useDeleteTask = (taskId: string) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => deleteTaskById(taskId),
     onSuccess: () => {
       // Invalidate and refetch all task lists
       queryClient.invalidateQueries({ queryKey: tasksKeys.lists() })
