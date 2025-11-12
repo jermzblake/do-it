@@ -17,3 +17,5 @@ export interface TasksByStatusProps {
   page?: number
   pageSize?: number
 }
+
+export type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'blocked' | 'cancelled'
