@@ -22,7 +22,7 @@ const TaskDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6">
       <div className="max-w-[1600px] mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Task Dashboard</h1>
+          {/* <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard</h1> */}
           <p className="text-slate-600">Manage and track your tasks efficiently</p>
         </div>
 
