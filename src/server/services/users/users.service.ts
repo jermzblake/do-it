@@ -19,7 +19,7 @@ export const createUser = async (userPayload: NewUser): Promise<User> => {
   }
 }
 
-export const getUserById = async (id: string): Promise<User | null> => {
+export const getUserById = async (id: string): Promise<UserResponse | null> => {
   try {
     const user = await UsersRepository.getUserById(id)
     return user
