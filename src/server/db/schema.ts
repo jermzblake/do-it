@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, varchar, boolean, pgEnum, integer, timestamp, smallint, check } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, varchar, index, pgEnum, timestamp, smallint, check } from 'drizzle-orm/pg-core'
 import { timestampColumns } from './columns.helpers'
 import { sql } from 'drizzle-orm'
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
@@ -66,6 +66,8 @@ export const TaskTable = pgTable(
       'blocked_check1',
       sql`${table.status} != ${sql.raw(`'${TaskStatus.BLOCKED}'`)} OR ${table.blockedReason} IS NOT NULL`,
     ),
+    index('tasks_user_status_idx').on(table.userId, table.status, table.deletedAt),
+    index('tasks_user_status_sort_idx').on(table.userId, table.status, table.dueDate, table.priority, table.effort),
   ],
 )
 
