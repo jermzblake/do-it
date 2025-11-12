@@ -113,10 +113,8 @@ export const useDeleteTask = (taskId: string) => {
   return useMutation({
     mutationFn: () => deleteTaskById(taskId),
     onMutate: async () => {
-      // Cancel outgoing queries
       await queryClient.cancelQueries({ queryKey: tasksKeys.lists() })
 
-      // Snapshot all queries
       const previousQueries = queryClient.getQueriesData<{ data: Task[] }>({
         queryKey: tasksKeys.lists(),
       })
@@ -138,7 +136,6 @@ export const useDeleteTask = (taskId: string) => {
       return { previousQueries }
     },
     onError: (err, variables, context) => {
-      // Rollback on error
       if (context?.previousQueries) {
         context.previousQueries.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data)
