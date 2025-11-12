@@ -1,0 +1,119 @@
+# Testing Guide
+
+This project uses Bun's built-in test runner with React Testing Library and a lightweight DOM provided by `happy-dom`.
+
+## What’s covered
+
+Focused tests validate our React Query hooks and cache behavior:
+
+- `useUpdateTask`
+  - Non-status updates (e.g., name): optimistic in-place update only in the list containing the task; no refetch needed
+  - Status changes: task is removed from the old column immediately; only the new status column refetches
+- `useCreateTask`
+  - Only the created task's status column refetches
+  - Pagination: no optimistic insertion; data updates only after the refetch completes
+- `useDeleteTask`
+  - Optimistically removes the task from all lists; no refetch
+
+Test files live here:
+
+- Hook tests: `src/client/tests/use-tasks.test.tsx`
+- Test environment setup: `tests/setup.ts`
+
+## How to run
+
+Run with the preload setup to install the DOM environment:
+
+```sh
+bun test --preload ./tests/setup.ts
+```
+
+Alternatively, use the npm script:
+
+```sh
+bun run test
+```
+
+## Test environment
+
+- DOM: [`happy-dom`](https://github.com/capricorn86/happy-dom)
+- Rendering and assertions: [`@testing-library/react`](https://testing-library.com/docs/react-testing-library/intro/), [`@testing-library/dom`]
+- Query layer: [`@tanstack/react-query`]
+
+The preload file `tests/setup.ts`:
+
+- Creates a `Window` instance and attaches `window`, `document`, and common globals
+- Polyfills `requestAnimationFrame`
+- Mutes noisy `act(...)` warnings to keep logs readable
+
+## Patterns used in tests
+
+- Provide a `QueryClientProvider` wrapper for hooks and components:
+
+```tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+function createWrapper(qc: QueryClient) {
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+  }
+}
+```
+
+- Seed React Query cache with realistic API responses:
+
+```ts
+import type { ApiResponse } from '@/types/api.types'
+
+function makeResponse<T>(data: T, extra?: Partial<ApiResponse<T>>): ApiResponse<T> {
+  return {
+    data,
+    metaData: {
+      message: 'ok',
+      status: 'SUCCESS',
+      timestamp: new Date().toISOString(),
+      ...(extra?.metaData ?? {}),
+    },
+    ...(extra ?? {}),
+  } as ApiResponse<T>
+}
+```
+
+- Monkey-patch network calls on the shared `apiClient` to avoid real HTTP:
+
+```ts
+import { apiClient } from '@/client/lib/axios'
+
+let originalGet = apiClient.get.bind(apiClient)
+
+// stub
+// @ts-ignore
+apiClient.get = async (url: string) => makeResponse(/* ... */)
+
+// restore in afterEach
+// @ts-ignore
+apiClient.get = originalGet
+```
+
+- Distinguish initial fetches vs. mutation-triggered refetches: wait for initial GETs, then reset counters before asserting refetch behavior.
+
+## Adding new tests
+
+1. Create a new test in `src/client/tests/` (e.g., `some-hook.test.tsx`).
+2. Build a `QueryClient` and wrapper, seed any needed cache entries.
+3. Stub `apiClient` methods (`get`, `post`, `put`, `delete`) as needed.
+4. Use `renderHook` or `render` with the wrapper to exercise the hook/component.
+5. Assert cache updates, network calls, and UI as appropriate.
+
+## Troubleshooting
+
+- "Cannot find module '@testing-library/react'":
+  - Run `bun install` to ensure dev dependencies are installed.
+- Missing DOM APIs:
+  - Ensure you run tests with `--preload ./tests/setup.ts`.
+- Flaky timing with refetches:
+  - Prefer `await waitFor(...)` and, where useful, deferred promises to control resolution order.
+
+## CI
+
+The `package.json` includes a `test` script that runs Bun tests with the preload setup. Integrate this command in your CI workflow.
