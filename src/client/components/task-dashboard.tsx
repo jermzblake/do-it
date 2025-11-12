@@ -7,6 +7,7 @@ import { EditTaskDialog } from './edit-task-dialog'
 import { DeleteTaskDialog } from './delete-task-dialog'
 import { StatusColumn } from './status-column'
 import { BlockReasonDialog } from './block-reason-dialog'
+import { MobileStatusSection } from './mobile-status-section'
 
 const TaskDashboard = () => {
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -51,7 +52,8 @@ const TaskDashboard = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto pb-4">
+        {/* Desktop Kanban View */}
+        <div className="hidden md:block overflow-x-auto pb-4">
           <div className="flex gap-4 min-w-min">
             {statuses.map((status) => (
               <StatusColumn
@@ -65,6 +67,21 @@ const TaskDashboard = () => {
               />
             ))}
           </div>
+        </div>
+
+        {/* Mobile List View */}
+        <div className="md:hidden">
+          {statuses.map((status) => (
+            <MobileStatusSection
+              key={status}
+              status={status}
+              filterPriority={filterPriority}
+              searchQuery={searchQuery}
+              setEditingTask={setEditingTask}
+              setDeleteTaskId={setDeleteTaskId}
+              setTaskToBlockId={setTaskToBlockId}
+            />
+          ))}
         </div>
       </div>
 
