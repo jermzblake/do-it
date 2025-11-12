@@ -63,7 +63,7 @@ export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
   try {
     await TasksService.deleteTaskById(taskId)
     const response = createResponse(null, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
-    return Response.json(response, { status: 204 })
+    return Response.json(response)
   } catch (error: any) {
     const response = createErrorResponse('Failed to delete task: ' + error.message, 500)
     return Response.json(response, { status: 500 })
