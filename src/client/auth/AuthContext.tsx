@@ -42,14 +42,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     apiClient
       .get<{
         authenticated: boolean
-        userId: string
-        name: string
-        email: string
+        user: {
+          id: string
+          name: string
+          email: string
+        }
       }>('/auth/me')
       .then((response) => {
         if (response.data?.authenticated) {
           const data = response.data
-          setUser({ id: data.userId, name: data.name, email: data.email })
+          console.log({ data })
+          setUser({ id: data.user.id, name: data.user.name, email: data.user.email })
           setIsAuthenticated(true)
         } else {
           setIsAuthenticated(false)
