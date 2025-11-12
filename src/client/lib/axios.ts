@@ -75,17 +75,16 @@ class ApiClient {
     )
   }
 
-  private isValidResponseSchema(data: any): data is ApiResponse<unknown> {
-    return (
-      data &&
-      typeof data === 'object' &&
-      'data' in data &&
-      'metaData' in data &&
-      typeof data.metaData === 'object' &&
-      'message' in data.metaData &&
-      'status' in data.metaData &&
-      'timestamp' in data.metaData
-    )
+  private isValidResponseSchema(payload: any): payload is ApiResponse<unknown | null> {
+    if (!payload || typeof payload !== 'object') return false
+
+    const hasDataKey = 'data' in payload
+    const meta = (payload as any).metaData
+
+    const hasValidMeta =
+      meta !== null && typeof meta === 'object' && 'message' in meta && 'status' in meta && 'timestamp' in meta
+
+    return hasDataKey && hasValidMeta
   }
 
   private getFullUrl(url: string, config: RequestConfig = {}): string {
