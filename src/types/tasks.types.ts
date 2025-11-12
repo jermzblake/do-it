@@ -5,11 +5,11 @@ export interface Task {
   status: string
   priority: number
   effort: number
-  dueDate?: Date
+  dueDate?: Date | string
   blockedReason?: string
   notes?: string
-  startedAt?: Date
-  completedAt?: Date
+  startedAt?: Date | string
+  completedAt?: Date | string
 }
 
 export interface TasksByStatusProps {
