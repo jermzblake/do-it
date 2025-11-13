@@ -121,7 +121,7 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
               <Select
                 onValueChange={(value) => setValue('priority', parseInt(value))}
                 defaultValue={priority?.toString()}
-                {...register('effort', { valueAsNumber: true })}
+                {...register('priority', { valueAsNumber: true })}
               >
                 <SelectTrigger>
                   <SelectValue />
