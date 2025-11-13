@@ -11,7 +11,6 @@ import {
 } from './ui/alert-dialog'
 import { Loader2 } from 'lucide-react'
 import { Textarea } from '@/client/components/ui/textarea'
-import { Button } from '@/client/components/ui/button'
 import { useUpdateTask } from '@/client/hooks/use-tasks'
 
 interface BlockReasonDialogProps {
