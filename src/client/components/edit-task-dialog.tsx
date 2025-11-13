@@ -205,7 +205,7 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
             <Button variant="outline" onClick={() => setEditingTask(null)} disabled={updateTask.isPending}>
               Cancel
             </Button>
-            <Button type="submit" disabled={updateTask.isPending || !isValid}>
+            <Button type="submit" disabled={updateTask.isPending || !isValid || isSubmitting}>
               {updateTask.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Changes
             </Button>
