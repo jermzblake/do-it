@@ -168,7 +168,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
               onClick={() =>
                 handleQuickStatusUpdate('in_progress', {
                   blockedReason: '',
-                  notes: `${task.notes} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
+                  notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
                 })
               }
               disabled={updateTask.isPending}
