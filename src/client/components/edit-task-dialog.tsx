@@ -58,7 +58,6 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
     }
   }, [editingTask, reset])
 
-  const status = watch('status')
   const priority = watch('priority')
   const effort = watch('effort')
   const dueDate = watch('dueDate')
