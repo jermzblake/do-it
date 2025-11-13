@@ -26,7 +26,7 @@ export const BlockReasonDialog = ({ taskToBlockId, setTaskToBlockId }: BlockReas
 
   const handleSave = async () => {
     try {
-      await updateTask.mutateAsync({ blockedReason })
+      await updateTask.mutateAsync({ blockedReason, status: 'blocked' })
       setTaskToBlockId(null)
       setBlockedReason('')
     } catch (error) {
