@@ -24,7 +24,6 @@ export const DeleteTaskDialog = ({ deleteTaskId, setDeleteTaskId }: DeleteTaskDi
 
   const handleDelete = async () => {
     if (!deleteTaskId) return
-    console.log('Deleting task with ID:', deleteTaskId)
     await deleteTask.mutateAsync()
     setDeleteTaskId(null)
   }
