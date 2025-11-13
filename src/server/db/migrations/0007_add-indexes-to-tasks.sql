@@ -1,0 +1,2 @@
+CREATE INDEX "tasks_user_status_idx" ON "tasks" USING btree ("user_id","status","deleted_at");--> statement-breakpoint
+CREATE INDEX "tasks_user_status_sort_idx" ON "tasks" USING btree ("user_id","status","due_date","priority","effort");

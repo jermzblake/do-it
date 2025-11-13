@@ -1,6 +1,6 @@
 import { db } from '../../db/db'
 import { TaskTable } from '../../db/schema'
-import type { NewTask, TaskStatus } from '../../db/schema'
+import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import { eq, and, sql, count, isNull } from 'drizzle-orm'
 import type { PagingParams } from '../../../types'
 
@@ -43,7 +43,29 @@ export const getTaskById = async (id: string) => {
   return task[0] || null
 }
 
-export const getAllTasksByUserId = async (userId: string) => {
+export const getAllTasksByUserId = async (userId: string, params?: PagingParams): Promise<PagingParams | Task[]> => {
+  if (params) {
+    const offSet = (((params.page as number) < 1 ? 1 : params.page) - 1) * params.pageSize
+    const limit = params.pageSize
+    const tasks = await db
+      .select()
+      .from(TaskTable)
+      .where(and(eq(TaskTable.userId, userId), isNull(TaskTable.deletedAt)))
+      .orderBy(
+        sql`${TaskTable.dueDate} ASC NULLS LAST,
+          ${TaskTable.priority} DESC,
+          ${TaskTable.effort} ASC`,
+      )
+      .offset(offSet)
+      .limit(limit)
+    const totalCount = await db
+      .select({ value: count(TaskTable.id) })
+      .from(TaskTable)
+      .where(and(eq(TaskTable.userId, userId), isNull(TaskTable.deletedAt)))
+    params.totalCount = Number(totalCount[0]?.value || 0)
+    params.data = tasks
+    return params
+  }
   const tasks = await db.select().from(TaskTable).where(eq(TaskTable.userId, userId))
   return tasks
 }

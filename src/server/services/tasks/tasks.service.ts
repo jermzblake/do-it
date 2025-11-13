@@ -30,9 +30,9 @@ export const getTaskById = async (id: string): Promise<Task | null> => {
   }
 }
 
-export const getAllTasksByUserId = async (userId: string): Promise<Task[]> => {
+export const getAllTasksByUserId = async (userId: string, params?: PagingParams): Promise<PagingParams | Task[]> => {
   try {
-    const db_response = await TasksRepository.getAllTasksByUserId(userId)
+    const db_response = await TasksRepository.getAllTasksByUserId(userId, params)
     return db_response
   } catch (error) {
     throw new Error('Error retrieving tasks: ' + (error as Error).message)

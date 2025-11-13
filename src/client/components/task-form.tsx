@@ -40,6 +40,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
 
   const status = watch('status')
   const priority = watch('priority')
+  const effort = watch('effort')
   const dueDate = watch('dueDate')
   const isValid = !!watch('name') && !!watch('effort')
 
@@ -128,7 +129,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
           <Select
             onValueChange={(value) => setValue('priority', parseInt(value))}
             defaultValue={priority?.toString()}
-            {...register('effort', { valueAsNumber: true })}
+            {...register('priority', { valueAsNumber: true })}
           >
             <SelectTrigger className={errors.priority ? 'border-red-500' : ''}>
               <SelectValue placeholder="Select priority" />
@@ -146,15 +147,22 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
           <Label htmlFor="effort">
             Effort <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="effort"
-            type="number"
+          <Select
+            onValueChange={(value) => setValue('effort', parseInt(value))}
+            defaultValue={effort?.toString()}
             {...register('effort', { valueAsNumber: true })}
-            placeholder="1-5"
-            min="1"
-            max="5"
-            className={errors.effort ? 'border-red-500' : ''}
-          />
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="1 (min) - 5 (max)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1 - Minimal</SelectItem>
+              <SelectItem value="2">2 - Low</SelectItem>
+              <SelectItem value="3">3 - Medium</SelectItem>
+              <SelectItem value="4">4 - High</SelectItem>
+              <SelectItem value="5">5 - Maximum</SelectItem>
+            </SelectContent>
+          </Select>
           {errors.effort && <p className="text-sm text-red-500">{errors.effort.message}</p>}
         </div>
       </div>

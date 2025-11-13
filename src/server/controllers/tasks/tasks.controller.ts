@@ -1,4 +1,11 @@
-import { createResponse, createErrorResponse, ResponseMessage, StatusCode, ResponseCode } from '../../utils/response.ts'
+import {
+  createResponse,
+  createErrorResponse,
+  ResponseMessage,
+  StatusCode,
+  ResponseCode,
+  type PagingParams,
+} from '../../utils/response.ts'
 import * as TasksService from '../../services/tasks/tasks.service.ts'
 import type { TaskStatus } from '../../db/schema'
 import { TaskStatus as TaskStatusEnum } from '../../db/schema'
@@ -56,7 +63,7 @@ export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
   try {
     await TasksService.deleteTaskById(taskId)
     const response = createResponse(null, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
-    return Response.json(response, { status: 204 })
+    return Response.json(response)
   } catch (error: any) {
     const response = createErrorResponse('Failed to delete task: ' + error.message, 500)
     return Response.json(response, { status: 500 })
@@ -92,9 +99,14 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
     const response = createErrorResponse('Missing required query parameters: userId', 400)
     return Response.json(response, { status: 400 })
   }
-  const page = pageParam ? parseInt(pageParam, 10) : 1
-  const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10
-  const params = { page, pageSize }
+
+  let params: PagingParams | undefined =
+    pageParam && pageSizeParam
+      ? {
+          page: parseInt(pageParam, 10),
+          pageSize: parseInt(pageSizeParam, 10),
+        }
+      : undefined
 
   try {
     if (statusParam) {
@@ -102,6 +114,9 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
         const validValues = Object.values(TaskStatusEnum).join(', ')
         const response = createErrorResponse('Invalid status value. Allowed values are: ' + validValues, 400)
         return Response.json(response, { status: 400 })
+      }
+      if (params === undefined) {
+        params = { page: 1, pageSize: 10 }
       }
       const status = statusParam as TaskStatus
       const result = await TasksService.getTasksByStatus(userId, status, params)
@@ -115,7 +130,7 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
       )
       return Response.json(response, { status: 200 })
     } else {
-      const result = await TasksService.getAllTasksByUserId(userId)
+      const result = await TasksService.getAllTasksByUserId(userId, params)
       const response = createResponse(result, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
       return Response.json(response, { status: 200 })
     }

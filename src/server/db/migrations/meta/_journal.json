@@ -50,6 +50,13 @@
       "when": 1762378147958,
       "tag": "0006_alter-tasks-name-required-description-not",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1762911758627,
+      "tag": "0007_add-indexes-to-tasks",
+      "breakpoints": true
     }
   ]
 }

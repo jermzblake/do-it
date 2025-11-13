@@ -19,8 +19,12 @@ export const upsertUser = async (userPayload: NewUser) => {
   return result[0]
 }
 
-export const getUserById = async (id: string) => {
-  const user = await db.select().from(UserTable).where(eq(UserTable.id, id)).limit(1)
+export const getUserById = async (id: string): Promise<UserResponse | null> => {
+  const user = await db
+    .select({ id: UserTable.id, email: UserTable.email, name: UserTable.name })
+    .from(UserTable)
+    .where(eq(UserTable.id, id))
+    .limit(1)
   return user[0] || null
 }
 
