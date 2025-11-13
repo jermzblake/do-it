@@ -21,16 +21,14 @@ export const SiteHeader = ({ pageTitle }: SiteHeaderProps) => {
     <header className="bg-white shadow-md p-4 flex justify-between items-center">
       <h1 className="text-2xl font-bold">Do It {pageTitle && <span className="text-indigo-600">{pageTitle}</span>}</h1>
       <div className="flex items-center gap-4">
-        <>
-          <span className="hidden md:block text-sm text-gray-600">Hey, {user.name}</span>
-          <Separator orientation="vertical" className="h-6" />
-          <Button variant="default" size="sm" onClick={() => setShowCreateTaskDialog(true)}>
-            Create Task
-          </Button>
-          <Button variant="outline" size="sm" onClick={logout}>
-            Logout
-          </Button>
-        </>
+        <span className="hidden md:block text-sm text-gray-600">Hey, {user.name}</span>
+        <Separator orientation="vertical" className="h-6" />
+        <Button variant="default" size="sm" onClick={() => setShowCreateTaskDialog(true)}>
+          Create Task
+        </Button>
+        <Button variant="outline" size="sm" onClick={logout}>
+          Logout
+        </Button>
       </div>
       <Dialog open={showCreateTaskDialog} onOpenChange={setShowCreateTaskDialog}>
         <DialogContent>
