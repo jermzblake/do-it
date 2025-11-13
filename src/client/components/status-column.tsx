@@ -45,14 +45,7 @@ export const StatusColumn = ({
 
   const tasks = (data?.data as Task[]) || []
   const filteredTasks = filterTasks(tasks, searchQuery, filterPriority)
-
-  const totalStatusCounts: Record<TaskStatus, number> & { [key: string]: number } = {
-    todo: data?.metaData?.pagination?.totalCount || 0,
-    in_progress: data?.metaData?.pagination?.totalCount || 0,
-    completed: data?.metaData?.pagination?.totalCount || 0,
-    blocked: data?.metaData?.pagination?.totalCount || 0,
-    cancelled: data?.metaData?.pagination?.totalCount || 0,
-  }
+  const statusTotalCount = data?.metaData?.pagination?.totalCount || 0
 
   return (
     <div className="flex flex-col min-w-[280px] max-w-[320px]">
@@ -63,7 +56,7 @@ export const StatusColumn = ({
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="bg-white/60">
-            {filteredTasks.length} / <span className={`${config?.color} ml-0.5`}> {totalStatusCounts[status]}</span>
+            {filteredTasks.length} / <span className={`${config?.color} ml-0.5`}> {statusTotalCount}</span>
           </Badge>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`w-3 h-3 ${isFetching ? 'animate-spin' : ''}`} />

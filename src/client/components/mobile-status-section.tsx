@@ -47,14 +47,7 @@ export const MobileStatusSection = ({
 
   const tasks = (data?.data as Task[]) || []
   const filteredTasks = filterTasks(tasks, searchQuery, filterPriority)
-
-  const totalStatusCounts: Record<TaskStatus, number> & { [key: string]: number } = {
-    todo: data?.metaData?.pagination?.totalCount || 0,
-    in_progress: data?.metaData?.pagination?.totalCount || 0,
-    completed: data?.metaData?.pagination?.totalCount || 0,
-    blocked: data?.metaData?.pagination?.totalCount || 0,
-    cancelled: data?.metaData?.pagination?.totalCount || 0,
-  }
+  const statusTotalCount = data?.metaData?.pagination?.totalCount || 0
 
   return (
     <div className="mb-4">
@@ -66,7 +59,7 @@ export const MobileStatusSection = ({
           <StatusIcon className="w-5 h-5" />
           <h3 className="font-semibold">{config?.label}</h3>
           <Badge variant="secondary" className="bg-white/60">
-            {filteredTasks.length} / <span className={`${config?.color} ml-0.5`}>{totalStatusCounts[status]}</span>
+            {filteredTasks.length} / <span className={`${config?.color} ml-0.5`}>{statusTotalCount}</span>
           </Badge>
         </div>
         <div className="flex items-center gap-2">
