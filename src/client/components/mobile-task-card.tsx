@@ -158,7 +158,7 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock }: MobileTaskCa
               onClick={() =>
                 handleQuickStatusUpdate('in_progress', {
                   blockedReason: '',
-                  notes: `${task.notes} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
+                  notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
                 })
               }
               disabled={updateTask.isPending}
