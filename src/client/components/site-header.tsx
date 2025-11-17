@@ -19,7 +19,7 @@ export const SiteHeader = ({ pageTitle }: SiteHeaderProps) => {
 
   return (
     <header className="bg-white shadow-md p-4 flex justify-between items-center">
-      <h1 className="text-2xl font-bold">Do It {pageTitle && <span className="text-indigo-600">{pageTitle}</span>}</h1>
+      <h1 className="text-2xl font-bold">Do It {pageTitle && <span className="text-blue-900">{pageTitle}</span>}</h1>
       <div className="flex items-center gap-4">
         <span className="hidden md:block text-sm text-gray-600">Hey, {user.name}</span>
         <Separator orientation="vertical" className="h-6" />
