@@ -10,6 +10,8 @@ export interface Task {
   notes?: string
   startedAt?: Date | string
   completedAt?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export interface TasksByStatusProps {
