@@ -15,9 +15,10 @@ interface MobileTaskCardProps {
   onEdit: () => void
   onDelete: () => void
   onBlock: () => void
+  onSelect?: () => void
 }
 
-export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock }: MobileTaskCardProps) => {
+export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: MobileTaskCardProps) => {
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
   const overdue = isOverdue(task.dueDate as string)
@@ -43,8 +44,14 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock }: MobileTaskCa
     setIsEditingName(false)
   }
 
+  const handleCardClick = () => {
+    if (onSelect) {
+      onSelect()
+    }
+  }
+
   return (
-    <Card className="mb-2 hover:shadow-md transition-all py-2">
+    <Card className="mb-2 hover:shadow-md transition-all py-2" onClick={handleCardClick}>
       <CardContent className="px-3 py-0">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
@@ -117,7 +124,10 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock }: MobileTaskCa
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-              onClick={() => handleQuickStatusUpdate('in_progress')}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleQuickStatusUpdate('in_progress')
+              }}
               disabled={updateTask.isPending}
               title="Start task"
             >
@@ -131,7 +141,10 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock }: MobileTaskCa
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                onClick={() => handleQuickStatusUpdate('completed')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleQuickStatusUpdate('completed')
+                }}
                 disabled={updateTask.isPending}
                 title="Complete task"
               >
@@ -155,12 +168,13 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock }: MobileTaskCa
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-              onClick={() =>
+              onClick={(e) => {
+                e.stopPropagation()
                 handleQuickStatusUpdate('in_progress', {
                   blockedReason: '',
                   notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
                 })
-              }
+              }}
               disabled={updateTask.isPending}
               title="Resume task"
             >
@@ -173,7 +187,10 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock }: MobileTaskCa
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700"
-              onClick={() => handleQuickStatusUpdate('cancelled')}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleQuickStatusUpdate('cancelled')
+              }}
               disabled={updateTask.isPending}
               title="Cancel task"
             >
@@ -185,7 +202,10 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock }: MobileTaskCa
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0 text-red-600 hover:text-red-700 ml-auto"
-            onClick={onDelete}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
             title="Delete task"
           >
             <Trash2 className="w-4 h-4" />
