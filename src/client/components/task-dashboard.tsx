@@ -8,6 +8,8 @@ import { DeleteTaskDialog } from './delete-task-dialog'
 import { StatusColumn } from './status-column'
 import { BlockReasonDialog } from './block-reason-dialog'
 import { MobileStatusSection } from './mobile-status-section'
+import { useIsDesktop } from '@/client/hooks/use-media-query'
+import { TaskDetailsSidebar } from '@/client/components/task-details-sidebar'
 
 const TaskDashboard = () => {
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -15,6 +17,8 @@ const TaskDashboard = () => {
   const [editingTask, setEditingTask] = React.useState<Task | null>(null)
   const [deleteTaskId, setDeleteTaskId] = React.useState<string | null>(null)
   const [taskToBlockId, setTaskToBlockId] = React.useState<string | null>(null)
+  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null)
+  const isDesktop = useIsDesktop()
 
   const statuses: TaskStatus[] = ['todo', 'in_progress', 'completed', 'blocked', 'cancelled']
 
@@ -63,6 +67,7 @@ const TaskDashboard = () => {
                 setEditingTask={setEditingTask}
                 setDeleteTaskId={setDeleteTaskId}
                 setTaskToBlockId={setTaskToBlockId}
+                setSelectedTask={setSelectedTask}
               />
             ))}
           </div>
@@ -82,6 +87,15 @@ const TaskDashboard = () => {
             />
           ))}
         </div>
+        {isDesktop && (
+          <TaskDetailsSidebar
+            task={selectedTask!}
+            open={!!selectedTask}
+            onOpenChange={(open) => {
+              setSelectedTask(null)
+            }}
+          />
+        )}
       </div>
 
       <EditTaskDialog editingTask={editingTask} setEditingTask={setEditingTask} />
