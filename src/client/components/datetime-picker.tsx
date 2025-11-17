@@ -13,9 +13,15 @@ interface DateTimePickerProps {
   value?: Date
   onChange?: (date: Date | undefined) => void
   granularity?: 'day' | 'minute'
+  previewFormat?: 'default' | 'short'
 }
 
-export function DateTimePicker({ value, onChange, granularity = 'minute' }: DateTimePickerProps) {
+export function DateTimePicker({
+  value,
+  onChange,
+  granularity = 'minute',
+  previewFormat = 'default',
+}: DateTimePickerProps) {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(value)
   const [selectedHour, setSelectedHour] = React.useState<string>(value ? format(value, 'HH') : '12')
   const [selectedMinute, setSelectedMinute] = React.useState<string>(value ? format(value, 'mm') : '00')
@@ -55,6 +61,13 @@ export function DateTimePicker({ value, onChange, granularity = 'minute' }: Date
   const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
   const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'))
 
+  const showDateFormat = () => {
+    if (previewFormat === 'short') {
+      return granularity === 'minute' ? "MM/dd/yyyy 'at' HH:mm" : 'MM/dd/yyyy'
+    }
+    return granularity === 'minute' ? "PPP 'at' HH:mm" : 'PPP'
+  }
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -64,11 +77,7 @@ export function DateTimePicker({ value, onChange, granularity = 'minute' }: Date
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {selectedDate ? (
-            granularity === 'minute' ? (
-              format(selectedDate, "PPP 'at' HH:mm")
-            ) : (
-              format(selectedDate, 'PPP')
-            )
+            format(selectedDate, showDateFormat())
           ) : (
             <span>Pick a date{granularity === 'minute' ? ' and time' : ''}</span>
           )}
