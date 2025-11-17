@@ -1,4 +1,10 @@
-import { fetchTasksByStatus, createTask, updateTaskById, deleteTaskById } from '@/client/services/tasks.service'
+import {
+  fetchTasksByStatus,
+  createTask,
+  updateTaskById,
+  deleteTaskById,
+  fetchTaskById,
+} from '@/client/services/tasks.service'
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Task, TasksByStatusProps, TaskStatus } from '@/types/tasks.types'
 
@@ -15,6 +21,13 @@ export const useTasksByStatus = ({ status, page, pageSize = 5 }: TasksByStatusPr
     queryKey: tasksKeys.statusList({ status, page, pageSize }),
     queryFn: () => fetchTasksByStatus({ status, page, pageSize }),
     placeholderData: keepPreviousData,
+  })
+}
+
+export const useTaskById = (taskId: string) => {
+  return useQuery({
+    queryKey: tasksKeys.byId(taskId),
+    queryFn: () => fetchTaskById(taskId),
   })
 }
 
@@ -44,6 +57,15 @@ export const useUpdateTask = (taskId: string) => {
     mutationFn: (taskPayload: Partial<Task>) => updateTaskById(taskId, taskPayload),
     onMutate: async (updatedTask) => {
       await queryClient.cancelQueries({ queryKey: tasksKeys.lists() })
+
+      // Optimistically update the task detail cache as well
+      const previousById = queryClient.getQueryData<{ data: Task }>(tasksKeys.byId(taskId))
+      if (previousById?.data) {
+        queryClient.setQueryData(tasksKeys.byId(taskId), {
+          ...previousById,
+          data: { ...previousById.data, ...updatedTask },
+        })
+      }
 
       const previousQueries = queryClient.getQueriesData<{ data: Task[] }>({ queryKey: tasksKeys.lists() })
       const isStatusChange = 'status' in updatedTask
@@ -82,13 +104,27 @@ export const useUpdateTask = (taskId: string) => {
         })
       }
 
-      return { previousQueries, isStatusChange, newStatus: updatedTask.status as TaskStatus | undefined }
+      return {
+        previousQueries,
+        isStatusChange,
+        newStatus: updatedTask.status as TaskStatus | undefined,
+        previousById,
+      }
     },
     onError: (err, variables, context) => {
       if (context?.previousQueries) {
         context.previousQueries.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data)
         })
+      }
+      if (context?.previousById) {
+        queryClient.setQueryData(tasksKeys.byId(taskId), context.previousById)
+      }
+    },
+    onSuccess: (response) => {
+      // Ensure detail view reflects server truth after mutation
+      if (response) {
+        queryClient.setQueryData(tasksKeys.byId(taskId), response)
       }
     },
     onSettled: (data, error, variables, context) => {
