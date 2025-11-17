@@ -6,12 +6,14 @@ import {
   Outlet,
   createRouter,
   useNavigate,
+  createFileRoute,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { routes } from './routes'
 import { LandingPage } from '@/client/pages/landing'
 import { NotFoundPage } from '@/client/pages/not-found'
 import { DashboardPage } from '@/client/pages/dashboard'
+import { TaskPage } from '@/client/pages/task-page'
 import { AuthProvider, useAuth } from '../auth/AuthContext'
 import { ErrorBoundary } from '@/client/components/error-boundary'
 import { useEffect } from 'react'
@@ -58,8 +60,18 @@ const dashboardRoute = createRoute({
   ),
 })
 
+const taskDetailsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: routes.taskDetailsPattern,
+  component: () => (
+    <RequireAuth>
+      <TaskPage />
+    </RequireAuth>
+  ),
+})
+
 // Assemble the route tree
-const routeTree = rootRoute.addChildren([indexRoute, dashboardRoute])
+const routeTree = rootRoute.addChildren([indexRoute, dashboardRoute, taskDetailsRoute])
 
 // Create the router
 export const router = createRouter({
