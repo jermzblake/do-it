@@ -15,9 +15,10 @@ interface TaskCardProps {
   onEdit: () => void
   onDelete: () => void
   onBlock: () => void
+  onSelect?: () => void
 }
 
-export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => {
+export const TaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: TaskCardProps) => {
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
   const overdue = isOverdue(task.dueDate as string)
@@ -43,8 +44,14 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
     setIsEditingName(false)
   }
 
+  const handleCardClick = () => {
+    if (onSelect) {
+      onSelect()
+    }
+  }
+
   return (
-    <Card className="mb-3 hover:shadow-md transition-all group">
+    <Card className="mb-3 hover:shadow-md transition-all group" onClick={handleCardClick}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-2 flex-1 min-w-0">
@@ -106,7 +113,16 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
         )}
 
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-wrap">
-          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onEdit} disabled={updateTask.isPending}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit()
+            }}
+            disabled={updateTask.isPending}
+          >
             <Edit2 className="w-3 h-3 mr-1" />
             Edit
           </Button>
@@ -116,7 +132,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
               variant="ghost"
               size="sm"
               className="h-7 text-xs text-blue-600 hover:text-blue-700"
-              onClick={() => handleQuickStatusUpdate('in_progress')}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleQuickStatusUpdate('in_progress')
+              }}
               disabled={updateTask.isPending}
             >
               {updateTask.isPending ? (
@@ -134,7 +153,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs text-green-600 hover:text-green-700"
-                onClick={() => handleQuickStatusUpdate('completed')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleQuickStatusUpdate('completed')
+                }}
                 disabled={updateTask.isPending}
               >
                 {updateTask.isPending ? (
@@ -148,7 +170,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs text-red-600 hover:text-red-700"
-                onClick={onBlock}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onBlock()
+                }}
                 disabled={updateTask.isPending}
               >
                 {updateTask.isPending ? (
@@ -165,12 +190,13 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
               variant="ghost"
               size="sm"
               className="h-7 text-xs text-blue-600 hover:text-blue-700"
-              onClick={() =>
+              onClick={(e) => {
+                e.stopPropagation()
                 handleQuickStatusUpdate('in_progress', {
                   blockedReason: '',
                   notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
                 })
-              }
+              }}
               disabled={updateTask.isPending}
             >
               {updateTask.isPending ? (
@@ -187,7 +213,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs text-yellow-600 hover:text-yellow-700"
-                onClick={() => handleQuickStatusUpdate('cancelled')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleQuickStatusUpdate('cancelled')
+                }}
                 disabled={updateTask.isPending}
               >
                 {updateTask.isPending ? (
@@ -204,7 +233,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock }: TaskCardProps) => 
             variant="ghost"
             size="sm"
             className="h-7 text-xs text-red-600 hover:text-red-700 ml-auto"
-            onClick={onDelete}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
           >
             <Trash2 className="w-3 h-3" />
           </Button>
