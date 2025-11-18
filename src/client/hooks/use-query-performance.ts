@@ -49,12 +49,13 @@ export const useQueryPerformance = (
         const color = isSuccess ? '#10b981' : '#ef4444'
         const emoji = isSuccess ? '✅' : '❌'
 
-        isDevEnvironment &&
+        if (isDevEnvironment) {
           console.group(`%c${emoji} Query Performance: ${queryName}`, `color: ${color}; font-weight: bold;`)
-        isDevEnvironment && console.log(`Duration: ${log.duration}ms`)
-        isDevEnvironment && console.log(`Status: ${log.status}`)
-        isDevEnvironment && console.log(`Timestamp: ${log.timestamp}`)
-        isDevEnvironment && console.groupEnd()
+          console.log(`Duration: ${log.duration}ms`)
+          console.log(`Status: ${log.status}`)
+          console.log(`Timestamp: ${log.timestamp}`)
+          console.groupEnd()
+        }
         // Warn if query is slow
         if (duration > 1000) {
           isDevEnvironment && console.warn(`⚠️ Slow query detected: ${queryName} took ${Math.round(duration)}ms`)
