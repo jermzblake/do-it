@@ -60,6 +60,7 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: TaskCard
                 <Input
                   defaultValue={task.name}
                   onBlur={(e) => handleNameUpdate(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       handleNameUpdate(e.currentTarget.value)
@@ -73,7 +74,10 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: TaskCard
               ) : (
                 <CardTitle
                   className="text-base font-semibold line-clamp-2 cursor-text hover:text-blue-600"
-                  onClick={() => setIsEditingName(true)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsEditingName(true)
+                  }}
                 >
                   {task.name}
                 </CardTitle>

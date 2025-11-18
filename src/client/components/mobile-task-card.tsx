@@ -59,6 +59,7 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: Mo
               <Input
                 defaultValue={task.name}
                 onBlur={(e) => handleNameUpdate(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     handleNameUpdate(e.currentTarget.value)
@@ -72,7 +73,10 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: Mo
             ) : (
               <h4
                 className="text-sm font-semibold line-clamp-2 cursor-text hover:text-blue-600"
-                onClick={() => setIsEditingName(true)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsEditingName(true)
+                }}
               >
                 {task.name}
               </h4>
@@ -112,7 +116,10 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: Mo
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            onClick={onEdit}
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit()
+            }}
             disabled={updateTask.isPending}
             title="Edit task"
           >
@@ -154,7 +161,10 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: Mo
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                onClick={onBlock}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onBlock()
+                }}
                 disabled={updateTask.isPending}
                 title="Block task"
               >
