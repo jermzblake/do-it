@@ -57,7 +57,7 @@ export const useQueryPerformance = (
         isDevEnvironment && console.groupEnd()
         // Warn if query is slow
         if (duration > 1000) {
-          console.warn(`⚠️ Slow query detected: ${queryName} took ${Math.round(duration)}ms`)
+          isDevEnvironment && console.warn(`⚠️ Slow query detected: ${queryName} took ${Math.round(duration)}ms`)
         }
       }
 
