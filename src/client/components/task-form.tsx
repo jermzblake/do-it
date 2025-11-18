@@ -9,6 +9,8 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { TaskFormSchema } from '../../types/form.types'
 import { useCreateTask } from '@/client/hooks/use-tasks'
+import { toast } from 'sonner'
+import { isDevEnvironment } from '@/client/constants/environment'
 
 interface TaskFormProps {
   setShowForm?: (show: boolean) => void
@@ -47,12 +49,14 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
   const onSubmit = async (payload: z.infer<typeof TaskFormSchema>) => {
     try {
       await createTaskMutation.mutateAsync(payload)
-      console.log('SUCCESS: Task created successfully')
+      isDevEnvironment && console.log('SUCCESS: Task created successfully')
+      toast.success('Task created successfully')
       reset()
       setShowForm?.(false)
     } catch (error) {
-      console.log('ERROR:', error)
       // You can set form errors here if needed
+      isDevEnvironment && console.log('ERROR:', error)
+      toast.error('Error creating task')
     }
   }
 

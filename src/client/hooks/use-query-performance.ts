@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { UseQueryResult } from '@tanstack/react-query'
+import { isDevEnvironment } from '@/client/constants/environment'
 
 interface PerformanceLog {
   queryKey: string
@@ -48,12 +49,12 @@ export const useQueryPerformance = (
         const color = isSuccess ? '#10b981' : '#ef4444'
         const emoji = isSuccess ? '✅' : '❌'
 
-        console.group(`%c${emoji} Query Performance: ${queryName}`, `color: ${color}; font-weight: bold;`)
-        console.log(`Duration: ${log.duration}ms`)
-        console.log(`Status: ${log.status}`)
-        console.log(`Timestamp: ${log.timestamp}`)
-        console.groupEnd()
-
+        isDevEnvironment &&
+          console.group(`%c${emoji} Query Performance: ${queryName}`, `color: ${color}; font-weight: bold;`)
+        isDevEnvironment && console.log(`Duration: ${log.duration}ms`)
+        isDevEnvironment && console.log(`Status: ${log.status}`)
+        isDevEnvironment && console.log(`Timestamp: ${log.timestamp}`)
+        isDevEnvironment && console.groupEnd()
         // Warn if query is slow
         if (duration > 1000) {
           console.warn(`⚠️ Slow query detected: ${queryName} took ${Math.round(duration)}ms`)
@@ -112,7 +113,7 @@ export class QueryPerformanceMonitor {
   static printStats(queryKey?: string) {
     const stats = this.getStats(queryKey)
     if (!stats) {
-      console.log('No performance data available')
+      isDevEnvironment && console.log('No performance data available')
       return
     }
 

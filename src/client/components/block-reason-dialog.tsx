@@ -12,6 +12,8 @@ import {
 import { Loader2 } from 'lucide-react'
 import { Textarea } from '@/client/components/ui/textarea'
 import { useUpdateTask } from '@/client/hooks/use-tasks'
+import { toast } from 'sonner'
+import { isDevEnvironment } from '@/client/constants/environment'
 
 interface BlockReasonDialogProps {
   taskToBlockId: string | null
@@ -29,8 +31,10 @@ export const BlockReasonDialog = ({ taskToBlockId, setTaskToBlockId }: BlockReas
       await updateTask.mutateAsync({ blockedReason, status: 'blocked' })
       setTaskToBlockId(null)
       setBlockedReason('')
+      toast.success('Task blocked successfully')
     } catch (error) {
-      console.log('ERROR:', error)
+      isDevEnvironment && console.log('ERROR:', error)
+      toast.error('Error blocking task')
     }
   }
 
