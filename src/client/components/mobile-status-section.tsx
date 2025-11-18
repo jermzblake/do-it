@@ -8,6 +8,8 @@ import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { RefreshCw, AlertCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { MobileTaskCard } from './mobile-task-card'
+import { useNavigate } from '@tanstack/react-router'
+import { routes } from '@/client/routes/routes'
 
 interface MobileStatusSectionProps {
   status: string
@@ -27,6 +29,7 @@ export const MobileStatusSection = ({
   filterPriority,
 }: MobileStatusSectionProps) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false)
+  const navigate = useNavigate()
   const config = statusConfig[status]
   const StatusIcon = config?.icon
 
@@ -108,6 +111,7 @@ export const MobileStatusSection = ({
                 onEdit={() => setEditingTask(task)}
                 onDelete={() => setDeleteTaskId(task.id)}
                 onBlock={() => setTaskToBlockId(task.id)}
+                onSelect={() => navigate({ to: routes.taskDetailsPattern, params: { taskId: task.id } })}
               />
             ))
           )}

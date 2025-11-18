@@ -18,6 +18,11 @@ export const fetchTasksByStatus = async ({ status, page, pageSize = 5 }: TasksBy
   }
 }
 
+export const fetchTaskById = async (taskId: string): Promise<ApiResponse<Task>> => {
+  const response: ApiResponse<Task> = await apiClient.get(`/tasks/${taskId}`)
+  return response
+}
+
 export const createTask = async (taskPayload: Partial<Task>): Promise<ApiResponse<Task>> => {
   const response: ApiResponse<Task> = await apiClient.post('/tasks', taskPayload)
   return response

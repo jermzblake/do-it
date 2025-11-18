@@ -15,6 +15,7 @@ interface StatusColumnProps {
   setTaskToBlockId: (taskId: string | null) => void
   searchQuery: string
   filterPriority: string
+  setSelectedTask?: (task: Task | null) => void
 }
 
 export const StatusColumn = ({
@@ -24,6 +25,7 @@ export const StatusColumn = ({
   setTaskToBlockId,
   searchQuery,
   filterPriority,
+  setSelectedTask,
 }: StatusColumnProps) => {
   const config = statusConfig[status]
   const StatusIcon = config?.icon
@@ -90,6 +92,7 @@ export const StatusColumn = ({
               onEdit={() => setEditingTask(task)}
               onDelete={() => setDeleteTaskId(task.id)}
               onBlock={() => setTaskToBlockId(task.id)}
+              onSelect={setSelectedTask ? () => setSelectedTask(task) : undefined}
             />
           ))
         )}

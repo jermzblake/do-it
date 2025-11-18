@@ -22,6 +22,31 @@ globalThis.requestAnimationFrame = (cb: FrameRequestCallback) =>
 // @ts-ignore
 globalThis.cancelAnimationFrame = (id: number) => clearTimeout(id)
 
+// Polyfill matchMedia for hooks that rely on media queries
+// @ts-ignore
+if (!globalThis.window.matchMedia) {
+  // @ts-ignore
+  globalThis.window.matchMedia = (query: string) => {
+    return {
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {}, // deprecated
+      removeListener: () => {}, // deprecated
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    } as unknown as MediaQueryList
+  }
+}
+
+// Polyfill DocumentFragment for Radix UI components under happy-dom
+// @ts-ignore
+if (typeof globalThis.DocumentFragment === 'undefined') {
+  // @ts-ignore
+  globalThis.DocumentFragment = (globalThis.document as any).defaultView?.DocumentFragment ?? (function () {} as any)
+}
+
 // Suppress React act warnings in tests where we await settles
 // (optional; keep console noise low)
 const originalError = console.error
