@@ -17,8 +17,6 @@ export const useTaskDetailLogic = ({ task, onClose }: UseTaskDetailLogicProps) =
   const updateTask = useUpdateTask(task.id)
   const deleteTask = useDeleteTask(task.id)
 
-  const onChange = (field: string, value: any) => {}
-
   const onEdit = () => setIsEditing(true)
   const onCancel = () => setIsEditing(false)
 
@@ -55,7 +53,6 @@ export const useTaskDetailLogic = ({ task, onClose }: UseTaskDetailLogicProps) =
 
   return {
     isEditing,
-    onChange,
     onEdit,
     onCancel,
     onSave,
