@@ -444,7 +444,7 @@ export const TaskDetailsContent = ({
           <Button variant="outline" onClick={onCancel} disabled={isUpdating}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isUpdating || !isValid}>
+          <Button onClick={handleSave} disabled={isUpdating || !isValid || isSubmitting}>
             {isUpdating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -464,7 +464,7 @@ export const TaskDetailsContent = ({
             <Button variant="outline" onClick={onCancel} disabled={isUpdating}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={isUpdating || !isValid}>
+            <Button onClick={handleSave} disabled={isUpdating || !isValid || isSubmitting}>
               {isUpdating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
