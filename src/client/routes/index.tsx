@@ -1,13 +1,4 @@
-import {
-  RouterProvider,
-  redirect,
-  createRoute,
-  createRootRoute,
-  Outlet,
-  createRouter,
-  useNavigate,
-  createFileRoute,
-} from '@tanstack/react-router'
+import { createRoute, createRootRoute, Outlet, createRouter, useNavigate } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { routes } from './routes'
 import { LandingPage } from '@/client/pages/landing'
