@@ -3,11 +3,10 @@ import { describe, it, expect } from 'bun:test'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useTaskDetailLogic } from '@/client/hooks/useTaskDetailLogic'
-import { tasksKeys } from '@/client/hooks/use-tasks'
 import type { Task } from '@/types/tasks.types'
 import type { ApiResponse } from '@/types/api.types'
 import { apiClient } from '@/client/lib/axios'
-import { createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router'
+import { createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router'
 
 function makeResponse<T>(data: T): ApiResponse<T> {
   return {
