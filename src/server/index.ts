@@ -1,17 +1,20 @@
-// this file could be used as small bootstrap for server related code
-// will need to point bun here in package.json if we want to use it
-
 import 'dotenv/config'
 import { serve } from 'bun'
-import index from '../index.html'
 import { usersRoutes } from './routes/users/users.routes.ts'
 import { authRoutes } from './routes/auth/auth.routes.ts'
 import { tasksRoutes } from './routes/tasks/tasks.routes.ts'
 
+const isDevEnvironment = process.env.NODE_ENV !== 'production'
+const PORT = Number(process.env.PORT || 3000)
+
+// Import the correct HTML file based on environment
+const indexHtml = isDevEnvironment ? await import('../index.html') : await import('../../dist/index.html')
+
 const server = serve({
+  port: PORT,
   routes: {
     // Serve index.html for all unmatched routes.
-    '/*': index,
+    '/*': indexHtml.default,
 
     // Register API routes
     ...authRoutes,
@@ -34,7 +37,7 @@ const server = serve({
     },
   },
 
-  development: process.env.NODE_ENV !== 'production' && {
+  development: isDevEnvironment && {
     // Enable browser hot reloading in development
     hmr: true,
 
