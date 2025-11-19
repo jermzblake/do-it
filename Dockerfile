@@ -8,14 +8,20 @@ WORKDIR /app
 # Install dependencies
 FROM base AS deps
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
+RUN bun install --frozen-lockfile --production --ignore-scripts
 
 # Build the app
 FROM base AS builder
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --ignore-scripts
 COPY . .
-RUN bun run build
+RUN set -ex && \
+    echo "=== Verifying tailwind plugin ===" && \
+    bun -e "import plugin from 'bun-plugin-tailwind'; console.log('Plugin loaded:', typeof plugin)" || echo "Plugin load failed!" && \
+    echo "=== Running build directly (not via npm script) ===" && \
+    bun build.ts || (echo "Build script failed with exit code: $?" && exit 1) && \
+    echo "=== Checking for dist ===" && \
+    test -d /app/dist && ls -la /app/dist || (echo "ERROR: No dist!" && exit 1)
 
 # Production image
 FROM base AS runner
