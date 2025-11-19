@@ -13,6 +13,7 @@ const indexHtml = isDevEnvironment ? await import('../index.html') : await impor
 
 const server = serve({
   port: PORT,
+  hostname: '0.0.0.0', //  In Docker/Fly.io, you must listen on 0.0.0.0 to accept external connections
   routes: {
     ...healthRoutes,
     // Serve index.html for all unmatched routes.
