@@ -1,4 +1,8 @@
-FROM oven/bun:1.3.2-slim AS base
+ARG BUN_VERSION=1.3.2
+FROM oven/bun:${BUN_VERSION}-slim AS base
+
+LABEL fly_launch_runtime="Bun"
+
 WORKDIR /app
 
 # Install dependencies
