@@ -1,8 +1,9 @@
 import 'dotenv/config'
 import { serve } from 'bun'
-import { usersRoutes } from './routes/users/users.routes.ts'
-import { authRoutes } from './routes/auth/auth.routes.ts'
-import { tasksRoutes } from './routes/tasks/tasks.routes.ts'
+import { usersRoutes } from './routes/users/users.routes'
+import { authRoutes } from './routes/auth/auth.routes'
+import { tasksRoutes } from './routes/tasks/tasks.routes'
+import { healthRoutes } from './routes/health/health.routes'
 
 const isDevEnvironment = process.env.NODE_ENV !== 'production'
 const PORT = Number(process.env.PORT || 3000)
@@ -13,6 +14,7 @@ const indexHtml = isDevEnvironment ? await import('../index.html') : await impor
 const server = serve({
   port: PORT,
   routes: {
+    ...healthRoutes,
     // Serve index.html for all unmatched routes.
     '/*': indexHtml.default,
 
