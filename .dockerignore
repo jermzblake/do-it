@@ -21,6 +21,10 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-.env
-./utils
+.env.local
+dist
+*.log
+.DS_Store
+**/docs
+.fly
 README.md
