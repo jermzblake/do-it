@@ -15,29 +15,11 @@ jobs:
     name: Install dependencies
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    outputs:
-      cache-key: ${{ steps.cache-deps.outputs.cache-primary-key }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
+      - uses: ./.github/actions/setup-bun-with-cache
         with:
           bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Cache Bun dependencies
-        id: cache-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          restore-keys: |
-            bun-${{ runner.os }}-
-
-      - name: Install dependencies (frozen lockfile)
-        run: bun install --frozen-lockfile
 
   lint:
     name: Lint
@@ -46,18 +28,9 @@ jobs:
     needs: prepare
     steps:
       - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v1
+      - uses: ./.github/actions/setup-bun-with-cache
         with:
           bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Restore dependencies cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            node_modules
-          key: ${{ needs.prepare.outputs.cache-key }}
 
       - name: Run linter
         run: bun x prettier --check .
@@ -69,18 +42,9 @@ jobs:
     needs: prepare
     steps:
       - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v1
+      - uses: ./.github/actions/setup-bun-with-cache
         with:
           bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Restore dependencies cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            node_modules
-          key: ${{ needs.prepare.outputs.cache-key }}
 
       - name: Run TypeScript compiler
         run: bun x tsc --noEmit
@@ -108,18 +72,9 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/app_test
     steps:
       - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v1
+      - uses: ./.github/actions/setup-bun-with-cache
         with:
           bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Restore dependencies cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            node_modules
-          key: ${{ needs.prepare.outputs.cache-key }}
 
       - name: Apply migrations
         run: timeout 2m bun run db:migrate
@@ -143,18 +98,9 @@ jobs:
     needs: prepare
     steps:
       - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v1
+      - uses: ./.github/actions/setup-bun-with-cache
         with:
           bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Restore dependencies cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            node_modules
-          key: ${{ needs.prepare.outputs.cache-key }}
 
       - name: Build application
         run: timeout 5m bun run build
@@ -176,18 +122,9 @@ jobs:
     needs: prepare
     steps:
       - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v1
+      - uses: ./.github/actions/setup-bun-with-cache
         with:
           bun-version: ${{ env.BUN_VERSION }}
-
-      - name: Restore dependencies cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            node_modules
-          key: ${{ needs.prepare.outputs.cache-key }}
 
       - name: Check for destructive migrations
         run: |
