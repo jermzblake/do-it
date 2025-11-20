@@ -7,7 +7,7 @@ import axios from 'axios'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
-const REDIRECT_URI = 'http://localhost:3000/api/auth/callback'
+const REDIRECT_URI = `${process.env.HOSTNAME}/api/auth/callback`
 
 const STATE_STORE = new Map<string, { verifier: string; created: number }>()
 
