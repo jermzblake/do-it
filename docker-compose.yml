@@ -1,17 +1,17 @@
 services:
   db:
-    image: "postgres:18"
-    restart: "always"
-    container_name: "do-it-db"
-    env_file: ".env"
+    image: 'postgres:18'
+    restart: 'always'
+    container_name: 'do-it-db'
+    env_file: '.env'
     ports:
-      - "5433:5432"
+      - '5433:5432'
     volumes:
-      - "do-it-pgdb_data18:/var/lib/postgresql"
+      - 'do-it-pgdb_data18:/var/lib/postgresql'
 
 networks:
   overlay:
-    driver: "bridge"
+    driver: 'bridge'
 
 volumes:
   do-it-pgdb_data18:

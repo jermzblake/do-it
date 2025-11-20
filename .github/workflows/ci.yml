@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  BUN_VERSION: '1.3.2'
+
+jobs:
+  prepare:
+    name: Install dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-with-cache
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-with-cache
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Run linter
+        run: bun x prettier --check .
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-with-cache
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Run TypeScript compiler
+        run: bun x tsc --noEmit
+
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: prepare
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: app_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/app_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-with-cache
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Apply migrations
+        run: timeout 2m bun run db:migrate
+
+      - name: Run tests
+        run: timeout 5m bun run test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            coverage/
+            test-results/
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-with-cache
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Build application
+        run: timeout 5m bun run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            dist/
+            fly.toml
+            Dockerfile
+          retention-days: 7
+
+  migration-check:
+    name: Migration Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: prepare
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: migration_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/migration_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-with-cache
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Run migrations
+        run: |
+          echo "🔄 Running migrations against test database..."
+          timeout 2m bun run db:migrate
+          echo "✅ All migrations executed successfully"
+
+  # Quality gate - all checks must pass
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    needs: [lint, typecheck, test, build, migration-check]
+    if: always()
+    steps:
+      - name: Check all jobs
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" ]] || \
+             [[ "${{ needs.typecheck.result }}" != "success" ]] || \
+             [[ "${{ needs.test.result }}" != "success" ]] || \
+             [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "${{ needs.migration-check.result }}" != "success" ]]; then
+            echo "❌ One or more CI jobs failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed"

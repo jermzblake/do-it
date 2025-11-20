@@ -1,18 +1,129 @@
 # See https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
 
-name: Fly Deploy
+name: Deploy to Production
+
 on:
-  push:
+  workflow_run:
+    workflows: ['CI']
+    types:
+      - completed
     branches:
       - main
+  workflow_dispatch:
+
+env:
+  FLY_APP_NAME: do-it-carpe-diem
+
 jobs:
-  deploy:
-    name: Deploy app
+  # Only deploy if CI passed
+  check-ci:
+    name: Verify CI Status
     runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    timeout-minutes: 1
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: CI Status
+        run: echo "✅ CI passed, proceeding with deployment"
+
+  deploy:
+    name: Deploy to Fly.io
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: check-ci
+    environment:
+      name: production
+      url: https://do-it-carpe-diem.fly.dev
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false # Never cancel production deploys mid-flight
     steps:
       - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly.io
+        run: timeout 12m flyctl deploy --remote-only --strategy rolling --ha=false
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+  smoke-test:
+    name: Post-Deploy Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: deploy
+    steps:
+      - name: Wait for deployment to stabilize
+        run: sleep 10
+
+      - name: Health check - Liveness
+        run: |
+          timeout 2m bash -c '
+            echo "🏥 Checking liveness endpoint..."
+            for i in {1..10}; do
+              if curl -fsS --max-time 5 https://do-it-carpe-diem.fly.dev/healthz; then
+                echo "✅ Liveness check passed"
+                exit 0
+              fi
+              echo "⏳ Attempt $i failed, retrying..."
+              sleep 3
+            done
+            echo "❌ Liveness check failed after 10 attempts"
+            exit 1
+          '
+
+      - name: Health check - Readiness
+        run: |
+          timeout 2m bash -c '
+            echo "🏥 Checking readiness endpoint (DB connectivity)..."
+            for i in {1..10}; do
+              if curl -fsS --max-time 5 https://do-it-carpe-diem.fly.dev/readyz; then
+                echo "✅ Readiness check passed"
+                exit 0
+              fi
+              echo "⏳ Attempt $i failed, retrying..."
+              sleep 3
+            done
+            echo "❌ Readiness check failed after 10 attempts"
+            exit 1
+          '
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "🚨 Deployment smoke tests failed!"
+          echo "Consider rolling back: flyctl releases list && flyctl releases rollback <version>"
+
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    needs: [deploy, smoke-test]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**App:** ${{ env.FLY_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ needs.smoke-test.result }}" == "success" ]]; then
+            echo "### ✅ Deployment Successful" >> $GITHUB_STEP_SUMMARY
+            echo "Application is healthy and serving traffic." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Deployment Failed" >> $GITHUB_STEP_SUMMARY
+            echo "Smoke tests did not pass. Please investigate." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Rollback command:**" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo "flyctl releases list --app ${{ env.FLY_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
+            echo "flyctl releases rollback <version> --app ${{ env.FLY_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://do-it-carpe-diem.fly.dev" >> $GITHUB_STEP_SUMMARY
