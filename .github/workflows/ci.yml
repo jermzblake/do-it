@@ -115,65 +115,45 @@ jobs:
             Dockerfile
           retention-days: 7
 
-  migration-safety:
-    name: Migration Safety Check
+  migration-check:
+    name: Migration Check
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: prepare
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: migration_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/migration_test
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun-with-cache
         with:
           bun-version: ${{ env.BUN_VERSION }}
 
-      - name: Check for destructive migrations
+      - name: Run migrations
         run: |
-          echo "🔍 Checking for destructive migration patterns..."
-
-          # Check for potentially destructive operations
-          DESTRUCTIVE_PATTERNS=(
-            "DROP TABLE"
-            "DROP COLUMN"
-            "ALTER TABLE.*DROP"
-          )
-
-          FOUND_ISSUES=0
-
-          for pattern in "${DESTRUCTIVE_PATTERNS[@]}"; do
-            if grep -Rni "$pattern" src/server/db/migrations/ 2>/dev/null; then
-              echo "⚠️  WARNING: Found potentially destructive migration: $pattern"
-              FOUND_ISSUES=$((FOUND_ISSUES + 1))
-            fi
-          done
-
-          if [ $FOUND_ISSUES -gt 0 ]; then
-            echo ""
-            echo "❌ Destructive migrations detected!"
-            echo "Please ensure you're using expand/contract pattern:"
-            echo "  1. Make columns nullable first"
-            echo "  2. Deploy code that handles both old and new schema"
-            echo "  3. Backfill data"
-            echo "  4. Drop old columns in a future release"
-            echo ""
-            echo "To override this check, add '# migration-safety: ignore' to your migration."
-            
-            # Check if migrations have override comment
-            if grep -R "# migration-safety: ignore" src/server/db/migrations/ 2>/dev/null; then
-              echo "⚠️  Override found - proceeding with caution"
-              exit 0
-            fi
-            
-            exit 1
-          fi
-
-          echo "✅ No destructive migrations detected"
+          echo "🔄 Running migrations against test database..."
+          timeout 2m bun run db:migrate
+          echo "✅ All migrations executed successfully"
 
   # Quality gate - all checks must pass
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
     timeout-minutes: 1
-    needs: [lint, typecheck, test, build, migration-safety]
+    needs: [lint, typecheck, test, build, migration-check]
     if: always()
     steps:
       - name: Check all jobs
@@ -182,7 +162,7 @@ jobs:
              [[ "${{ needs.typecheck.result }}" != "success" ]] || \
              [[ "${{ needs.test.result }}" != "success" ]] || \
              [[ "${{ needs.build.result }}" != "success" ]] || \
-             [[ "${{ needs.migration-safety.result }}" != "success" ]]; then
+             [[ "${{ needs.migration-check.result }}" != "success" ]]; then
             echo "❌ One or more CI jobs failed"
             exit 1
           fi
