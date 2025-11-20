@@ -1,0 +1,255 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  BUN_VERSION: '1.3.2'
+
+jobs:
+  prepare:
+    name: Install dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      cache-key: ${{ steps.cache-deps.outputs.cache-primary-key }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache Bun dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.prepare.outputs.cache-key }}
+
+      - name: Run linter
+        run: bun x prettier --check .
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.prepare.outputs.cache-key }}
+
+      - name: Run TypeScript compiler
+        run: bun x tsc --noEmit
+
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: prepare
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: app_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/app_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.prepare.outputs.cache-key }}
+
+      - name: Apply migrations
+        run: bun x drizzle-kit push
+        timeout-minutes: 2
+
+      - name: Run tests
+        run: bun run test
+        timeout-minutes: 5
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            coverage/
+            test-results/
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.prepare.outputs.cache-key }}
+
+      - name: Build application
+        run: bun run build
+        timeout-minutes: 5
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            dist/
+            fly.toml
+            Dockerfile
+          retention-days: 7
+
+  migration-safety:
+    name: Migration Safety Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ needs.prepare.outputs.cache-key }}
+
+      - name: Check for destructive migrations
+        run: |
+          echo "🔍 Checking for destructive migration patterns..."
+
+          # Check for potentially destructive operations
+          DESTRUCTIVE_PATTERNS=(
+            "DROP TABLE"
+            "DROP COLUMN"
+            "ALTER TABLE.*DROP"
+          )
+
+          FOUND_ISSUES=0
+
+          for pattern in "${DESTRUCTIVE_PATTERNS[@]}"; do
+            if grep -Rni "$pattern" src/server/db/migrations/ 2>/dev/null; then
+              echo "⚠️  WARNING: Found potentially destructive migration: $pattern"
+              FOUND_ISSUES=$((FOUND_ISSUES + 1))
+            fi
+          done
+
+          if [ $FOUND_ISSUES -gt 0 ]; then
+            echo ""
+            echo "❌ Destructive migrations detected!"
+            echo "Please ensure you're using expand/contract pattern:"
+            echo "  1. Make columns nullable first"
+            echo "  2. Deploy code that handles both old and new schema"
+            echo "  3. Backfill data"
+            echo "  4. Drop old columns in a future release"
+            echo ""
+            echo "To override this check, add '# migration-safety: ignore' to your migration."
+            
+            # Check if migrations have override comment
+            if grep -R "# migration-safety: ignore" src/server/db/migrations/ 2>/dev/null; then
+              echo "⚠️  Override found - proceeding with caution"
+              exit 0
+            fi
+            
+            exit 1
+          fi
+
+          echo "✅ No destructive migrations detected"
+
+  # Quality gate - all checks must pass
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    needs: [lint, typecheck, test, build, migration-safety]
+    if: always()
+    steps:
+      - name: Check all jobs
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" ]] || \
+             [[ "${{ needs.typecheck.result }}" != "success" ]] || \
+             [[ "${{ needs.test.result }}" != "success" ]] || \
+             [[ "${{ needs.build.result }}" != "success" ]] || \
+             [[ "${{ needs.migration-safety.result }}" != "success" ]]; then
+            echo "❌ One or more CI jobs failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed"
