@@ -17,7 +17,7 @@ primary_region = 'ord'
   processes = ['app']
 
  # Liveness: ensure process is up
-  [[http_service.http_checks]]
+  [[http_service.checks]]
     interval = "15s"
     timeout = "2s"
     grace_period = "20s"
@@ -25,7 +25,7 @@ primary_region = 'ord'
     path = "/healthz"
 
   # Readiness: ensures DB reachable before routing traffic
-  [[http_service.http_checks]]
+  [[http_service.checks]]
     interval = "30s"
     timeout = "5s"
     grace_period = "30s"
