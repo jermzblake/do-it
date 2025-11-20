@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Build outputs
+dist/
+build/
+.output/
+
+# Generated/bootstrap files
+build.ts
+bun-env.d.ts
+
+# Database migration files (auto-generated)
+src/server/db/migrations/**/*.sql
+src/server/db/migrations/meta/**/*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
