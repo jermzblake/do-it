@@ -122,12 +122,10 @@ jobs:
           key: ${{ needs.prepare.outputs.cache-key }}
 
       - name: Apply migrations
-        run: bun x drizzle-kit push
-        timeout-minutes: 2
+        run: timeout 2m bun run db:migrate
 
       - name: Run tests
-        run: bun run test
-        timeout-minutes: 5
+        run: timeout 5m bun run test
 
       - name: Upload test results
         if: always()
@@ -159,8 +157,7 @@ jobs:
           key: ${{ needs.prepare.outputs.cache-key }}
 
       - name: Build application
-        run: bun run build
-        timeout-minutes: 5
+        run: timeout 5m bun run build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

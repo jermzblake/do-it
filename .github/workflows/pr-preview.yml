@@ -31,31 +31,32 @@ jobs:
 
       - name: Create or update preview app
         run: |
-          APP_NAME="do-it-pr-${{ github.event.number }}"
+          timeout 3m bash -c '
+            APP_NAME="do-it-pr-${{ github.event.number }}"
 
-          # Check if app exists
-          if flyctl apps list | grep -q "$APP_NAME"; then
-            echo "📦 Preview app $APP_NAME already exists, updating..."
-          else
-            echo "🆕 Creating new preview app $APP_NAME..."
-            flyctl apps create "$APP_NAME" --org "$FLY_ORG" || true
-            
-            # Allocate a dedicated IPv4 (optional, costs ~$2/month per app)
-            # flyctl ips allocate-v4 --app "$APP_NAME"
-            
-            # Set secrets for preview (use test/staging secrets)
-            flyctl secrets set \
-              NODE_ENV=production \
-              --app "$APP_NAME"
-            
-            # Note: You'll need to provision a preview database separately
-            # Option 1: Share a staging database (with PR-specific schema)
-            # Option 2: Use Fly Postgres with --attached flag
-            # Option 3: Use a separate postgres cluster for all previews
-            
-            echo "⚠️  Remember to set DATABASE_URL secret manually for preview apps"
-          fi
-        timeout-minutes: 3
+            # Check if app exists
+            if flyctl apps list | grep -q "$APP_NAME"; then
+              echo "📦 Preview app $APP_NAME already exists, updating..."
+            else
+              echo "🆕 Creating new preview app $APP_NAME..."
+              flyctl apps create "$APP_NAME" --org "$FLY_ORG" || true
+              
+              # Allocate a dedicated IPv4 (optional, costs ~$2/month per app)
+              # flyctl ips allocate-v4 --app "$APP_NAME"
+              
+              # Set secrets for preview (use test/staging secrets)
+              flyctl secrets set \
+                NODE_ENV=production \
+                --app "$APP_NAME"
+              
+              # Note: You'll need to provision a preview database separately
+              # Option 1: Share a staging database (with PR-specific schema)
+              # Option 2: Use Fly Postgres with --attached flag
+              # Option 3: Use a separate postgres cluster for all previews
+              
+              echo "⚠️  Remember to set DATABASE_URL secret manually for preview apps"
+            fi
+          '
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
@@ -64,14 +65,13 @@ jobs:
           APP_NAME="do-it-pr-${{ github.event.number }}"
 
           # Deploy with custom fly.toml settings for preview
-          flyctl deploy \
+          timeout 10m flyctl deploy \
             --app "$APP_NAME" \
             --region "$FLY_REGION" \
             --remote-only \
             --strategy immediate \
             --ha=false \
             --vm-memory 512
-        timeout-minutes: 10
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
@@ -80,24 +80,25 @@ jobs:
 
       - name: Smoke test preview
         run: |
-          APP_NAME="do-it-pr-${{ github.event.number }}"
-          URL="https://${APP_NAME}.fly.dev"
+          timeout 2m bash -c '
+            APP_NAME="do-it-pr-${{ github.event.number }}"
+            URL="https://${APP_NAME}.fly.dev"
 
-          echo "🔍 Testing preview at $URL"
+            echo "🔍 Testing preview at $URL"
 
-          for i in {1..10}; do
-            if curl -fsS --max-time 5 "${URL}/healthz"; then
-              echo "✅ Preview is healthy"
-              exit 0
-            fi
-            echo "⏳ Attempt $i/10..."
-            sleep 3
-          done
+            for i in {1..10}; do
+              if curl -fsS --max-time 5 "${URL}/healthz"; then
+                echo "✅ Preview is healthy"
+                exit 0
+              fi
+              echo "⏳ Attempt $i/10..."
+              sleep 3
+            done
 
-          echo "⚠️  Preview health check failed, but deployment completed"
-          echo "Check logs: flyctl logs --app $APP_NAME"
-          exit 0  # Don't fail the job, just warn
-        timeout-minutes: 2
+            echo "⚠️  Preview health check failed, but deployment completed"
+            echo "Check logs: flyctl logs --app $APP_NAME"
+            exit 0  # Don't fail the job, just warn
+          '
 
       - name: Comment PR with preview URL
         uses: actions/github-script@v7

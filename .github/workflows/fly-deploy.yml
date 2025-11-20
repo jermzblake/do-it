@@ -43,8 +43,7 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy to Fly.io
-        run: flyctl deploy --remote-only --strategy rolling --ha=false
-        timeout-minutes: 12
+        run: timeout 12m flyctl deploy --remote-only --strategy rolling --ha=false
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
@@ -59,33 +58,35 @@ jobs:
 
       - name: Health check - Liveness
         run: |
-          echo "🏥 Checking liveness endpoint..."
-          for i in {1..10}; do
-            if curl -fsS --max-time 5 https://do-it-carpe-diem.fly.dev/healthz; then
-              echo "✅ Liveness check passed"
-              exit 0
-            fi
-            echo "⏳ Attempt $i failed, retrying..."
-            sleep 3
-          done
-          echo "❌ Liveness check failed after 10 attempts"
-          exit 1
-        timeout-minutes: 2
+          timeout 2m bash -c '
+            echo "🏥 Checking liveness endpoint..."
+            for i in {1..10}; do
+              if curl -fsS --max-time 5 https://do-it-carpe-diem.fly.dev/healthz; then
+                echo "✅ Liveness check passed"
+                exit 0
+              fi
+              echo "⏳ Attempt $i failed, retrying..."
+              sleep 3
+            done
+            echo "❌ Liveness check failed after 10 attempts"
+            exit 1
+          '
 
       - name: Health check - Readiness
         run: |
-          echo "🏥 Checking readiness endpoint (DB connectivity)..."
-          for i in {1..10}; do
-            if curl -fsS --max-time 5 https://do-it-carpe-diem.fly.dev/readyz; then
-              echo "✅ Readiness check passed"
-              exit 0
-            fi
-            echo "⏳ Attempt $i failed, retrying..."
-            sleep 3
-          done
-          echo "❌ Readiness check failed after 10 attempts"
-          exit 1
-        timeout-minutes: 2
+          timeout 2m bash -c '
+            echo "🏥 Checking readiness endpoint (DB connectivity)..."
+            for i in {1..10}; do
+              if curl -fsS --max-time 5 https://do-it-carpe-diem.fly.dev/readyz; then
+                echo "✅ Readiness check passed"
+                exit 0
+              fi
+              echo "⏳ Attempt $i failed, retrying..."
+              sleep 3
+            done
+            echo "❌ Readiness check failed after 10 attempts"
+            exit 1
+          '
 
       - name: Notify on failure
         if: failure()
