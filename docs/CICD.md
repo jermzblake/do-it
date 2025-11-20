@@ -1,91 +1,75 @@
 # CI/CD Workflows Documentation
 
-This project uses a modular GitHub Actions workflow structure with built-in timeouts and safety checks.
+Three-workflow structure: CI validates code, Deploy pushes to production, PR Preview creates test environments.
 
 ## Workflow Files
 
 ### 1. `ci.yml` - Continuous Integration
 
-**Triggers:** Push to `main`, Pull Requests, Manual dispatch
-
-**Purpose:** Validates all code changes before they reach production.
-
-**Jobs:**
-
-- **prepare** (5min timeout) - Installs dependencies with frozen lockfile
-- **typecheck** (5min timeout) - Validates TypeScript types
-- **test** (10min timeout) - Runs unit/integration tests with ephemeral Postgres
-  Three-workflow structure: CI validates code, Deploy pushes to production, PR Preview creates test environments.
-- **migration-safety** (5min timeout) - Checks for destructive database changes
-- **ci-success** (1min timeout) - Quality gate that all checks must pass
-
-**Timeout Strategy:**
-
 Runs on all pushes and PRs. Must pass before deployment.
 
----
+**Jobs:**
 
 - `prepare` (5min) - Install deps with frozen lockfile
 - `lint` (5min) - Prettier formatting check
 - `typecheck` (5min) - TypeScript validation
 - `test` (10min) - Unit/integration tests with ephemeral Postgres
 - `build` (10min) - Build app and upload artifacts
-- `migration-safety` (5min) - Detect destructive migrations
+- `migration-check` (5min) - Run migrations against test database
 - `ci-success` (1min) - Quality gate
-- **smoke-test** (5min timeout) - Validates deployment health
-  - Liveness check: 2min timeout (10 retries × 3s)
-  - Readiness check: 2min timeout (10 retries × 3s)
-- **deployment-summary** (2min timeout) - Generates deployment report
+
+---
+
+### 2. `fly-deploy.yml` - Production Deployment
 
 Only runs after CI passes on `main` branch.
 
-- Smoke tests: 5min (generous for slow startups)
-- Each health check: 2min with retries
+**Jobs:**
+
 - `check-ci` (1min) - Verify CI success
 - `deploy` (15min) - Deploy to Fly.io with rolling strategy
 - `smoke-test` (5min) - Test `/healthz` and `/readyz` endpoints
 - `deployment-summary` (2min) - Generate deployment report
-  **Triggers:** PR opened/updated/closed
-  **Concurrency:** `cancel-in-progress: false` prevents canceling mid-deploy
-  **Purpose:** Creates isolated preview environments for each PR.
-- **deploy-preview** (15min timeout) - Creates/updates Fly app per PR
-  - App creation: 3min timeout
-  - Deploy: 10min timeout
+
+**Concurrency:** `cancel-in-progress: false` prevents canceling mid-deploy
+
+---
 
 ### 3. `pr-preview.yml` - Preview Environments
 
 Creates isolated Fly.io app per PR. Destroyed when PR closes.
 
-- Deploy: 15min (same as production)
+**Jobs:**
+
 - `deploy-preview` (15min) - Create app, deploy, smoke test, comment PR
 - `cleanup-preview` (5min) - Destroy app on PR close
 
+**Note:** Preview apps need `DATABASE_URL` configured manually or use shared staging DB.
+
 ---
 
-**Note:** Preview apps need `DATABASE_URL` configured manually or use shared staging DB. 3. **Queue management** - Free up runners for other workflows 4. **Incident detection** - Timeouts signal infrastructure issues
-
-### Timeout Guidelines
+## Timeout Best Practices
 
 Every job has a timeout. GitHub's default is 360min (6 hours) - timeouts prevent runaway jobs and give fast feedback.
 
-- `DROP TABLE`
-- `DROP COLUMN`
-- `ALTER TABLE ... DROP`
+---
 
-Detects destructive patterns: `DROP TABLE`, `DROP COLUMN`, `ALTER TABLE ... DROP`
+## Migration Verification
 
-```sql
-**Override:** Add `# migration-safety: ignore` comment to migration file.
+The `migration-check` job runs all migrations against a fresh test database to ensure they execute successfully. This catches:
 
-**Expand/Contract pattern for safe schema changes:**
-3. **Switch**: Update code to use new column
-4. **Contract**: Drop old column (in later release)
+- SQL syntax errors
+- Missing dependencies between migrations
+- Invalid column/table references
+- Type mismatches
+
+**If migrations fail in CI, they'll fail in production** - fix them before merging
 
 ---
 
 ## Deployment Flow
 
-```
+````
 
 ┌─────────────┐
 │ Push to PR │
@@ -109,7 +93,7 @@ flyctl status --app do-it-carpe-diem
 
 # View logs
 flyctl logs --app do-it-carpe-diem
-```
+````
 
 ```
 

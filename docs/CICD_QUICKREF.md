@@ -1,76 +1,62 @@
-# GitHub Actions Workflow Structure
-
 # CI/CD Quick Reference
 
 ## Workflow Structure
 
+```
 .github/workflows/
-├── ci.yml # Main validation (all branches)
-├── fly-deploy.yml # Production deployment (main only)
-├── ci.yml # Validation (all branches)
-├── fly-deploy.yml # Production (main only, after CI)
-└── pr-preview.yml # Preview per PR
-
-## Quick Reference
+├── ci.yml           # Validation (all branches)
+├── fly-deploy.yml   # Production (main only, after CI)
+└── pr-preview.yml   # Preview per PR
+```
 
 ## Timeouts
 
-| ------------------ | ------- | --------------------- |
-| Job | Timeout | Why |
-| ------------ | ------- | ------------------ |
-| Install/Lint | 5min | Fast with cache |
-| Test | 10min | DB + tests |
-| Build | 10min | Bundle app |
-| Deploy | 15min | Image build + push |
-| Smoke test | 5min | Health checks |
+| Job            | Timeout | Why                |
+| -------------- | ------- | ------------------ |
+| Install/Lint   | 5min    | Fast with cache    |
+| Test           | 10min   | DB + tests         |
+| Build          | 10min   | Bundle app         |
+| Migration test | 5min    | Run migrations     |
+| Deploy         | 15min   | Image build + push |
+| Smoke test     | 5min    | Health checks      |
 
-### Local Testing
+## Commands
 
 ### Run CI locally
 
-# Run what CI runs
-
+```bash
 bun install --frozen-lockfile
+bun x prettier --check .
 bun x tsc --noEmit
-bun test
-
 bun run test
-
-### Manual Deploy
+bun run build
+```
 
 ### Deploy manually
 
-# Deploy to production (bypasses CI)
-
+```bash
+# Trigger deploy workflow
 gh workflow run fly-deploy.yml
 
-# Trigger deploy workflow
-
-# Check workflow status
-
-gh run list --workflow=fly-deploy.yml
-
 # Check status
-
-# View logs
+gh run list --workflow=fly-deploy.yml
+```
 
 ### Rollback
 
 ```bash
-# List releases
 flyctl releases list --app do-it-carpe-diem
-# Rollback
-
-### Preview Management
+flyctl releases rollback v42 --app do-it-carpe-diem
+```
 
 ### Preview apps
+
+```bash
 # List preview apps
 flyctl apps list | grep do-it-pr-
 
-# Manually destroy preview
-flyctl apps destroy do-it-pr-123 --yes
 # Destroy preview
-
+flyctl apps destroy do-it-pr-123 --yes
 
 # Set DATABASE_URL for preview
 flyctl secrets set DATABASE_URL="..." --app do-it-pr-123
@@ -97,18 +83,16 @@ flyctl releases rollback v<prev>     # rollback
 - Test `/healthz` and `/readyz` locally
 - Verify `DATABASE_URL` is set
 
-## Migration Safety
+## Migration Verification
 
-Blocks destructive patterns: `DROP TABLE`, `DROP COLUMN`
+Runs all migrations against a test database to catch failures before production.
 
-**Override:** Add `# migration-safety: ignore` to migration file
+**Catches:**
 
-**Safe pattern:**
-
-1. Add nullable column
-2. Backfill data
-3. Update code
-4. Drop old column (later)
+- SQL syntax errors
+- Missing migration dependencies
+- Invalid references
+- Type mismatches
 
 ## Secrets
 
@@ -122,12 +106,3 @@ flyctl auth token  # get token
 
 - `/healthz` - Process liveness
 - `/readyz` - Database connectivity
-
-## Useful Links
-
-- [CI Workflow](.github/workflows/ci.yml)
-- [Deploy Workflow](.github/workflows/fly-deploy.yml)
-- [PR Preview Workflow](.github/workflows/pr-preview.yml)
-- [Full Documentation](./CICD.md)
-- [Query Performance](./QUERY_PERFORMANCE.md)
-- [Testing Guide](./TESTING.md)
