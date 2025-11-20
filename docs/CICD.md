@@ -1,6 +1,6 @@
 # CI/CD Workflows Documentation
 
-Three-workflow structure: CI validates code, Deploy pushes to production, PR Preview creates test environments.
+Two-workflow structure: CI validates code and Deploy pushes to production.
 
 ## Workflow Files
 
@@ -32,19 +32,6 @@ Only runs after CI passes on `main` branch.
 - `deployment-summary` (2min) - Generate deployment report
 
 **Concurrency:** `cancel-in-progress: false` prevents canceling mid-deploy
-
----
-
-### 3. `pr-preview.yml` - Preview Environments
-
-Creates isolated Fly.io app per PR. Destroyed when PR closes.
-
-**Jobs:**
-
-- `deploy-preview` (15min) - Create app, deploy, smoke test, comment PR
-- `cleanup-preview` (5min) - Destroy app on PR close
-
-**Note:** Preview apps need `DATABASE_URL` configured manually or use shared staging DB.
 
 ---
 

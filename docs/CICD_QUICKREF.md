@@ -5,8 +5,7 @@
 ```
 .github/workflows/
 ├── ci.yml           # Validation (all branches)
-├── fly-deploy.yml   # Production (main only, after CI)
-└── pr-preview.yml   # Preview per PR
+└── fly-deploy.yml   # Production (main only, after CI)
 ```
 
 ## Timeouts
@@ -47,19 +46,6 @@ gh run list --workflow=fly-deploy.yml
 ```bash
 flyctl releases list --app do-it-carpe-diem
 flyctl releases rollback v42 --app do-it-carpe-diem
-```
-
-### Preview apps
-
-```bash
-# List preview apps
-flyctl apps list | grep do-it-pr-
-
-# Destroy preview
-flyctl apps destroy do-it-pr-123 --yes
-
-# Set DATABASE_URL for preview
-flyctl secrets set DATABASE_URL="..." --app do-it-pr-123
 ```
 
 ## Troubleshooting
