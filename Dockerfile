@@ -40,4 +40,4 @@ COPY --from=builder /app/package.json ./
 EXPOSE 8080
 
 # Start the server
-CMD ["bun", "run", "start"]
+CMD ["bun", "src/server/index.ts"]
