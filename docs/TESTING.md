@@ -210,22 +210,22 @@ describe('insertTaskSchema', () => {
 
 ### Mocking Functions
 
-For functions with dependencies, use Bun's `mock`:
+For functions with dependencies, use Bun's `spyOn`:
 
 ```typescript
-import { mock, beforeEach } from 'bun:test'
-import * as cookiesModule from '../cookies'
+import { spyOn } from 'bun:test'
+import * as cookiesModule from '../../utils/cookies'
+import * as sessionsService from '../../services/auth/sessions.service'
 
 describe('getUserFromSessionCookie', () => {
-  beforeEach(() => {
-    // Reset mocks
-  })
-
   test('should return userId when session is valid', async () => {
-    // @ts-ignore
-    cookiesModule.getCookie = mock(() => 'valid-token')
+    const getCookieSpy = spyOn(cookiesModule, 'getCookie').mockReturnValue('valid-token')
+    const getUserIdSpy = spyOn(sessionsService, 'getUserIdBySessionToken').mockResolvedValue('user-123')
 
     // ... test logic
+
+    getCookieSpy.mockRestore()
+    getUserIdSpy.mockRestore()
   })
 })
 ```
