@@ -2,7 +2,9 @@
 
 This project uses Bun's built-in test runner with React Testing Library and a lightweight DOM provided by `happy-dom`.
 
-## What’s covered
+## Test Coverage
+
+### Client-Side Tests
 
 Focused tests validate our React Query hooks and cache behavior:
 
@@ -19,6 +21,29 @@ Test files live here:
 
 - Hook tests: `src/client/tests/use-tasks.test.tsx`
 - Test environment setup: `tests/setup.ts`
+
+### Server-Side Tests
+
+Comprehensive unit tests cover server utilities and validators:
+
+**Utility Functions** (`src/server/tests/utils/`)
+
+- `cookies.test.ts` - Cookie setting, getting, and deletion
+- `response.test.ts` - Response formatting and error handling
+- `validation-error-handler.test.ts` - Zod and custom validation error handling
+- `session.cookies.test.ts` - Session cookie extraction and validation
+
+**Validators** (`src/server/tests/validators/`)
+
+- `task.validator.test.ts` - Task schema validation (insert and update)
+
+These tests validate:
+
+- Input validation and sanitization
+- Error handling and formatting
+- Cookie management and security
+- Schema constraints (string length, numeric ranges, enums)
+- Date coercion and optional fields
 
 ## How to run
 
@@ -114,6 +139,114 @@ apiClient.get = originalGet
 - Flaky timing with refetches:
   - Prefer `await waitFor(...)` and, where useful, deferred promises to control resolution order.
 
+## Test Organization
+
+```
+src/
+├── client/
+│   └── tests/              # Client-side tests
+│       ├── use-tasks.test.tsx
+│       └── ...
+└── server/
+    └── tests/              # Server-side tests
+        ├── utils/          # Utility function tests
+        │   ├── cookies.test.ts
+        │   ├── response.test.ts
+        │   ├── validation-error-handler.test.ts
+        │   └── session.cookies.test.ts
+        └── validators/     # Validator tests
+            └── task.validator.test.ts
+tests/
+└── setup.ts                # Global test setup
+```
+
+## Writing Server-Side Tests
+
+### Testing Utilities
+
+Server utilities are pure functions that are easy to test:
+
+```typescript
+import { describe, test, expect } from 'bun:test'
+import { setCookie, getCookie } from '../../utils/cookies'
+
+describe('getCookie', () => {
+  test('should return cookie value when it exists', () => {
+    const req = new Request('http://localhost', {
+      headers: { Cookie: 'session_token=abc123' },
+    })
+
+    const value = getCookie(req as any, 'session_token')
+    expect(value).toBe('abc123')
+  })
+})
+```
+
+### Testing Validators
+
+Use Zod's `safeParse` to test validation schemas:
+
+```typescript
+import { describe, test, expect } from 'bun:test'
+import { insertTaskSchema } from '../../validators/task.validator'
+
+describe('insertTaskSchema', () => {
+  test('should reject empty name', () => {
+    const invalidTask = {
+      userId: 'user-123',
+      name: '',
+      priority: 2,
+      effort: 3,
+    }
+
+    const result = insertTaskSchema.safeParse(invalidTask)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('Task name is required')
+    }
+  })
+})
+```
+
+### Mocking Functions
+
+For functions with dependencies, use Bun's `spyOn`:
+
+```typescript
+import { spyOn } from 'bun:test'
+import * as cookiesModule from '../../utils/cookies'
+import * as sessionsService from '../../services/auth/sessions.service'
+
+describe('getUserFromSessionCookie', () => {
+  test('should return userId when session is valid', async () => {
+    const getCookieSpy = spyOn(cookiesModule, 'getCookie').mockReturnValue('valid-token')
+    const getUserIdSpy = spyOn(sessionsService, 'getUserIdBySessionToken').mockResolvedValue('user-123')
+
+    // ... test logic
+
+    getCookieSpy.mockRestore()
+    getUserIdSpy.mockRestore()
+  })
+})
+```
+
 ## CI
 
 The `package.json` includes a `test` script that runs Bun tests with the preload setup. Integrate this command in your CI workflow.
+
+## Future Test Coverage
+
+Additional tests to consider (require test database setup):
+
+### Integration Tests
+
+- **Repositories**: Database operations, query logic, soft deletes
+- **Services**: Business logic, error handling, validation
+- **Controllers**: Request/response handling, authentication
+- **Routes**: HTTP routing and parameter extraction
+
+### E2E Tests
+
+- Full authentication flow (OAuth)
+- Complete task CRUD operations
+- Session management and expiration
