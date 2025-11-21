@@ -18,8 +18,9 @@ function withProviders(ui: React.ReactElement) {
   )
 }
 
-function openDialog(triggerText = /create/i) {
-  fireEvent.click(screen.getByRole('button', { name: triggerText }))
+function openDialog() {
+  // The trigger button text is exactly 'Create'; enforce an exact match to avoid matching 'Create Task'
+  fireEvent.click(screen.getByRole('button', { name: /^create$/i }))
 }
 
 function pressEscape() {
@@ -32,7 +33,7 @@ describe('CreateTaskDialog discard guard', () => {
 
     // Wait for router to mount children
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /create/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /^create$/i })).toBeTruthy()
     })
 
     openDialog()
@@ -53,7 +54,7 @@ describe('CreateTaskDialog discard guard', () => {
     withProviders(<CreateTaskDialog trigger={<button>Create</button>} />)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /create/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /^create$/i })).toBeTruthy()
     })
 
     openDialog()
