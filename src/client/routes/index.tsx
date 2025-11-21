@@ -5,6 +5,7 @@ import { LandingPage } from '@/client/pages/landing'
 import { NotFoundPage } from '@/client/pages/not-found'
 import { DashboardPage } from '@/client/pages/dashboard'
 import { TaskPage } from '@/client/pages/task-page'
+import { CreateTaskPage } from '@/client/pages/create-task-page'
 import { AuthProvider, useAuth } from '../auth/AuthContext'
 import { ErrorBoundary } from '@/client/components/error-boundary'
 import { useEffect } from 'react'
@@ -61,8 +62,18 @@ const taskDetailsRoute = createRoute({
   ),
 })
 
+const createTaskRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: routes.createTask,
+  component: () => (
+    <RequireAuth>
+      <CreateTaskPage />
+    </RequireAuth>
+  ),
+})
+
 // Assemble the route tree
-const routeTree = rootRoute.addChildren([indexRoute, dashboardRoute, taskDetailsRoute])
+const routeTree = rootRoute.addChildren([indexRoute, dashboardRoute, taskDetailsRoute, createTaskRoute])
 
 // Create the router
 export const router = createRouter({

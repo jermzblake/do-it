@@ -15,6 +15,27 @@ globalThis.Node = windowInstance.Node
 // @ts-ignore
 globalThis.navigator = { userAgent: 'happy-dom' } as any
 
+// Polyfill getComputedStyle for Radix Presence animations
+// @ts-ignore
+if (typeof globalThis.getComputedStyle === 'undefined') {
+  // @ts-ignore
+  globalThis.getComputedStyle = windowInstance.getComputedStyle.bind(windowInstance)
+}
+
+// Polyfill MutationObserver used by Radix FocusScope
+// @ts-ignore
+if (typeof globalThis.MutationObserver === 'undefined') {
+  // @ts-ignore
+  globalThis.MutationObserver = (windowInstance as any).MutationObserver
+}
+
+// Polyfill NodeFilter for focus trapping logic
+// @ts-ignore
+if (typeof (globalThis as any).NodeFilter === 'undefined') {
+  // @ts-ignore
+  ;(globalThis as any).NodeFilter = (windowInstance as any).NodeFilter ?? { SHOW_ELEMENT: 1 }
+}
+
 // Polyfill requestAnimationFrame for React 19
 // @ts-ignore
 globalThis.requestAnimationFrame = (cb: FrameRequestCallback) =>
@@ -45,6 +66,23 @@ if (!globalThis.window.matchMedia) {
 if (typeof globalThis.DocumentFragment === 'undefined') {
   // @ts-ignore
   globalThis.DocumentFragment = (globalThis.document as any).defaultView?.DocumentFragment ?? (function () {} as any)
+}
+
+// Map specific element classes commonly referenced by Radix/FocusScope
+// @ts-ignore
+if (typeof (globalThis as any).HTMLInputElement === 'undefined') {
+  // @ts-ignore
+  ;(globalThis as any).HTMLInputElement = (windowInstance as any).HTMLInputElement
+}
+// @ts-ignore
+if (typeof (globalThis as any).HTMLTextAreaElement === 'undefined') {
+  // @ts-ignore
+  ;(globalThis as any).HTMLTextAreaElement = (windowInstance as any).HTMLTextAreaElement
+}
+// @ts-ignore
+if (typeof (globalThis as any).HTMLSelectElement === 'undefined') {
+  // @ts-ignore
+  ;(globalThis as any).HTMLSelectElement = (windowInstance as any).HTMLSelectElement
 }
 
 // Suppress React act warnings in tests where we await settles

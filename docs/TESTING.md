@@ -20,6 +20,8 @@ Focused tests validate our React Query hooks and cache behavior:
 Test files live here:
 
 - Hook tests: `src/client/tests/use-tasks.test.tsx`
+- Component/Dialog tests: `src/client/tests/create-task-dialog.guard.test.tsx`, `src/client/tests/edit-task-dialog.guard.test.tsx`
+- Test utilities: `src/client/tests/test-utils.tsx`
 - Test environment setup: `tests/setup.ts`
 
 ### Server-Side Tests
@@ -71,9 +73,77 @@ The preload file `tests/setup.ts`:
 - Polyfills `requestAnimationFrame`
 - Mutes noisy `act(...)` warnings to keep logs readable
 
+## Test Utilities
+
+We provide shared test utilities in `src/client/tests/test-utils.tsx` to reduce boilerplate and ensure consistency across component tests:
+
+### `renderWithProviders(ui: React.ReactElement)`
+
+Renders a component wrapped with fresh `QueryClient` and `RouterProvider` instances:
+
+```tsx
+import { renderWithProviders } from './test-utils'
+
+renderWithProviders(<MyComponent />)
+```
+
+**Benefits:**
+
+- Automatic provider setup (no manual `QueryClientProvider` or `RouterProvider` boilerplate)
+- Fresh isolated state per render (prevents cross-test pollution)
+- Consistent query/mutation retry disabled for deterministic tests
+
+### `pressEscape()`
+
+Simulates pressing the Escape key on the document:
+
+```tsx
+import { pressEscape } from './test-utils'
+
+pressEscape()
+// Equivalent to: fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' })
+```
+
+### `clickByTestId(testId: string)`
+
+Clicks an element by its `data-testid` attribute:
+
+```tsx
+import { clickByTestId } from './test-utils'
+
+clickByTestId('create-task-trigger')
+// Equivalent to: fireEvent.click(screen.getByTestId('create-task-trigger'))
+```
+
+### `expectDialogOpen(titleRegex: RegExp)`
+
+Asserts a dialog is open by its accessible title, with fallback for `aria-hidden` dialogs:
+
+```tsx
+import { expectDialogOpen } from './test-utils'
+
+await expectDialogOpen(/create task/i)
+```
+
+**Handles Radix Dialog edge case:** When an `AlertDialog` is shown on top of a `Dialog`, the underlying dialog becomes `aria-hidden`. This helper automatically falls back to checking for a hidden heading.
+
+### `expectDialogClosed(titleRegex: RegExp)`
+
+Asserts a dialog is fully closed and removed from the DOM:
+
+```tsx
+import { expectDialogClosed } from './test-utils'
+
+await expectDialogClosed(/create task/i)
+```
+
+Waits for both the dialog role and any hidden headings to be removed.
+
 ## Patterns used in tests
 
-- Provide a `QueryClientProvider` wrapper for hooks and components:
+### Hook Testing
+
+- Provide a `QueryClientProvider` wrapper for hooks:
 
 ```tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -84,6 +154,8 @@ function createWrapper(qc: QueryClient) {
   }
 }
 ```
+
+**For component tests, prefer `renderWithProviders` from test-utils instead.**
 
 - Seed React Query cache with realistic API responses:
 
@@ -124,20 +196,57 @@ apiClient.get = originalGet
 
 ## Adding new tests
 
+### Component Tests
+
+1. Create a new test in `src/client/tests/` (e.g., `my-component.test.tsx`).
+2. Import `renderWithProviders` and other helpers from `./test-utils`.
+3. Use `renderWithProviders(<MyComponent />)` to render with providers.
+4. Add `afterEach(() => cleanup())` to ensure DOM cleanup between tests.
+5. Assert UI behavior using Testing Library queries.
+
+**Example:**
+
+```tsx
+import { describe, it, expect, afterEach } from 'bun:test'
+import { screen, cleanup } from '@testing-library/react'
+import { renderWithProviders, clickByTestId } from './test-utils'
+import { MyDialog } from '@/client/components/my-dialog'
+
+describe('MyDialog', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  it('opens when trigger is clicked', async () => {
+    renderWithProviders(<MyDialog trigger={<button data-testid="open-dialog">Open</button>} />)
+
+    clickByTestId('open-dialog')
+    expect(screen.getByRole('dialog')).toBeTruthy()
+  })
+})
+```
+
+### Hook Tests
+
 1. Create a new test in `src/client/tests/` (e.g., `some-hook.test.tsx`).
 2. Build a `QueryClient` and wrapper, seed any needed cache entries.
 3. Stub `apiClient` methods (`get`, `post`, `put`, `delete`) as needed.
-4. Use `renderHook` or `render` with the wrapper to exercise the hook/component.
+4. Use `renderHook` with the wrapper to exercise the hook.
 5. Assert cache updates, network calls, and UI as appropriate.
 
 ## Troubleshooting
 
-- "Cannot find module '@testing-library/react'":
+- **"Cannot find module '@testing-library/react'"**:
   - Run `bun install` to ensure dev dependencies are installed.
-- Missing DOM APIs:
+- **Missing DOM APIs**:
   - Ensure you run tests with `--preload ./tests/setup.ts`.
-- Flaky timing with refetches:
+- **Flaky timing with refetches**:
   - Prefer `await waitFor(...)` and, where useful, deferred promises to control resolution order.
+- **"Found multiple elements by [data-testid]" or role queries**:
+  - Ensure `afterEach(() => cleanup())` is added to your test suite to prevent DOM pollution between tests.
+  - Use unique `data-testid` values or scope queries with `within()`.
+- **Dialog not found or "aria-hidden" issues**:
+  - Use `expectDialogOpen` and `expectDialogClosed` from test-utils, which handle Radix Dialog's aria-hidden behavior when AlertDialogs overlay.
 
 ## Test Organization
 
@@ -145,7 +254,10 @@ apiClient.get = originalGet
 src/
 ├── client/
 │   └── tests/              # Client-side tests
+│       ├── test-utils.tsx  # Shared test utilities and helpers
 │       ├── use-tasks.test.tsx
+│       ├── create-task-dialog.guard.test.tsx
+│       ├── edit-task-dialog.guard.test.tsx
 │       └── ...
 └── server/
     └── tests/              # Server-side tests
@@ -157,7 +269,7 @@ src/
         └── validators/     # Validator tests
             └── task.validator.test.ts
 tests/
-└── setup.ts                # Global test setup
+└── setup.ts                # Global test setup (happy-dom polyfills)
 ```
 
 ## Writing Server-Side Tests

@@ -1,3 +1,4 @@
+import React from 'react'
 import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
@@ -11,13 +12,19 @@ import { TaskFormSchema } from '../../types/form.types'
 import { useCreateTask } from '@/client/hooks/use-tasks'
 import { toast } from 'sonner'
 import { isDevEnvironment } from '@/client/constants/environment'
+import { useIsDesktop } from '@/client/hooks/use-media-query'
+import { useNavigate } from '@tanstack/react-router'
+import { routes } from '@/client/routes/routes'
 
 interface TaskFormProps {
   setShowForm?: (show: boolean) => void
+  onDirtyChange?: (isDirty: boolean) => void // optional callback to notify parent of dirty state changes
 }
 
-export function TaskForm({ setShowForm }: TaskFormProps) {
+export function TaskForm({ setShowForm, onDirtyChange }: TaskFormProps) {
   const createTaskMutation = useCreateTask()
+  const isDesktop = useIsDesktop()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -25,7 +32,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
     reset,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
   } = useForm<z.infer<typeof TaskFormSchema>>({
     resolver: zodResolver(TaskFormSchema),
     defaultValues: {
@@ -46,12 +53,20 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
   const dueDate = watch('dueDate')
   const isValid = !!watch('name') && !!watch('effort')
 
+  React.useEffect(() => {
+    const hasDirtyFields = Object.keys(dirtyFields).length > 0
+    onDirtyChange?.(hasDirtyFields)
+  }, [dirtyFields, onDirtyChange])
+
   const onSubmit = async (payload: z.infer<typeof TaskFormSchema>) => {
     try {
       await createTaskMutation.mutateAsync(payload)
       isDevEnvironment && console.log('SUCCESS: Task created successfully')
       toast.success('Task created successfully')
       reset()
+      if (!isDesktop) {
+        navigate({ to: routes.dashboard })
+      }
       setShowForm?.(false)
     } catch (error) {
       // You can set form errors here if needed
@@ -61,9 +76,10 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl mx-auto p-6">
-      <div className="grid col-auto">
-        <h1 className="text-3xl font-bold mb-4">Create Task Form</h1>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl w-full mx-auto p-6">
+      {/* instructions only visible on mobile */}
+      <div className="grid col-auto md:hidden text-sm text-gray-600 -mt-4">
+        <h4 className="font-bold">Fill out the form to create a new task.</h4>
       </div>
       {/* Name Field */}
       <div className="space-y-2">
@@ -96,7 +112,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
       <div className="space-y-2">
         <Label htmlFor="status">Status</Label>
         <Select onValueChange={(value) => setValue('status', value)} defaultValue={status}>
-          <SelectTrigger className={errors.status ? 'border-red-500' : ''}>
+          <SelectTrigger className={`w-full min-w-[9rem] ${errors.status ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
@@ -135,7 +151,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
             defaultValue={priority?.toString()}
             {...register('priority', { valueAsNumber: true })}
           >
-            <SelectTrigger className={errors.priority ? 'border-red-500' : ''}>
+            <SelectTrigger className={`w-full min-w-[6rem] ${errors.priority ? 'border-red-500' : ''}`}>
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
@@ -156,7 +172,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
             defaultValue={effort?.toString()}
             {...register('effort', { valueAsNumber: true })}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full min-w-[10rem]">
               <SelectValue placeholder="1 (min) - 5 (max)" />
             </SelectTrigger>
             <SelectContent>
