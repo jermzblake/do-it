@@ -19,8 +19,7 @@ function withProviders(ui: React.ReactElement) {
 }
 
 function openDialog() {
-  // The trigger button text is exactly 'Create'; enforce an exact match to avoid matching 'Create Task'
-  fireEvent.click(screen.getByRole('button', { name: /^create$/i }))
+  fireEvent.click(screen.getByTestId('create-task-trigger'))
 }
 
 function pressEscape() {
@@ -29,7 +28,7 @@ function pressEscape() {
 
 describe('CreateTaskDialog discard guard', () => {
   it('closes immediately when pristine (no confirmation)', async () => {
-    withProviders(<CreateTaskDialog trigger={<button>Create</button>} />)
+    withProviders(<CreateTaskDialog trigger={<button data-testid="create-task-trigger">Create</button>} />)
 
     // Wait for router to mount children
     await waitFor(() => {
@@ -51,7 +50,7 @@ describe('CreateTaskDialog discard guard', () => {
   })
 
   it('shows confirmation when dirty; Keep Editing maintains open; Discard closes', async () => {
-    withProviders(<CreateTaskDialog trigger={<button>Create</button>} />)
+    withProviders(<CreateTaskDialog trigger={<button data-testid="create-task-trigger">Create</button>} />)
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /^create$/i })).toBeTruthy()
