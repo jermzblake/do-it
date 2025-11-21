@@ -93,7 +93,7 @@ The application follows a modern monorepo structure with clear separation of con
 
 ## License
 
-This is a demo repository for viewing purposes only. No license has been granted for use or distribution of this code at this time.
+This is a personal learning project and portfolio demonstration. You're welcome to explore the code, run it locally, and use it as a learning resource. However, formal licensing terms have not yet been determined for commercial use or redistribution.
 
 ---
 
