@@ -232,7 +232,11 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
             </div>
 
             <div className="flex justify-end gap-2 mt-6">
-              <Button variant="outline" onClick={() => setEditingTask(null)} disabled={updateTask.isPending}>
+              <Button
+                variant="outline"
+                onClick={() => (isFormDirty ? setShowDiscardConfirmation(true) : setEditingTask(null))}
+                disabled={updateTask.isPending}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={updateTask.isPending || !isValid || isSubmitting}>
