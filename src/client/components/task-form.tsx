@@ -11,6 +11,9 @@ import { TaskFormSchema } from '../../types/form.types'
 import { useCreateTask } from '@/client/hooks/use-tasks'
 import { toast } from 'sonner'
 import { isDevEnvironment } from '@/client/constants/environment'
+import { useIsDesktop } from '@/client/hooks/use-media-query'
+import { useNavigate } from '@tanstack/react-router'
+import { routes } from '@/client/routes/routes'
 
 interface TaskFormProps {
   setShowForm?: (show: boolean) => void
@@ -18,6 +21,8 @@ interface TaskFormProps {
 
 export function TaskForm({ setShowForm }: TaskFormProps) {
   const createTaskMutation = useCreateTask()
+  const isDesktop = useIsDesktop()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -52,6 +57,9 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
       isDevEnvironment && console.log('SUCCESS: Task created successfully')
       toast.success('Task created successfully')
       reset()
+      if (!isDesktop) {
+        navigate({ to: routes.dashboard })
+      }
       setShowForm?.(false)
     } catch (error) {
       // You can set form errors here if needed
@@ -62,8 +70,9 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl mx-auto p-6">
-      <div className="grid col-auto">
-        <h1 className="text-3xl font-bold mb-4">Create Task Form</h1>
+      {/* instructions only visible on mobile */}
+      <div className="grid col-auto md:hidden text-sm text-gray-600 -mt-4">
+        <h4 className="font-bold">Fill out the form to create a new task.</h4>
       </div>
       {/* Name Field */}
       <div className="space-y-2">
