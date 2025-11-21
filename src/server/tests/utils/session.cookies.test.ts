@@ -1,4 +1,4 @@
-import { describe, test, expect, spyOn, mock } from 'bun:test'
+import { describe, test, expect, spyOn } from 'bun:test'
 import { getUserFromSessionCookie } from '../../utils/session.cookies'
 import * as cookiesModule from '../../utils/cookies'
 import * as sessionsService from '../../services/auth/sessions.service'
