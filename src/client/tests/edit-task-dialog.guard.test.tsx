@@ -1,6 +1,6 @@
 import React from 'react'
-import { describe, it, expect } from 'bun:test'
-import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, afterEach } from 'bun:test'
+import { screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import { EditTaskDialog } from '@/client/components/edit-task-dialog'
 import type { Task } from '@/types/tasks.types'
 import { renderWithProviders, pressEscape, expectDialogClosed } from './test-utils'
@@ -25,6 +25,10 @@ const baseTask: Task = {
 }
 
 describe('EditTaskDialog discard guard', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   it('pristine close: Escape closes without confirmation', async () => {
     renderWithProviders(<Host initial={baseTask} />)
 

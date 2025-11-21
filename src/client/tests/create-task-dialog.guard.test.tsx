@@ -1,38 +1,24 @@
 import React from 'react'
-import { describe, it, expect } from 'bun:test'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router'
+import { describe, it, expect, afterEach } from 'bun:test'
+import { screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import { CreateTaskDialog } from '@/client/components/create-task-dialog'
-
-function withProviders(ui: React.ReactElement) {
-  const qc = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  })
-  const root = createRootRoute({ component: () => ui as React.ReactElement })
-  const router = createRouter({ routeTree: root })
-  return render(
-    <QueryClientProvider client={qc}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
-  )
-}
+import { renderWithProviders, pressEscape, clickByTestId, expectDialogClosed } from './test-utils'
 
 function openDialog() {
-  fireEvent.click(screen.getByTestId('create-task-trigger'))
-}
-
-function pressEscape() {
-  fireEvent.keyDown(document, { key: 'Escape', code: 'Escape' })
+  clickByTestId('create-task-trigger')
 }
 
 describe('CreateTaskDialog discard guard', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   it('closes immediately when pristine (no confirmation)', async () => {
-    withProviders(<CreateTaskDialog trigger={<button data-testid="create-task-trigger">Create</button>} />)
+    renderWithProviders(<CreateTaskDialog trigger={<button data-testid="create-task-trigger">Create</button>} />)
 
     // Wait for router to mount children
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /^create$/i })).toBeTruthy()
+      expect(screen.getByTestId('create-task-trigger')).toBeTruthy()
     })
 
     openDialog()
@@ -43,17 +29,14 @@ describe('CreateTaskDialog discard guard', () => {
     pressEscape()
 
     // Closes without confirmation
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: /create task/i })).toBeNull()
-      expect(screen.queryByRole('alertdialog')).toBeNull()
-    })
+    await expectDialogClosed(/create task/i)
   })
 
   it('shows confirmation when dirty; Keep Editing maintains open; Discard closes', async () => {
-    withProviders(<CreateTaskDialog trigger={<button data-testid="create-task-trigger">Create</button>} />)
+    renderWithProviders(<CreateTaskDialog trigger={<button data-testid="create-task-trigger">Create</button>} />)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /^create$/i })).toBeTruthy()
+      expect(screen.getByTestId('create-task-trigger')).toBeTruthy()
     })
 
     openDialog()
@@ -85,18 +68,12 @@ describe('CreateTaskDialog discard guard', () => {
     await screen.findByRole('alertdialog', { name: /discard unsaved changes/i })
     fireEvent.click(screen.getByRole('button', { name: /discard/i }))
 
-    await waitFor(() => {
-      expect(screen.queryByRole('alertdialog')).toBeNull()
-      expect(screen.queryByRole('dialog', { name: /create task/i })).toBeNull()
-    })
+    await expectDialogClosed(/create task/i)
 
     // Re-open: pristine → should close without prompt
     openDialog()
     expect(screen.getByRole('dialog', { name: /create task/i })).toBeTruthy()
     pressEscape()
-    await waitFor(() => {
-      expect(screen.queryByRole('alertdialog')).toBeNull()
-      expect(screen.queryByRole('dialog', { name: /create task/i })).toBeNull()
-    })
+    await expectDialogClosed(/create task/i)
   })
 })
