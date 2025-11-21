@@ -26,6 +26,7 @@
 .DS_Store
 .fly
 README.md
+docs/
 **/*.test.*
 **/*.spec.*
 **/tests/
