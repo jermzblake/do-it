@@ -3,8 +3,7 @@ import { Button } from '@/client/components/ui/button'
 import { Separator } from '@/client/components/ui/separator'
 import { useAuth } from '@/client/auth/AuthContext'
 import { useNavigate } from '@tanstack/react-router'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
-import { TaskForm } from '@/client/components/task-form'
+import { CreateTaskDialog } from '@/client/components/create-task-dialog'
 import { useIsDesktop } from '@/client/hooks/use-media-query'
 import { routes } from '@/client/routes/routes'
 
@@ -15,10 +14,9 @@ interface SiteHeaderProps {
 export const SiteHeader = ({ pageTitle }: SiteHeaderProps) => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const isDesktop = useIsDesktop()
 
   if (!user) return null
-  const [showCreateTaskDialog, setShowCreateTaskDialog] = React.useState(false)
-  const isDesktop = useIsDesktop()
 
   return (
     <header className="bg-white shadow-md p-4 flex justify-between items-center">
@@ -26,32 +24,29 @@ export const SiteHeader = ({ pageTitle }: SiteHeaderProps) => {
       <div className="flex items-center gap-4">
         <span className="hidden md:block text-sm text-gray-600">Hey, {user.name}</span>
         <Separator orientation="vertical" className="h-6" />
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => {
-            if (!isDesktop) {
-              navigate({ to: routes.createTask })
-            } else {
-              setShowCreateTaskDialog(true)
+        {isDesktop ? (
+          <CreateTaskDialog
+            trigger={
+              <Button variant="default" size="sm">
+                Create Task
+              </Button>
             }
-          }}
-        >
-          Create Task
-        </Button>
+          />
+        ) : (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => {
+              navigate({ to: routes.createTask })
+            }}
+          >
+            Create Task
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={logout}>
           Logout
         </Button>
       </div>
-      <Dialog open={showCreateTaskDialog} onOpenChange={setShowCreateTaskDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Task</DialogTitle>
-            <DialogDescription>Fill out the form to create a new task.</DialogDescription>
-          </DialogHeader>
-          <TaskForm setShowForm={setShowCreateTaskDialog} />
-        </DialogContent>
-      </Dialog>
     </header>
   )
 }
