@@ -93,7 +93,7 @@ test('should reject invalid priority', () => {
   const result = insertTaskSchema.safeParse(invalidTask)
   expect(result.success).toBe(false)
   if (!result.success) {
-    expect(result.error.issues[0].message).toBe('Priority must be at most 3')
+    expect(result.error.issues[0]?.message).toBe('Priority must be at most 3')
   }
 })
 ```
