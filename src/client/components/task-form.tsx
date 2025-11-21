@@ -1,3 +1,4 @@
+import React from 'react'
 import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
 import { Label } from '@/client/components/ui/label'
@@ -17,9 +18,10 @@ import { routes } from '@/client/routes/routes'
 
 interface TaskFormProps {
   setShowForm?: (show: boolean) => void
+  onDirtyChange?: (isDirty: boolean) => void // optional callback to notify parent of dirty state changes
 }
 
-export function TaskForm({ setShowForm }: TaskFormProps) {
+export function TaskForm({ setShowForm, onDirtyChange }: TaskFormProps) {
   const createTaskMutation = useCreateTask()
   const isDesktop = useIsDesktop()
   const navigate = useNavigate()
@@ -30,7 +32,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
     reset,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, dirtyFields },
   } = useForm<z.infer<typeof TaskFormSchema>>({
     resolver: zodResolver(TaskFormSchema),
     defaultValues: {
@@ -50,6 +52,11 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
   const effort = watch('effort')
   const dueDate = watch('dueDate')
   const isValid = !!watch('name') && !!watch('effort')
+
+  React.useEffect(() => {
+    const hasDirtyFields = Object.keys(dirtyFields).length > 0
+    onDirtyChange?.(hasDirtyFields)
+  }, [dirtyFields, onDirtyChange])
 
   const onSubmit = async (payload: z.infer<typeof TaskFormSchema>) => {
     try {
