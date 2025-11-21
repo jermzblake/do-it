@@ -69,7 +69,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl mx-auto p-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl w-full mx-auto p-6">
       {/* instructions only visible on mobile */}
       <div className="grid col-auto md:hidden text-sm text-gray-600 -mt-4">
         <h4 className="font-bold">Fill out the form to create a new task.</h4>
@@ -105,7 +105,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
       <div className="space-y-2">
         <Label htmlFor="status">Status</Label>
         <Select onValueChange={(value) => setValue('status', value)} defaultValue={status}>
-          <SelectTrigger className={errors.status ? 'border-red-500' : ''}>
+          <SelectTrigger className={`w-full min-w-[9rem] ${errors.status ? 'border-red-500' : ''}`}>
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
@@ -144,7 +144,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
             defaultValue={priority?.toString()}
             {...register('priority', { valueAsNumber: true })}
           >
-            <SelectTrigger className={errors.priority ? 'border-red-500' : ''}>
+            <SelectTrigger className={`w-full min-w-[6rem] ${errors.priority ? 'border-red-500' : ''}`}>
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent>
@@ -165,7 +165,7 @@ export function TaskForm({ setShowForm }: TaskFormProps) {
             defaultValue={effort?.toString()}
             {...register('effort', { valueAsNumber: true })}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full min-w-[10rem]">
               <SelectValue placeholder="1 (min) - 5 (max)" />
             </SelectTrigger>
             <SelectContent>

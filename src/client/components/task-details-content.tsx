@@ -268,7 +268,7 @@ export const TaskDetailsContent = ({
                   {...register('status')}
                   value={taskStatus || undefined}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -293,7 +293,7 @@ export const TaskDetailsContent = ({
                   {...register('priority', { valueAsNumber: true })}
                   value={priority ? priority.toString() : undefined}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -318,7 +318,7 @@ export const TaskDetailsContent = ({
                     {...register('effort', { valueAsNumber: true })}
                     value={effort ? effort.toString() : undefined}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

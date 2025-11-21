@@ -122,7 +122,7 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
                 defaultValue={priority?.toString()}
                 {...register('priority', { valueAsNumber: true })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -143,7 +143,7 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
                 defaultValue={effort?.toString()}
                 {...register('effort', { valueAsNumber: true })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
