@@ -7,16 +7,25 @@ interface MobilePageLayoutProps {
   children: React.ReactNode
   right?: React.ReactNode
   backTo?: string
+  hasRightAction?: boolean // new prop to control header width
 }
 
-export const MobilePageLayout = ({ title, children, right, backTo }: MobilePageLayoutProps) => {
+export const MobilePageLayout = ({ title, children, right, backTo, hasRightAction }: MobilePageLayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen w-screen min-w-[100vw] overflow-x-hidden">
       <header className="sticky top-0 left-0 z-20 bg-white/90 backdrop-blur-sm supports-backdrop-blur:bg-white/80 shadow-md border-b px-4 py-3 flex items-center justify-between gap-2 w-full">
         <Link to={backTo || routes.dashboard} className="text-sm">
           ← Back
         </Link>
-        <h1 className="font-semibold text-lg flex-1 truncate text-blue-900">{title}</h1>
+        <h1
+          className={
+            hasRightAction
+              ? 'font-semibold text-lg flex-1 truncate text-blue-900'
+              : 'font-semibold text-lg flex-[2] truncate text-blue-900 pr-2'
+          }
+        >
+          {title}
+        </h1>
         {right}
       </header>
       <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 space-y-6">{children}</main>
