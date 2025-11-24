@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { priorityConfig } from '@/client/lib/configs'
 import type { Task, TaskStatus } from '@/types/tasks.types'
 import { Card, CardContent } from '@/client/components/ui/card'
@@ -8,6 +9,7 @@ import { Button } from '@/client/components/ui/button'
 import { useUpdateTask } from '@/client/hooks/use-tasks'
 import { isOverdue } from '@/client/utils/is-overdue'
 import { formatDate } from '@/client/utils/format-date'
+import { routes } from '@/client/routes/routes'
 import { Edit2, Play, Check, Ban, Trash2, Calendar, AlertCircle, Loader2, X } from 'lucide-react'
 
 interface MobileTaskCardProps {
@@ -19,6 +21,7 @@ interface MobileTaskCardProps {
 }
 
 export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: MobileTaskCardProps) => {
+  const navigate = useNavigate()
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
   const overdue = isOverdue(task.dueDate as string)
@@ -118,7 +121,7 @@ export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: Mo
             className="h-8 w-8 p-0"
             onClick={(e) => {
               e.stopPropagation()
-              onEdit()
+              navigate({ to: routes.taskDetails(task.id), search: { edit: true } })
             }}
             disabled={updateTask.isPending}
             title="Edit task"

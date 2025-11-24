@@ -8,10 +8,11 @@ import { routes } from '@/client/routes/routes'
 interface UseTaskDetailLogicProps {
   task: Task
   onClose?: () => void // For closing sidebar on desktop
+  initialIsEditing?: boolean // Start in editing mode
 }
 
-export const useTaskDetailLogic = ({ task, onClose }: UseTaskDetailLogicProps) => {
-  const [isEditing, setIsEditing] = React.useState(false)
+export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: UseTaskDetailLogicProps) => {
+  const [isEditing, setIsEditing] = React.useState(initialIsEditing)
   const navigate = useNavigate()
   const isDesktop = useIsDesktop()
 
