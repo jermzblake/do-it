@@ -15,6 +15,7 @@ import { isDevEnvironment } from '@/client/constants/environment'
 import { useIsDesktop } from '@/client/hooks/use-media-query'
 import { useNavigate } from '@tanstack/react-router'
 import { routes } from '@/client/routes/routes'
+import { isApiResponseError, hasErrorDetail } from '@/client/utils/type-guards'
 
 interface TaskFormProps {
   setShowForm?: (show: boolean) => void
@@ -68,10 +69,23 @@ export function TaskForm({ setShowForm, onDirtyChange }: TaskFormProps) {
         navigate({ to: routes.dashboard })
       }
       setShowForm?.(false)
-    } catch (error) {
-      // You can set form errors here if needed
+    } catch (error: unknown) {
       isDevEnvironment && console.log('ERROR:', error)
-      toast.error('Error creating task')
+
+      if (isApiResponseError(error)) {
+        if (hasErrorDetail(error, 'TASK_CREATION_LIMIT_EXCEEDED')) {
+          toast.error(
+            error.metaData.message ||
+              'You have reached your weekly task creation limit. Please contact the site administrator to create more tasks.',
+            { duration: 6000 },
+          )
+          return
+        }
+        toast.error(error.metaData.message || 'Error creating task')
+        return
+      }
+
+      toast.error('An unexpected error occurred. Please try again.')
     }
   }
 
