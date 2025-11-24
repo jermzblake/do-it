@@ -13,7 +13,7 @@ interface MobilePageLayoutProps {
 export const MobilePageLayout = ({ title, children, right, backTo, hasRightAction }: MobilePageLayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen w-screen min-w-[100vw] overflow-x-hidden">
-      <header className="sticky top-0 left-0 z-20 bg-white/90 backdrop-blur-sm supports-backdrop-blur:bg-white/80 shadow-md border-b px-4 py-3 flex items-center justify-between gap-2 w-full">
+      <header className="sticky top-0 left-0 z-20 bg-white/90 backdrop-blur-sm supports-[backdrop-filter:blur(0)]:bg-white/80 shadow-md border-b px-4 py-3 flex items-center justify-between gap-2 w-full">
         <Link to={backTo || routes.dashboard} className="text-sm">
           ← Back
         </Link>
