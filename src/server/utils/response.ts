@@ -37,6 +37,7 @@ export const ResponseMessage = {
   NOT_IMPLEMENTED: 'Not implemented.',
   NO_CONTENT: 'Request successful but no content to return.',
   ACCEPTED: 'Request accepted but not processed.',
+  RATE_LIMIT_EXCEEDED: 'Rate limit exceeded.',
 }
 
 export const ResponseCode = {
@@ -48,6 +49,7 @@ export const ResponseCode = {
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
+  TOO_MANY_REQUESTS: 429,
   INTERNAL_SERVER_ERROR: 500,
   NOT_IMPLEMENTED: 501,
   SERVICE_UNAVAILABLE: 503,
@@ -63,6 +65,7 @@ export const StatusCode = {
   BAD_REQUEST: 'C4000_BAD_REQUEST',
   UNAUTHORIZED: 'C4001_UNAUTHORIZED',
   FORBIDDEN: 'C4002_FORBIDDEN',
+  RATE_LIMIT_EXCEEDED: 'C4005_RATE_LIMIT_EXCEEDED',
   INTERNAL_SERVER_ERROR: 'E5000_INTERNAL_SERVER_ERROR',
   SERVICE_UNAVAILABLE: 'E5003_SERVICE_UNAVAILABLE',
   NOT_IMPLEMENTED: 'E5001_NOT_IMPLEMENTED',

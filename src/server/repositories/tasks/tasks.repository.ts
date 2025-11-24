@@ -1,7 +1,7 @@
 import { db } from '../../db/db'
 import { TaskTable } from '../../db/schema'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
-import { eq, and, sql, count, isNull } from 'drizzle-orm'
+import { eq, and, sql, count, isNull, gte, lte } from 'drizzle-orm'
 import type { PagingParams } from '../../../types'
 
 const returnColumns = {
@@ -82,6 +82,8 @@ export const getTasksByStatus = async (
     .from(TaskTable)
     .where(and(eq(TaskTable.userId, userId), eq(TaskTable.status, status), isNull(TaskTable.deletedAt)))
     .orderBy(
+      //TODO: move to helper function
+      //TODO: when status is completed, order by completedAt desc?
       sql`${TaskTable.dueDate} ASC NULLS LAST,
           ${TaskTable.priority} DESC,
           ${TaskTable.effort} ASC`,
@@ -119,4 +121,20 @@ export const updateTaskById = async (id: string, taskData: Partial<NewTask>) => 
 
 export const deleteTaskById = async (id: string) => {
   await db.update(TaskTable).set({ deletedAt: new Date() }).where(eq(TaskTable.id, id))
+}
+
+export const countActiveTasksByUserId = async (userId: string): Promise<number> => {
+  const result = await db
+    .select({ value: count(TaskTable.id) })
+    .from(TaskTable)
+    .where(and(eq(TaskTable.userId, userId), isNull(TaskTable.deletedAt)))
+  return Number(result[0]?.value || 0)
+}
+
+export const countTasksCreatedByUserBetween = async (userId: string, start: Date, end: Date): Promise<number> => {
+  const result = await db
+    .select({ value: count(TaskTable.id) })
+    .from(TaskTable)
+    .where(and(eq(TaskTable.userId, userId), gte(TaskTable.createdAt, start), lte(TaskTable.createdAt, end)))
+  return Number(result[0]?.value || 0)
 }

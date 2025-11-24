@@ -1,4 +1,5 @@
 import * as TasksRepository from '../../repositories/tasks/tasks.repository'
+import { enforceTaskCreationLimit } from '../../utils/task-rate-limit'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import type { PagingParams } from '../../../types/index'
 import { insertTaskSchema, updateTaskSchema } from '../../validators/task.validator'
@@ -10,6 +11,8 @@ export const createTask = async (taskPayload: NewTask): Promise<Task> => {
 
   const validatedData = insertTaskSchema.parse(taskPayload)
 
+  await enforceTaskCreationLimit({ userId: validatedData.userId })
+
   try {
     const newTask = await TasksRepository.createTask(validatedData)
     if (!newTask) {
@@ -17,7 +20,7 @@ export const createTask = async (taskPayload: NewTask): Promise<Task> => {
     }
     return newTask
   } catch (error: any) {
-    throw new Error('Error creating task: ' + error.message)
+    throw error // allow RateLimitExceededError to propagate; other errors bubble naturally
   }
 }
 
