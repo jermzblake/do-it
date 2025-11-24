@@ -66,12 +66,7 @@ describe('Status transition business logic', () => {
 
     const { container } = render(
       <Wrapper client={qc}>
-        <MobileTaskCard
-          task={task({ status: 'todo', startedAt: undefined })}
-          onEdit={() => {}}
-          onDelete={() => {}}
-          onBlock={() => {}}
-        />
+        <MobileTaskCard task={task({ status: 'todo', startedAt: undefined })} onDelete={() => {}} onBlock={() => {}} />
       </Wrapper>,
     )
 
@@ -109,7 +104,6 @@ describe('Status transition business logic', () => {
       <Wrapper client={qc}>
         <MobileTaskCard
           task={task({ status: 'todo', startedAt: existingStartedAt })}
-          onEdit={() => {}}
           onDelete={() => {}}
           onBlock={() => {}}
         />
@@ -146,12 +140,7 @@ describe('Status transition business logic', () => {
 
     const { container } = render(
       <Wrapper client={qc}>
-        <MobileTaskCard
-          task={task({ status: 'in_progress' })}
-          onEdit={() => {}}
-          onDelete={() => {}}
-          onBlock={() => {}}
-        />
+        <MobileTaskCard task={task({ status: 'in_progress' })} onDelete={() => {}} onBlock={() => {}} />
       </Wrapper>,
     )
 
@@ -188,7 +177,6 @@ describe('Status transition business logic', () => {
       <Wrapper client={qc}>
         <MobileTaskCard
           task={task({ status: 'blocked', blockedReason: 'Waiting for API', notes: 'Original notes' })}
-          onEdit={() => {}}
           onDelete={() => {}}
           onBlock={() => {}}
         />
