@@ -12,12 +12,17 @@ const TaskDetailsScreen = ({ task, initialIsEditing }: { task: Task; initialIsEd
   const taskDetailLogic = useTaskDetailLogic({ task, initialIsEditing })
 
   const renderHeaderName = () => {
-    if (task?.name && task.name.length > 15) {
+    const showEdit = !taskDetailLogic.isEditing
+    if (!task?.name) return 'Loading...'
+    // If edit button is present, truncate more
+    if (showEdit && task.name.length > 15) {
       return `${task.name.substring(0, 13)}...`
-    } else if (task?.name) {
-      return task.name
     }
-    return 'Loading...'
+    // If edit button is NOT present, allow much longer name before truncating
+    if (!showEdit && task.name.length > 40) {
+      return `${task.name.substring(0, 37)}...`
+    }
+    return task.name
   }
 
   return (
@@ -35,6 +40,7 @@ const TaskDetailsScreen = ({ task, initialIsEditing }: { task: Task; initialIsEd
           </Button>
         )
       }
+      hasRightAction={!taskDetailLogic.isEditing}
     >
       <TaskDetailsContent task={task} {...taskDetailLogic} />
     </MobilePageLayout>
