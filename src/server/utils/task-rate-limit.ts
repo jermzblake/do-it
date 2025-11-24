@@ -19,7 +19,7 @@ interface RateLimitContext {
   userId: string
 }
 
-// Week calculation (ISO week start Monday 00:00:00 UTC -> Sunday 23:59:59.999 UTC)
+// Week calculation (calendar week: Monday 00:00:00 UTC -> Sunday 23:59:59.999 UTC)
 const getCurrentWeekWindow = (): { start: Date; end: Date } => {
   const now = new Date()
   // Get day index (Sun=0 ... Sat=6). We want Monday start.
