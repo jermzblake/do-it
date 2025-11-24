@@ -100,15 +100,15 @@ The application follows a modern monorepo structure with clear separation of con
 ## Future Enhancements
 
 - **Current Tasks Dashboard** - Visualize the current days' tasks
-- **Task Comments & Activity Log** - Track changes, collaborate with team members, and maintain audit history
 - **Active Timer & Time Logging** - Log time spent on tasks with built-in timer and customizable Pomodoro timer (to help with time management) and manual entry
+- **Task Comments & Activity Log** - Track changes and maintain audit history
+- **Calendar Integration** - Sync tasks with external calendars (Google Calendar, Outlook)
 - **Analytics Dashboard** - Visualize productivity trends, completion rates, and time tracking insights
-- **Notifications** - Email and push notifications for due dates, status changes, and mentions
-- **Tags & Categories** - Advanced organization beyond status and priority for flexible task grouping
 - **Email Credentials Authentication** - Support non-SSO authentication via https://www.better-auth.com/
+- **Notifications** - Email and push notifications for due dates, status changes
+- **Tags & Categories** - Advanced organization beyond status and priority for flexible task grouping
 - **Dark Mode** - Theme switching for user preference and reduced eye strain
 - **Export & Reporting** - Generate reports and export data in various formats (CSV, PDF)
-- **Calendar Integration** - Sync tasks with external calendars (Google Calendar, Outlook)
 - **Subtasks & Dependencies** - Break down complex tasks and define relationships between tasks
 - **Recurring Tasks** - Automatic task creation for repeating work with customizable schedules
 - **File Attachments** - Upload and attach files, images, and documents to tasks
