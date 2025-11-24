@@ -14,13 +14,12 @@ import { Edit2, Play, Check, Ban, Trash2, Calendar, AlertCircle, Loader2, X } fr
 
 interface MobileTaskCardProps {
   task: Task
-  onEdit: () => void
   onDelete: () => void
   onBlock: () => void
   onSelect?: () => void
 }
 
-export const MobileTaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: MobileTaskCardProps) => {
+export const MobileTaskCard = ({ task, onDelete, onBlock, onSelect }: MobileTaskCardProps) => {
   const navigate = useNavigate()
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
