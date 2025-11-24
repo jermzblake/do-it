@@ -1,4 +1,4 @@
-import { useParams, Navigate, Link } from '@tanstack/react-router'
+import { useParams, Navigate, Link, useSearch } from '@tanstack/react-router'
 import type { Task } from '@/types/tasks.types'
 import { useTaskDetailLogic } from '@/client/hooks/useTaskDetailLogic'
 import { TaskDetailsContent } from '@/client/components/task-details-content'
@@ -8,17 +8,21 @@ import { Button } from '@/client/components/ui/button'
 import { Edit2 } from 'lucide-react'
 import { MobilePageLayout } from '@/client/components/mobile-page-layout'
 
-const TaskDetailsScreen = ({ task }: { task: Task }) => {
-  // Always called when this component is mounted
-  const taskDetailLogic = useTaskDetailLogic({ task })
+const TaskDetailsScreen = ({ task, initialIsEditing }: { task: Task; initialIsEditing?: boolean }) => {
+  const taskDetailLogic = useTaskDetailLogic({ task, initialIsEditing })
 
   const renderHeaderName = () => {
-    if (task?.name && task.name.length > 15) {
+    const showEdit = !taskDetailLogic.isEditing
+    if (!task?.name) return 'Loading...'
+    // If edit button is present, truncate more
+    if (showEdit && task.name.length > 15) {
       return `${task.name.substring(0, 13)}...`
-    } else if (task?.name) {
-      return task.name
     }
-    return 'Loading...'
+    // If edit button is NOT present, allow much longer name before truncating
+    if (!showEdit && task.name.length > 40) {
+      return `${task.name.substring(0, 37)}...`
+    }
+    return task.name
   }
 
   return (
@@ -36,6 +40,7 @@ const TaskDetailsScreen = ({ task }: { task: Task }) => {
           </Button>
         )
       }
+      hasRightAction={!taskDetailLogic.isEditing}
     >
       <TaskDetailsContent task={task} {...taskDetailLogic} />
     </MobilePageLayout>
@@ -44,6 +49,7 @@ const TaskDetailsScreen = ({ task }: { task: Task }) => {
 
 export const TaskPage = () => {
   const { taskId }: { taskId: string } = useParams({ strict: false })
+  const search = useSearch({ strict: false }) as { edit?: boolean }
 
   if (!taskId) {
     return <Navigate to={routes.dashboard} />
@@ -67,5 +73,5 @@ export const TaskPage = () => {
   }
 
   const task = data.data as Task
-  return <TaskDetailsScreen task={task} />
+  return <TaskDetailsScreen task={task} initialIsEditing={search.edit} />
 }

@@ -13,7 +13,6 @@ import { routes } from '@/client/routes/routes'
 
 interface MobileStatusSectionProps {
   status: string
-  setEditingTask: (task: Task | null) => void
   setDeleteTaskId: (taskId: string | null) => void
   setTaskToBlockId: (taskId: string | null) => void
   searchQuery: string
@@ -22,7 +21,6 @@ interface MobileStatusSectionProps {
 
 export const MobileStatusSection = ({
   status,
-  setEditingTask,
   setDeleteTaskId,
   setTaskToBlockId,
   searchQuery,
@@ -108,7 +106,6 @@ export const MobileStatusSection = ({
               <MobileTaskCard
                 key={task.id}
                 task={task}
-                onEdit={() => setEditingTask(task)}
                 onDelete={() => setDeleteTaskId(task.id)}
                 onBlock={() => setTaskToBlockId(task.id)}
                 onSelect={() => navigate({ to: routes.taskDetailsPattern, params: { taskId: task.id } })}
