@@ -42,7 +42,6 @@ Do It is a full-stack task management solution that streamlines your workflow wi
 ## Who is Do It For?
 
 - **Individual Developers** - Track personal projects, bugs, and feature development
-- **Small Teams** - Collaborate on shared goals with transparent task management
 - **Project Managers** - Oversee multiple workstreams with priority and effort tracking
 - **Students** - Organize assignments, projects, and study tasks with deadline tracking
 - **Anyone Seeking Better Organization** - Simple enough for personal use, powerful enough for professional workflows
