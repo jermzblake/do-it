@@ -11,8 +11,8 @@ interface MobilePageLayoutProps {
 
 export const MobilePageLayout = ({ title, children, right, backTo }: MobilePageLayoutProps) => {
   return (
-    <div className="flex flex-col min-h-screen w-full overflow-x-hidden">
-      <header className="sticky top-0 z-10 bg-white border-b px-4 py-3 flex items-center justify-between gap-2">
+    <div className="flex flex-col min-h-screen w-screen min-w-[100vw] overflow-x-hidden">
+      <header className="sticky top-0 left-0 z-20 bg-white/90 backdrop-blur-sm supports-backdrop-blur:bg-white/80 shadow-md border-b px-4 py-3 flex items-center justify-between gap-2 w-full">
         <Link to={backTo || routes.dashboard} className="text-sm">
           ← Back
         </Link>
