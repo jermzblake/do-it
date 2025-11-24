@@ -127,7 +127,7 @@ export const TaskDetailsContent = ({
   const StatusIcon = statusConfig[task?.status]?.icon
 
   return (
-    <div className="space-y-6 w-full max-w-full md:max-w-4xl md:mx-auto md:p-6 pb-24 md:pb-6">
+    <div className="space-y-6 w-full md:max-w-4xl md:mx-auto md:p-6 pb-24 md:pb-6">
       {/* HEADER (desktop only - mobile gets its own wrapper) */}
       <div className="hidden md:flex items-start justify-between">
         <h2 className="text-2xl font-bold text-slate-900">Task Details</h2>
