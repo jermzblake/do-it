@@ -10,8 +10,8 @@ import * as TasksService from '../../services/tasks/tasks.service.ts'
 import type { TaskStatus } from '../../db/schema'
 import { TaskStatus as TaskStatusEnum } from '../../db/schema'
 import { getUserFromSessionCookie } from '../../utils/session.cookies.ts'
-import { z } from 'zod'
 import { handleValidationError } from '../../utils/validation-error-handler.ts'
+import { RateLimitExceededError } from '../../errors/RateLimitExceededError'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   try {
@@ -24,20 +24,25 @@ export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   } catch (error: any) {
     const validation = handleValidationError(error)
     if (validation) return validation
-
-    const response = createErrorResponse('Failed to create task: ' + error.message, 500)
-    return Response.json(response, { status: 500 })
+    if (error instanceof RateLimitExceededError) {
+      const response = createErrorResponse(
+        error.message,
+        ResponseCode.TOO_MANY_REQUESTS,
+        'TASK_CREATION_LIMIT_EXCEEDED',
+      )
+      return Response.json(response, { status: ResponseCode.TOO_MANY_REQUESTS })
+    }
+    const response = createErrorResponse('Failed to create task: ' + error.message, ResponseCode.INTERNAL_SERVER_ERROR)
+    return Response.json(response, { status: ResponseCode.INTERNAL_SERVER_ERROR })
   }
 }
 
 export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
   const { id: taskId } = req.params
-
   if (!taskId) {
     const response = createErrorResponse('Missing task id in URL', 400)
     return Response.json(response, { status: 400 })
   }
-
   try {
     const taskData = await req.json()
     const updatedTask = await TasksService.updateTaskById(taskId, taskData)
@@ -46,7 +51,6 @@ export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
   } catch (error: any) {
     const validation = handleValidationError(error)
     if (validation) return validation
-
     const response = createErrorResponse('Failed to update task: ' + error.message, 500)
     return Response.json(response, { status: 500 })
   }
@@ -54,12 +58,10 @@ export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
 
 export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
   const { id: taskId } = req.params
-
   if (!taskId) {
     const response = createErrorResponse('Missing task id in URL', 400)
     return Response.json(response, { status: 400 })
   }
-
   try {
     await TasksService.deleteTaskById(taskId)
     const response = createResponse(null, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
@@ -72,12 +74,10 @@ export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
 
 export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
   const { id: taskId } = req.params
-
   if (!taskId) {
     const response = createErrorResponse('Missing task id in URL', 400)
     return Response.json(response, { status: 400 })
   }
-
   try {
     const task = await TasksService.getTaskById(taskId)
     const response = createResponse(task, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
@@ -94,12 +94,10 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const statusParam = url.searchParams.get('status')
   const pageParam = url.searchParams.get('page')
   const pageSizeParam = url.searchParams.get('pageSize')
-
   if (!userId) {
     const response = createErrorResponse('Missing required query parameters: userId', 400)
     return Response.json(response, { status: 400 })
   }
-
   let params: PagingParams | undefined =
     pageParam && pageSizeParam
       ? {
@@ -107,7 +105,6 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
           pageSize: parseInt(pageSizeParam, 10),
         }
       : undefined
-
   try {
     if (statusParam) {
       if (!(Object.values(TaskStatusEnum) as TaskStatus[]).includes(statusParam as TaskStatus)) {

@@ -82,6 +82,8 @@ export const getTasksByStatus = async (
     .from(TaskTable)
     .where(and(eq(TaskTable.userId, userId), eq(TaskTable.status, status), isNull(TaskTable.deletedAt)))
     .orderBy(
+      //TODO: move to helper function
+      //TODO: when status is completed, order by completedAt desc?
       sql`${TaskTable.dueDate} ASC NULLS LAST,
           ${TaskTable.priority} DESC,
           ${TaskTable.effort} ASC`,
@@ -119,4 +121,25 @@ export const updateTaskById = async (id: string, taskData: Partial<NewTask>) => 
 
 export const deleteTaskById = async (id: string) => {
   await db.update(TaskTable).set({ deletedAt: new Date() }).where(eq(TaskTable.id, id))
+}
+
+export const countActiveTasksByUserId = async (userId: string): Promise<number> => {
+  const result = await db
+    .select({ value: count(TaskTable.id) })
+    .from(TaskTable)
+    .where(and(eq(TaskTable.userId, userId), isNull(TaskTable.deletedAt)))
+  return Number(result[0]?.value || 0)
+}
+
+export const countTasksCreatedByUserBetween = async (userId: string, start: Date, end: Date): Promise<number> => {
+  const result = await db
+    .select({ value: count(TaskTable.id) })
+    .from(TaskTable)
+    .where(
+      and(
+        eq(TaskTable.userId, userId),
+        sql`(${TaskTable.createdAt} >= ${start.toISOString()} AND ${TaskTable.createdAt} <= ${end.toISOString()})`,
+      ),
+    )
+  return Number(result[0]?.value || 0)
 }
