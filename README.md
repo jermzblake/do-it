@@ -2,6 +2,12 @@
 
 A modern, responsive task management application designed to help individuals and teams organize, track, and complete their work efficiently. Built with cutting-edge web technologies for a fast, intuitive user experience across desktop and mobile devices.
 
+## Live Demo
+
+Production deployment (Fly.io): https://do-it-carpe-diem.fly.dev
+
+> If the link is temporarily unavailable, the app may be auto-stopped to conserve resources; visiting the URL will wake it.
+
 ## What is Do It?
 
 Do It is a full-stack task management solution that streamlines your workflow with intelligent task organization, priority management, and progress tracking. Whether you're managing personal projects or coordinating team efforts, Do It provides the tools you need to stay organized and productive.
