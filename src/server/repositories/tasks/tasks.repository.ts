@@ -1,7 +1,7 @@
 import { db } from '../../db/db'
 import { TaskTable } from '../../db/schema'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
-import { eq, and, sql, count, isNull } from 'drizzle-orm'
+import { eq, and, sql, count, isNull, gte, lte } from 'drizzle-orm'
 import type { PagingParams } from '../../../types'
 
 const returnColumns = {
@@ -135,11 +135,6 @@ export const countTasksCreatedByUserBetween = async (userId: string, start: Date
   const result = await db
     .select({ value: count(TaskTable.id) })
     .from(TaskTable)
-    .where(
-      and(
-        eq(TaskTable.userId, userId),
-        sql`(${TaskTable.createdAt} >= ${start.toISOString()} AND ${TaskTable.createdAt} <= ${end.toISOString()})`,
-      ),
-    )
+    .where(and(eq(TaskTable.userId, userId), gte(TaskTable.createdAt, start), lte(TaskTable.createdAt, end)))
   return Number(result[0]?.value || 0)
 }
