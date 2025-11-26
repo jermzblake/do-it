@@ -1,6 +1,5 @@
 import { format, formatDistance, formatRelative, subDays, formatDistanceToNow } from 'date-fns'
 export const formatDate = (dateString: string) => {
-  console.log('formatDate called with:', dateString)
   if (!dateString) return null
   const date = new Date(dateString)
   const now = new Date()
