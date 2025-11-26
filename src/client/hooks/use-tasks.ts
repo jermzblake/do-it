@@ -37,13 +37,17 @@ export const useCreateTask = () => {
   return useMutation({
     mutationFn: (taskPayload: Partial<Task>) => createTask(taskPayload),
     onSuccess: (response, variables) => {
-      // Only invalidate the specific status list where the task was created
+      // Prefer server-truth for status; fall back to submitted payload
+      const createdStatus = response?.data?.status ?? variables.status
+
       queryClient.invalidateQueries({
         queryKey: tasksKeys.lists(),
         refetchType: 'active',
         predicate: (query) => {
+          // If status can't be determined, refresh all status lists to be safe
+          if (!createdStatus) return true
           const params = query.queryKey[2] as TasksByStatusProps | undefined
-          return params?.status === variables.status
+          return params?.status === createdStatus
         },
       })
     },
@@ -58,8 +62,10 @@ export const useUpdateTask = (taskId: string) => {
     onMutate: async (updatedTask) => {
       await queryClient.cancelQueries({ queryKey: tasksKeys.lists() })
 
-      // Optimistically update the task detail cache as well
+      // Optimistically update the task detail cache, and capture previous status for correct change detection
       const previousById = queryClient.getQueryData<{ data: Task }>(tasksKeys.byId(taskId))
+      const previousStatus = previousById?.data?.status
+
       if (previousById?.data) {
         queryClient.setQueryData(tasksKeys.byId(taskId), {
           ...previousById,
@@ -68,33 +74,29 @@ export const useUpdateTask = (taskId: string) => {
       }
 
       const previousQueries = queryClient.getQueriesData<{ data: Task[] }>({ queryKey: tasksKeys.lists() })
-      const isStatusChange = 'status' in updatedTask
+
+      // Only treat as status change if the value actually changes
+      const hasStatusField = Object.prototype.hasOwnProperty.call(updatedTask, 'status')
+      const isStatusChange = hasStatusField && updatedTask.status && updatedTask.status !== previousStatus
 
       if (isStatusChange) {
-        // For status changes, we need to remove from old list and add to new list
+        // Remove from any list that currently contains this task (it’s moving to another status)
         previousQueries.forEach(([queryKey, oldData]) => {
           if (!oldData?.data) return
-
           const taskInList = oldData.data.find((task: Task) => task.id === taskId)
-
           if (taskInList) {
-            // Found the task - remove it from this list (it's moving to another status)
             queryClient.setQueryData(queryKey, {
               ...oldData,
               data: oldData.data.filter((task: Task) => task.id !== taskId),
             })
           }
         })
-
-        // Note: We don't optimistically add to the new list because we don't know
-        // which page it should appear on. Let invalidation handle the refetch.
+        // We don't optimistically add to the new list due to pagination/ordering uncertainty
       } else {
-        // For non-status updates (like name, priority, etc.), update in place
+        // Non-status updates: update in place in any list where it exists
         previousQueries.forEach(([queryKey, oldData]) => {
           if (!oldData?.data) return
-
           const taskExists = oldData.data.some((task: Task) => task.id === taskId)
-
           if (taskExists) {
             queryClient.setQueryData(queryKey, {
               ...oldData,
@@ -106,9 +108,10 @@ export const useUpdateTask = (taskId: string) => {
 
       return {
         previousQueries,
-        isStatusChange,
-        newStatus: updatedTask.status as TaskStatus | undefined,
         previousById,
+        previousStatus,
+        isStatusChange,
+        newStatus: (updatedTask.status as TaskStatus | undefined) ?? undefined,
       }
     },
     onError: (err, variables, context) => {
@@ -128,14 +131,19 @@ export const useUpdateTask = (taskId: string) => {
       }
     },
     onSettled: (data, error, variables, context) => {
-      // Only refetch if status changed (to populate the new status column)
-      if (context?.isStatusChange && context?.newStatus) {
+      if (context?.isStatusChange) {
+        // Use server-truth for the new status if available; also refresh the source column for correctness (totals)
+        const serverNew = data?.data?.status as TaskStatus | undefined
+        const newStatus = serverNew ?? context.newStatus
+        const oldStatus = context.previousStatus as TaskStatus | undefined
+
         queryClient.invalidateQueries({
           queryKey: tasksKeys.lists(),
           refetchType: 'active',
           predicate: (query) => {
             const params = query.queryKey[2] as TasksByStatusProps | undefined
-            return params?.status === context.newStatus
+            if (!params?.status) return false
+            return params.status === newStatus || params.status === oldStatus
           },
         })
       }
