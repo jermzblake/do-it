@@ -41,7 +41,7 @@ const TaskDashboard = () => {
           </div>
           <div className="flex gap-3">
             <Select value={filterPriority} onValueChange={setFilterPriority}>
-              <SelectTrigger className="w-[140px] sm:w-[200px]">
+              <SelectTrigger className="w-[170px] sm:w-[200px]">
                 <Filter className="w-4 h-4 mr-2" />
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
