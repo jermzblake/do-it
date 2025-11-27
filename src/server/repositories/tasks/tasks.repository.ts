@@ -83,8 +83,8 @@ export const getTasksByStatus = async (
     .where(and(eq(TaskTable.userId, userId), eq(TaskTable.status, status), isNull(TaskTable.deletedAt)))
     .orderBy(
       //TODO: move to helper function
-      //TODO: when status is completed, order by completedAt desc?
-      sql`${TaskTable.dueDate} ASC NULLS LAST,
+      sql`${TaskTable.completedAt} DESC NULLS LAST,
+          ${TaskTable.dueDate} ASC NULLS LAST,
           ${TaskTable.priority} DESC,
           ${TaskTable.effort} ASC`,
     )
