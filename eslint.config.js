@@ -35,6 +35,12 @@ export default tseslint.config(
           ],
         },
       ],
+      '@typescript-eslint/ban-ts-comment': [
+        'error',
+        {
+          'ts-ignore': false,
+        },
+      ],
     },
   },
   {
