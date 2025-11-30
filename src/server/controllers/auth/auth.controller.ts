@@ -1,4 +1,5 @@
-import { createResponse, createErrorResponse, ResponseCode, StatusCode } from '../../utils/response.ts'
+import { createResponse, ResponseMessage, ResponseCode, StatusCode } from '../../utils/response.ts'
+import { BadRequestError, UnauthorizedError, InternalServerError } from '../../errors/HttpError.ts'
 import { randomUUID } from 'crypto'
 import * as SessionService from '../../services/auth/sessions.service.ts'
 import * as UsersService from '../../services/users/users.service.ts'
@@ -54,16 +55,10 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
   const code = url.searchParams.get('code')
   const state = url.searchParams.get('state')
 
-  if (!code || !state) return new Response('Missing params', { status: 400 })
+  if (!code || !state) throw new BadRequestError('Missing code or state parameters')
   const stored = STATE_STORE.get(state)
-  // if (!stored) return new Response("Invalid state", { status: 400 });
   if (!stored) {
-    const response = createErrorResponse(
-      'Invalid state',
-      ResponseCode.BAD_REQUEST,
-      'The provided state parameter is invalid or has expired',
-    )
-    return Response.json(response, { status: 400 })
+    throw new BadRequestError('The provided state parameter is invalid or has expired', 'INVALID_STATE')
   }
 
   // Exchange authorization code for tokens
@@ -84,12 +79,7 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
     tokenData = tokenRes.data
   } catch (error) {
     const status = (error as any)?.response?.status
-    const response = createErrorResponse(
-      'Error fetching tokens',
-      ResponseCode.BAD_REQUEST,
-      `Token endpoint returned ${status ?? 'error'}`,
-    )
-    return Response.json(response, { status: 400 })
+    throw new BadRequestError(`Token endpoint returned ${status ?? 'error'}`, 'TOKEN_FETCH_FAILED')
   }
 
   // Fetch user info
@@ -101,12 +91,7 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
     userInfo = userInfoRes.data
   } catch (error) {
     const status = (error as any)?.response?.status
-    const response = createErrorResponse(
-      'Error fetching user info',
-      ResponseCode.BAD_REQUEST,
-      `Userinfo endpoint returned ${status ?? 'error'}`,
-    )
-    return Response.json(response, { status: 400 })
+    throw new BadRequestError(`Userinfo endpoint returned ${status ?? 'error'}`, 'USERINFO_FETCH_FAILED')
   }
 
   //upsert user
@@ -120,12 +105,7 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
   try {
     user = await UsersService.createUser(userPayload)
   } catch (error) {
-    const response = createErrorResponse(
-      'Error upserting user',
-      ResponseCode.INTERNAL_SERVER_ERROR,
-      (error as Error).message,
-    )
-    return Response.json(response, { status: 500 })
+    throw new InternalServerError((error as Error).message, 'USER_UPSERT_FAILED')
   }
 
   //create session
@@ -140,12 +120,7 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
     })
   } catch (error) {
     console.error('Error creating session:', (error as Error).message)
-    const response = createErrorResponse(
-      'Error creating session',
-      ResponseCode.INTERNAL_SERVER_ERROR,
-      (error as Error).message,
-    )
-    return Response.json(response, { status: 500 })
+    throw new InternalServerError((error as Error).message, 'SESSION_CREATE_FAILED')
   }
 
   const res = new Response(null, { status: 302, headers: { Location: '/dashboard' } })
@@ -158,7 +133,7 @@ export const handleLogout = async (request: Bun.BunRequest) => {
   if (sessionToken) {
     await SessionService.deleteSessionByToken(sessionToken)
   }
-  const res = createResponse(null, 'Logged out successfully', StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
+  const res = createResponse(null, ResponseMessage.NO_CONTENT, StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
   const response = new Response(JSON.stringify(res), { status: 200, headers: { 'Content-Type': 'application/json' } })
   response.headers.set('Set-Cookie', deleteCookie('session_token'))
   return response
@@ -167,25 +142,22 @@ export const handleLogout = async (request: Bun.BunRequest) => {
 export const handleAuthStatus = async (request: Bun.BunRequest) => {
   const sessionToken = getCookie(request, 'session_token')
   if (!sessionToken) {
-    const response = createResponse(null, 'Not authenticated', StatusCode.UNAUTHORIZED, ResponseCode.UNAUTHORIZED)
-    return Response.json(response, { status: 401 })
+    throw new UnauthorizedError('Not authenticated', 'NO_SESSION_TOKEN')
   }
 
   const session = await SessionService.getSessionByToken(sessionToken)
   if (!session) {
-    const response = createResponse(null, 'Invalid session', StatusCode.UNAUTHORIZED, ResponseCode.UNAUTHORIZED)
-    return Response.json(response, { status: 401 })
+    throw new UnauthorizedError('Invalid session', 'INVALID_SESSION')
   }
 
   const user = await UsersService.getUserById(session.userId)
   if (!user) {
-    const response = createResponse(null, 'User not found', StatusCode.UNAUTHORIZED, ResponseCode.UNAUTHORIZED)
-    return Response.json(response, { status: 401 })
+    throw new UnauthorizedError('User not found', 'USER_NOT_FOUND')
   }
 
   const response = createResponse(
     { authenticated: true, user },
-    'Authenticated',
+    ResponseMessage.SUCCESS,
     StatusCode.SUCCESS,
     ResponseCode.SUCCESS,
   )
