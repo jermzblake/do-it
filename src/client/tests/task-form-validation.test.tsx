@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { TaskFormSchema } from '@/types/form.types'
+import { TaskFormSchema } from '@/client/types/form.types'
 
 describe('TaskForm validation (business rules)', () => {
   it('requires blockedReason when status is blocked', () => {

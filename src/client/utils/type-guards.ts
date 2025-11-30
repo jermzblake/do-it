@@ -1,4 +1,4 @@
-import type { ApiResponse } from '../../types/api.types'
+import type { ApiResponse } from '@/shared/api'
 
 /**
  * Type guard to check if an unknown error is an ApiResponse from the server.

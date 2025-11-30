@@ -1,5 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/client/components/ui/sheet'
-import type { Task } from '@/types/tasks.types'
+import type { Task } from '@/shared/task'
 import { TaskDetailsContent } from '@/client/components/task-details-content'
 import { useTaskDetailLogic } from '@/client/hooks/useTaskDetailLogic'
 

@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { tasksKeys } from './use-tasks'
-import type { Task } from '@/types/tasks.types'
-import type { ApiResponse } from '@/types/api.types'
+import type { Task } from '@/shared/task'
+import type { ApiResponse } from '@/shared/api'
 import { useSyncExternalStore } from 'react'
 
 export const useTotalTaskCount = () => {

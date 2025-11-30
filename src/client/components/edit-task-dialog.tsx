@@ -1,4 +1,4 @@
-import type { Task } from '@/types/tasks.types'
+import type { Task } from '@/shared/task'
 import { useUpdateTask } from '@/client/hooks/use-tasks'
 import React from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
@@ -22,7 +22,7 @@ import { DateTimePicker } from '@/client/components/datetime-picker'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { TaskFormSchema } from '../../types/form.types'
+import { TaskFormSchema } from '@/client/types/form.types'
 
 interface EditTaskDialogProps {
   editingTask: Task | null

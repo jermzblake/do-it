@@ -1,6 +1,6 @@
 import React from 'react'
 import { priorityConfig } from '@/client/lib/configs'
-import type { Task, TaskStatus } from '@/types/tasks.types'
+import type { Task, TaskStatus } from '@/shared/task'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Input } from '@/client/components/ui/input'
 import { Badge } from '@/client/components/ui/badge'

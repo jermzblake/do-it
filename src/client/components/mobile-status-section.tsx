@@ -1,7 +1,7 @@
 import React from 'react'
 import { statusConfig } from '@/client/lib/configs'
 import { useTasksByStatus } from '@/client/hooks/use-tasks'
-import type { Task, TaskStatus } from '@/types/tasks.types'
+import type { Task, TaskStatus } from '@/shared/task'
 import { useQueryPerformance } from '@/client/hooks/use-query-performance'
 import { filterTasks } from '@/client/utils/filter-tasks'
 import { Badge } from '@/client/components/ui/badge'

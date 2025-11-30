@@ -1,7 +1,7 @@
 import { apiClient } from '../lib/axios'
 import { checkHasMore } from '@/client/utils/check-has-more'
-import type { Task, TasksByStatusProps } from '@/types/tasks.types'
-import type { ApiResponse } from '../../types/api.types'
+import type { Task, TasksByStatusProps } from '@/shared/task'
+import type { ApiResponse } from '@/shared/api'
 
 export const fetchTasksByStatus = async ({ status, page, pageSize = 5 }: TasksByStatusProps) => {
   const response = await apiClient.get(`/tasks?status=${status}&page=${page}&pageSize=${pageSize}`)

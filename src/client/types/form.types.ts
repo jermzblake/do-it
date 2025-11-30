@@ -1,5 +1,5 @@
 import type { FieldError, UseFormRegister } from 'react-hook-form'
-import { z, ZodType } from 'zod'
+import { z } from 'zod'
 
 export type ValidFieldNames =
   | 'name'

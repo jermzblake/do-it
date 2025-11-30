@@ -3,8 +3,8 @@ import { describe, it, expect } from 'bun:test'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { tasksKeys, useTaskById, useUpdateTask } from '@/client/hooks/use-tasks'
-import type { Task } from '@/types/tasks.types'
-import type { ApiResponse } from '@/types/api.types'
+import type { Task } from '@/shared/task'
+import type { ApiResponse } from '@/shared/api'
 import { apiClient } from '@/client/lib/axios'
 
 function makeResponse<T>(data: T): ApiResponse<T> {

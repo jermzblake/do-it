@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Task } from '@/types/tasks.types'
+import type { Task } from '@/shared/task'
 import { useUpdateTask, useDeleteTask } from './use-tasks'
 import { useNavigate } from '@tanstack/react-router'
 import { useIsDesktop } from '@/client/hooks/use-media-query'
