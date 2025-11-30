@@ -1,7 +1,7 @@
 import * as TasksRepository from '../../repositories/tasks/tasks.repository'
 import { enforceTaskCreationLimit } from '../../utils/task-rate-limit'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
-import type { PagingParams } from '../../../types/index'
+import type { Pagination } from '../../../shared/api'
 import { insertTaskSchema, updateTaskSchema } from '../../validators/task.validator'
 
 export const createTask = async (taskPayload: NewTask): Promise<Task> => {
@@ -19,8 +19,8 @@ export const createTask = async (taskPayload: NewTask): Promise<Task> => {
       throw new Error('Failed to create task')
     }
     return newTask
-  } catch (error: any) {
-    throw error // allow RateLimitExceededError to propagate; other errors bubble naturally
+  } catch (error: unknown) {
+    throw new Error('Error creating task: ' + (error as Error).message) // allow RateLimitExceededError to propagate; other errors bubble naturally
   }
 }
 
@@ -33,10 +33,12 @@ export const getTaskById = async (id: string): Promise<Task | null> => {
   }
 }
 
-export const getAllTasksByUserId = async (userId: string, params?: PagingParams): Promise<PagingParams | Task[]> => {
+export const getAllTasksByUserId = async (
+  userId: string,
+  pagination?: { page: number; pageSize: number },
+): Promise<{ tasks: Task[]; pagination?: Pagination }> => {
   try {
-    const db_response = await TasksRepository.getAllTasksByUserId(userId, params)
-    return db_response
+    return await TasksRepository.getAllTasksByUserId(userId, pagination)
   } catch (error) {
     throw new Error('Error retrieving tasks: ' + (error as Error).message)
   }
@@ -45,17 +47,16 @@ export const getAllTasksByUserId = async (userId: string, params?: PagingParams)
 export const getTasksByStatus = async (
   userId: string,
   status: TaskStatus,
-  params: PagingParams,
-): Promise<PagingParams> => {
+  pagination: { page: number; pageSize: number },
+): Promise<{ tasks: Task[]; pagination: Pagination }> => {
   try {
-    const tasks = await TasksRepository.getTasksByStatus(userId, status, params)
-    return tasks
+    return await TasksRepository.getTasksByStatus(userId, status, pagination)
   } catch (error) {
     throw new Error('Error retrieving tasks by status: ' + (error as Error).message)
   }
 }
 
-export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>): Promise<any> => {
+export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>): Promise<Task> => {
   const validatedData = updateTaskSchema.parse(taskPayload)
 
   try {
