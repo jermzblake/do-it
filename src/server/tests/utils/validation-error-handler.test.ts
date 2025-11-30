@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'bun:test'
 import { z } from 'zod'
 import { handleValidationError } from '../../utils/validation-error-handler'
+import { StatusCode } from '../../utils/response'
 
 describe('handleValidationError', () => {
   test('should handle Zod validation error with single issue', async () => {
@@ -151,7 +152,7 @@ describe('handleValidationError', () => {
       expect(json).toHaveProperty('metaData')
       expect(json).toHaveProperty('error')
       expect(json.data).toBeNull()
-      expect(json.metaData.status).toBe('ERROR')
+      expect(json.metaData.status).toBe(StatusCode.INTERNAL_SERVER_ERROR)
     }
   })
 })

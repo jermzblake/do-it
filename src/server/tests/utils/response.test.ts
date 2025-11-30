@@ -1,12 +1,6 @@
 import { describe, test, expect } from 'bun:test'
-import {
-  createResponse,
-  createErrorResponse,
-  ResponseMessage,
-  ResponseCode,
-  StatusCode,
-  type PagingParams,
-} from '../../utils/response'
+import { createResponse, createErrorResponse, ResponseMessage, ResponseCode, StatusCode } from '../../utils/response'
+import type { Pagination } from '../../../shared/api'
 
 describe('createResponse', () => {
   test('should create successful response with data', () => {
@@ -47,7 +41,7 @@ describe('createResponse', () => {
   })
 
   test('should include pagination params when provided', () => {
-    const pagination: PagingParams = {
+    const pagination: Pagination = {
       page: 1,
       pageSize: 10,
       totalCount: 100,
@@ -93,7 +87,7 @@ describe('createErrorResponse', () => {
 
     expect(response.data).toBeNull()
     expect(response.metaData.message).toBe('Something went wrong')
-    expect(response.metaData.status).toBe('ERROR')
+    expect(response.metaData.status).toBe(StatusCode.INTERNAL_SERVER_ERROR)
     expect(response.metaData.responseCode).toBe(500)
     expect(response.error).toBeDefined()
     expect(response.error?.code).toBe(500)
@@ -150,10 +144,10 @@ describe('createErrorResponse', () => {
     expect(() => new Date(timestamp)).not.toThrow()
   })
 
-  test('should always set status to ERROR', () => {
+  test('should always set status to INTERNAL_SERVER_ERROR', () => {
     const response = createErrorResponse('Any error', 400)
 
-    expect(response.metaData.status).toBe('ERROR')
+    expect(response.metaData.status).toBe(StatusCode.INTERNAL_SERVER_ERROR)
   })
 })
 
