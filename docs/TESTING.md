@@ -160,7 +160,7 @@ function createWrapper(qc: QueryClient) {
 - Seed React Query cache with realistic API responses:
 
 ```ts
-import type { ApiResponse } from '@/types/api.types'
+import type { ApiResponse } from '@/shared/api'
 
 function makeResponse<T>(data: T, extra?: Partial<ApiResponse<T>>): ApiResponse<T> {
   return {
