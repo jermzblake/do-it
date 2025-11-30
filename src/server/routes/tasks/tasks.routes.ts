@@ -1,23 +1,14 @@
 import * as TasksController from '../../controllers/tasks/tasks.controller'
+import { withProblemDetails } from '../../middleware/problem-details'
 
 export const tasksRoutes = {
   '/api/tasks': {
-    async POST(req: Bun.BunRequest) {
-      return TasksController.createTask(req)
-    },
-    async GET(req: Bun.BunRequest) {
-      return TasksController.getTasks(req)
-    },
+    POST: withProblemDetails(TasksController.createTask),
+    GET: withProblemDetails(TasksController.getTasks),
   },
   '/api/tasks/:id': {
-    async GET(req: Bun.BunRequest) {
-      return TasksController.getTaskById(req)
-    },
-    async PUT(req: Bun.BunRequest) {
-      return TasksController.updateTaskById(req)
-    },
-    async DELETE(req: Bun.BunRequest) {
-      return TasksController.deleteTaskById(req)
-    },
+    GET: withProblemDetails(TasksController.getTaskById),
+    PUT: withProblemDetails(TasksController.updateTaskById),
+    DELETE: withProblemDetails(TasksController.deleteTaskById),
   },
 }
