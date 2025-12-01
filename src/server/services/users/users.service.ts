@@ -3,8 +3,9 @@ import type { NewUser, User } from '../../db/schema.js'
 import type { UserResponse } from '../../../shared/user'
 
 export const createUser = async (userPayload: NewUser): Promise<User> => {
-  let { ssoId, ssoType } = userPayload
   const { name, email } = userPayload
+  let ssoId = userPayload.ssoId
+  let ssoType = userPayload.ssoType
   if (!ssoType) {
     ssoType = 'none'
     ssoId = `${email}-none`
