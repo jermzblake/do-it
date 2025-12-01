@@ -1,6 +1,7 @@
 import { createResponse, ResponseMessage, ResponseCode, StatusCode } from '../../utils/response.ts'
 import { BadRequestError, UnauthorizedError, NotFoundError, InternalServerError } from '../../errors/HttpError.ts'
 import * as UsersService from '../../services/users/users.service.ts'
+import { getCorrelation } from '../../utils/request-context'
 
 export const createUser = async (req: Bun.BunRequest) => {
   const userPayload = await req.json()
@@ -9,7 +10,16 @@ export const createUser = async (req: Bun.BunRequest) => {
   }
   try {
     const newUser = await UsersService.createUser(userPayload)
-    const response = createResponse(newUser, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
+    const correlationIds = getCorrelation(req)
+    const response = createResponse(
+      newUser,
+      ResponseMessage.CREATED,
+      StatusCode.CREATED,
+      ResponseCode.CREATED,
+      undefined,
+      correlationIds?.requestId,
+      correlationIds?.traceId,
+    )
     return Response.json(response, { status: 201 })
   } catch (error) {
     throw new InternalServerError((error as Error).message, 'USER_CREATE_FAILED')
@@ -27,7 +37,16 @@ export const getMe = async (req: Bun.BunRequest) => {
     if (!user) {
       throw new NotFoundError('No user associated with the provided session token', 'USER_NOT_FOUND')
     }
-    const response = createResponse(user, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
+    const correlationIds = getCorrelation(req)
+    const response = createResponse(
+      user,
+      ResponseMessage.SUCCESS,
+      StatusCode.SUCCESS,
+      ResponseCode.SUCCESS,
+      undefined,
+      correlationIds?.requestId,
+      correlationIds?.traceId,
+    )
     return Response.json(response, { status: 200 })
   } catch (error) {
     if (error instanceof NotFoundError || error instanceof UnauthorizedError) throw error

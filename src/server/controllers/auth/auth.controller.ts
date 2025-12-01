@@ -5,6 +5,7 @@ import * as SessionService from '../../services/auth/sessions.service.ts'
 import * as UsersService from '../../services/users/users.service.ts'
 import { setCookie, getCookie, deleteCookie } from '../../utils/cookies'
 import axios from 'axios'
+import { getCorrelation } from '../../utils/request-context'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
@@ -133,7 +134,16 @@ export const handleLogout = async (request: Bun.BunRequest) => {
   if (sessionToken) {
     await SessionService.deleteSessionByToken(sessionToken)
   }
-  const res = createResponse(null, ResponseMessage.NO_CONTENT, StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
+  const correlationIds = getCorrelation(request)
+  const res = createResponse(
+    null,
+    ResponseMessage.NO_CONTENT,
+    StatusCode.SUCCESS,
+    ResponseCode.NO_CONTENT,
+    undefined,
+    correlationIds?.requestId,
+    correlationIds?.traceId,
+  )
   const response = new Response(JSON.stringify(res), { status: 200, headers: { 'Content-Type': 'application/json' } })
   response.headers.set('Set-Cookie', deleteCookie('session_token'))
   return response
@@ -155,11 +165,15 @@ export const handleAuthStatus = async (request: Bun.BunRequest) => {
     throw new UnauthorizedError('User not found', 'USER_NOT_FOUND')
   }
 
+  const correlationIds = getCorrelation(request)
   const response = createResponse(
     { authenticated: true, user },
     ResponseMessage.SUCCESS,
     StatusCode.SUCCESS,
     ResponseCode.SUCCESS,
+    undefined,
+    correlationIds?.requestId,
+    correlationIds?.traceId,
   )
   return Response.json(response, { status: 200 })
 }
