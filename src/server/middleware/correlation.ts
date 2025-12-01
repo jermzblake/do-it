@@ -1,5 +1,6 @@
 import { setCorrelation } from '../utils/request-context'
 import { randomUUID } from 'crypto'
+import { logger } from '../utils/logger'
 
 type Handler = (req: Bun.BunRequest) => Promise<Response> | Response
 
@@ -33,11 +34,18 @@ export const withCorrelation = (handler: Handler) => {
     }
 
     setCorrelation(req, { requestId, traceId })
+    if (logger.isLevelEnabled('debug')) {
+      logger.debug({ method: req.method, url: req.url, requestId, traceId }, 'request:start')
+    }
 
     const response = await handler(req)
 
     response.headers.set('X-Request-ID', requestId)
     response.headers.set('X-Trace-ID', traceId)
+
+    if (logger.isLevelEnabled('debug')) {
+      logger.debug({ status: response.status, requestId, traceId }, 'request:end')
+    }
 
     return response
   }

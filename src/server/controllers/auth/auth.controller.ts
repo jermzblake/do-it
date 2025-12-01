@@ -6,6 +6,7 @@ import * as UsersService from '../../services/users/users.service.ts'
 import { setCookie, getCookie, deleteCookie } from '../../utils/cookies'
 import axios from 'axios'
 import { getCorrelation } from '../../utils/request-context'
+import { createLogger } from '../../utils/logger'
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
@@ -33,7 +34,8 @@ const pkcePair = async () => {
   return { verifier, challenge }
 }
 
-export const handleAuthStart = async () => {
+export const handleAuthStart = async (req?: Bun.BunRequest) => {
+  const log = req ? createLogger(req) : undefined
   const { verifier, challenge } = await pkcePair()
   const state = randomUUID()
 
@@ -48,10 +50,12 @@ export const handleAuthStart = async () => {
   url.searchParams.set('code_challenge', challenge)
   url.searchParams.set('code_challenge_method', 'S256')
 
+  log?.info({ state }, 'auth:start redirecting to provider')
   return new Response(null, { status: 302, headers: { Location: url.toString() } })
 }
 
 export const handleAuthCallback = async (request: Bun.BunRequest) => {
+  const log = createLogger(request)
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
   const state = url.searchParams.get('state')
@@ -80,6 +84,7 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
     tokenData = tokenRes.data
   } catch (error) {
     const status = (error as any)?.response?.status
+    log.error({ status }, 'auth:callback token fetch failed')
     throw new BadRequestError(`Token endpoint returned ${status ?? 'error'}`, 'TOKEN_FETCH_FAILED')
   }
 
@@ -92,6 +97,7 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
     userInfo = userInfoRes.data
   } catch (error) {
     const status = (error as any)?.response?.status
+    log.error({ status }, 'auth:callback userinfo fetch failed')
     throw new BadRequestError(`Userinfo endpoint returned ${status ?? 'error'}`, 'USERINFO_FETCH_FAILED')
   }
 
@@ -106,6 +112,7 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
   try {
     user = await UsersService.createUser(userPayload)
   } catch (error) {
+    log.error({ err: (error as Error).message }, 'auth:callback user upsert failed')
     throw new InternalServerError((error as Error).message, 'USER_UPSERT_FAILED')
   }
 
@@ -120,21 +127,24 @@ export const handleAuthCallback = async (request: Bun.BunRequest) => {
       expiresAt: expires,
     })
   } catch (error) {
-    console.error('Error creating session:', (error as Error).message)
+    log.error({ err: (error as Error).message }, 'auth:callback session create failed')
     throw new InternalServerError((error as Error).message, 'SESSION_CREATE_FAILED')
   }
 
+  log.info({ userId: user.id }, 'auth:callback success - creating session and redirecting')
   const res = new Response(null, { status: 302, headers: { Location: '/dashboard' } })
   res.headers.set('Set-Cookie', setCookie('session_token', sessionToken, { httpOnly: true }))
   return res
 }
 
 export const handleLogout = async (request: Bun.BunRequest) => {
+  const log = createLogger(request)
   const sessionToken = getCookie(request, 'session_token')
   if (sessionToken) {
     await SessionService.deleteSessionByToken(sessionToken)
   }
   const correlationIds = getCorrelation(request)
+  log.info({ hadSession: !!sessionToken }, 'auth:logout request received')
   const res = createResponse(
     null,
     ResponseMessage.NO_CONTENT,
@@ -150,6 +160,7 @@ export const handleLogout = async (request: Bun.BunRequest) => {
 }
 
 export const handleAuthStatus = async (request: Bun.BunRequest) => {
+  const log = createLogger(request)
   const sessionToken = getCookie(request, 'session_token')
   if (!sessionToken) {
     throw new UnauthorizedError('Not authenticated', 'NO_SESSION_TOKEN')
@@ -162,10 +173,12 @@ export const handleAuthStatus = async (request: Bun.BunRequest) => {
 
   const user = await UsersService.getUserById(session.userId)
   if (!user) {
+    log.warn({ sessionId: session.id }, 'auth:status user not found')
     throw new UnauthorizedError('User not found', 'USER_NOT_FOUND')
   }
 
   const correlationIds = getCorrelation(request)
+  log.info({ userId: user.id }, 'auth:status success')
   const response = createResponse(
     { authenticated: true, user },
     ResponseMessage.SUCCESS,

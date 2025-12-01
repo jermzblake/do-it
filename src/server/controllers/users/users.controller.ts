@@ -2,8 +2,10 @@ import { createResponse, ResponseMessage, ResponseCode, StatusCode } from '../..
 import { BadRequestError, UnauthorizedError, NotFoundError, InternalServerError } from '../../errors/HttpError.ts'
 import * as UsersService from '../../services/users/users.service.ts'
 import { getCorrelation } from '../../utils/request-context'
+import { createLogger } from '../../utils/logger'
 
 export const createUser = async (req: Bun.BunRequest) => {
+  const log = createLogger(req)
   const userPayload = await req.json()
   if (!userPayload.name || !userPayload.email) {
     throw new BadRequestError('Name and email are required', 'MISSING_REQUIRED_FIELDS')
@@ -11,6 +13,7 @@ export const createUser = async (req: Bun.BunRequest) => {
   try {
     const newUser = await UsersService.createUser(userPayload)
     const correlationIds = getCorrelation(req)
+    log.info({ ssoType: newUser.ssoType, hasEmail: !!newUser.email }, 'user:create request received')
     const response = createResponse(
       newUser,
       ResponseMessage.CREATED,
@@ -27,6 +30,7 @@ export const createUser = async (req: Bun.BunRequest) => {
 }
 
 export const getMe = async (req: Bun.BunRequest) => {
+  const log = createLogger(req)
   const cookies = req.headers.get('cookie') || ''
   const sessionToken = cookies.match(/session=([^;]+)/)?.[1]
   if (!sessionToken) {
@@ -38,6 +42,7 @@ export const getMe = async (req: Bun.BunRequest) => {
       throw new NotFoundError('No user associated with the provided session token', 'USER_NOT_FOUND')
     }
     const correlationIds = getCorrelation(req)
+    log.info({ userId: user.id }, 'user:getMe request received')
     const response = createResponse(
       user,
       ResponseMessage.SUCCESS,

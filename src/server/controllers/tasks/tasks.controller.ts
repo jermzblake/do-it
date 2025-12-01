@@ -5,13 +5,16 @@ import { TaskStatus as TaskStatusEnum } from '../../db/schema'
 import { getUserFromSessionCookie } from '../../utils/session.cookies.ts'
 import { BadRequestError } from '../../errors/HttpError'
 import { getCorrelation } from '../../utils/request-context'
+import { createLogger } from '../../utils/logger'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
+  const log = createLogger(req)
   const userId = await getUserFromSessionCookie(req)
   const taskData = await req.json()
   taskData.userId = userId
   const newTask = await TasksService.createTask(taskData)
   const correlationIds = getCorrelation(req)
+  log.info({ userId }, 'task:create request received')
   const response = createResponse(
     newTask,
     ResponseMessage.CREATED,
@@ -25,6 +28,7 @@ export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
 }
 
 export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
+  const log = createLogger(req)
   const { id: taskId } = req.params
   if (!taskId) {
     throw new BadRequestError('Missing task id in URL')
@@ -32,6 +36,7 @@ export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
   const taskData = await req.json()
   const updatedTask = await TasksService.updateTaskById(taskId, taskData)
   const correlationIds = getCorrelation(req)
+  log.info({ taskId }, 'task:update request received')
   const response = createResponse(
     updatedTask,
     ResponseMessage.UPDATED,
@@ -45,12 +50,14 @@ export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
 }
 
 export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
+  const log = createLogger(req)
   const { id: taskId } = req.params
   if (!taskId) {
     throw new BadRequestError('Missing task id in URL')
   }
   await TasksService.deleteTaskById(taskId)
   const correlationIds = getCorrelation(req)
+  log.info({ taskId }, 'task:delete request received')
   const response = createResponse(
     null,
     ResponseMessage.DELETED,
@@ -64,12 +71,14 @@ export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
 }
 
 export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
+  const log = createLogger(req)
   const { id: taskId } = req.params
   if (!taskId) {
     throw new BadRequestError('Missing task id in URL')
   }
   const task = await TasksService.getTaskById(taskId)
   const correlationIds = getCorrelation(req)
+  log.info({ taskId }, 'task:getById request received')
   const response = createResponse(
     task,
     ResponseMessage.SUCCESS,
@@ -83,6 +92,7 @@ export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promis
 }
 
 export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
+  const log = createLogger(req)
   const url = new URL(req.url)
   const userId = await getUserFromSessionCookie(req)
   const statusParam = url.searchParams.get('status')
@@ -107,6 +117,7 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
     const effectivePagination = pagination ?? { page: 1, pageSize: 10 }
     const status = statusParam as TaskStatus
     const { tasks, pagination: pageMeta } = await TasksService.getTasksByStatus(userId, status, effectivePagination)
+    log.info({ userId, status, count: tasks.length }, 'tasks:list by status')
     const response = createResponse(
       tasks,
       ResponseMessage.SUCCESS,
@@ -119,6 +130,7 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
     return Response.json(response, { status: 200 })
   } else {
     const { tasks, pagination: pageMeta } = await TasksService.getAllTasksByUserId(userId, pagination)
+    log.info({ userId, count: tasks.length }, 'tasks:list all')
     const response = createResponse(
       tasks,
       ResponseMessage.SUCCESS,
