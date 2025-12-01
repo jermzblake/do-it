@@ -1,6 +1,6 @@
 import { createProblem } from '../../shared/problem'
 import { RateLimitExceededError } from '../errors/RateLimitExceededError'
-import { handleValidationError } from '../utils/validation-error-handler'
+import { extractValidationError } from '../utils/validation-error-handler'
 import { HttpError } from '../errors/HttpError'
 
 type Handler = (req: Bun.BunRequest) => Promise<Response> | Response
@@ -17,36 +17,19 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
   return async (req: Bun.BunRequest): Promise<Response> => {
     try {
       return await handler(req)
-    } catch (err: any) {
-      // Allow existing validation handler to produce envelope; then convert to Problem Details
+    } catch (err: unknown) {
+      // Extract validation error details directly
       if (mapValidation) {
-        const validationEnvelope = handleValidationError(err)
-        if (validationEnvelope) {
-          const json = await validationEnvelope.json()
+        const validationDetails = extractValidationError(err)
+        if (validationDetails) {
           const problem = createProblem('Request validation failed', 400, {
-            detail: json.error?.message,
+            detail: validationDetails.formattedErrors,
             type: 'about:blank',
             code: 'VALIDATION_ERROR',
             instance: req.url,
-          })
-          return new Response(JSON.stringify(problem), {
-            status: 400,
-            headers: { 'Content-Type': 'application/problem+json' },
-          })
-        }
-        // Fallback: generic shape detection (e.g. Zod-like object with issues array)
-        if (err && Array.isArray((err as any).issues)) {
-          const issues = (err as any).issues as Array<{ path: Array<string | number>; message: string }>
-          const invalidParams = issues.map((i) => ({
-            name: i.path.join('.'),
-            reason: i.message,
-          }))
-          const problem = createProblem('Request validation failed', 400, {
-            detail: issues.map((i) => i.message).join(', '),
-            type: 'about:blank',
-            code: 'VALIDATION_ERROR',
-            instance: req.url,
-            extensions: { invalidParams },
+            extensions: validationDetails.issues
+              ? { invalidParams: validationDetails.issues.map((i) => ({ name: i.path, reason: i.message })) }
+              : undefined,
           })
           return new Response(JSON.stringify(problem), {
             status: 400,
@@ -80,11 +63,14 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
         })
       }
 
-      const problem = createProblem(err?.message || 'An unexpected error occurred', 500, {
+      const errorMessage =
+        err && typeof err === 'object' && 'message' in err ? String(err.message) : 'An unexpected error occurred'
+      const errorStack = err && typeof err === 'object' && 'stack' in err ? String(err.stack) : undefined
+      const problem = createProblem(errorMessage, 500, {
         type: 'about:blank',
         code: 'INTERNAL_ERROR',
         instance: req.url,
-        extensions: includeStackInDev && isDev && err?.stack ? { stack: err.stack } : undefined,
+        extensions: includeStackInDev && isDev && errorStack ? { stack: errorStack } : undefined,
       })
       return new Response(JSON.stringify(problem), {
         status: 500,
