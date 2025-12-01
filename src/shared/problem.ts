@@ -44,14 +44,16 @@ export const createProblem = (
     requestId?: string
     extensions?: Record<string, unknown>
   } = {},
-): ProblemDetails => ({
-  type: options.type,
-  title,
-  status,
-  detail: options.detail,
-  instance: options.instance,
-  code: options.code,
-  traceId: options.traceId,
-  requestId: options.requestId,
-  ...(options.extensions ?? {}),
-})
+): ProblemDetails => {
+  const problem: ProblemDetails = {
+    title,
+    status,
+  }
+  if (options.type !== undefined) problem.type = options.type
+  if (options.detail !== undefined) problem.detail = options.detail
+  if (options.instance !== undefined) problem.instance = options.instance
+  if (options.code !== undefined) problem.code = options.code
+  if (options.traceId !== undefined) problem.traceId = options.traceId
+  if (options.requestId !== undefined) problem.requestId = options.requestId
+  return { ...problem, ...(options.extensions ?? {}) }
+}
