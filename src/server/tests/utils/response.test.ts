@@ -144,7 +144,7 @@ describe('createErrorResponse', () => {
     expect(() => new Date(timestamp)).not.toThrow()
   })
 
-  test('should always set status to INTERNAL_SERVER_ERROR', () => {
+  test('should default status to INTERNAL_SERVER_ERROR when not provided', () => {
     const response = createErrorResponse('Any error', 400)
 
     expect(response.metaData.status).toBe(StatusCode.INTERNAL_SERVER_ERROR)
