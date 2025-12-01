@@ -3,7 +3,7 @@ import { enforceTaskCreationLimit } from '../../utils/task-rate-limit'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import type { Pagination } from '../../../shared/api'
 import { insertTaskSchema, updateTaskSchema } from '../../validators/task.validator'
-import { RateLimitExceededError } from '@/server/errors/RateLimitExceededError'
+import { RateLimitExceededError } from '../../errors/RateLimitExceededError'
 
 export const createTask = async (taskPayload: NewTask): Promise<Task> => {
   if (!taskPayload.userId) {
