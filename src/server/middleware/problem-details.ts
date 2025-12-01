@@ -2,6 +2,7 @@ import { createProblem } from '../../shared/problem'
 import { RateLimitExceededError } from '../errors/RateLimitExceededError'
 import { extractValidationError } from '../utils/validation-error-handler'
 import { HttpError } from '../errors/HttpError'
+import { getCorrelation } from '../utils/request-context'
 
 type Handler = (req: Bun.BunRequest) => Promise<Response> | Response
 
@@ -18,6 +19,8 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
     try {
       return await handler(req)
     } catch (err: unknown) {
+      const correlationIds = getCorrelation(req)
+
       // Extract validation error details directly
       if (mapValidation) {
         const validationDetails = extractValidationError(err)
@@ -27,6 +30,8 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
             type: 'about:blank',
             code: 'VALIDATION_ERROR',
             instance: req.url,
+            requestId: correlationIds?.requestId,
+            traceId: correlationIds?.traceId,
             extensions: validationDetails.issues
               ? { invalidParams: validationDetails.issues.map((i) => ({ name: i.path, reason: i.message })) }
               : undefined,
@@ -43,6 +48,8 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
           type: err.type || 'about:blank',
           code: err.code,
           instance: req.url,
+          requestId: correlationIds?.requestId,
+          traceId: correlationIds?.traceId,
         })
         return new Response(JSON.stringify(problem), {
           status: err.status,
@@ -56,6 +63,8 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
           type: 'about:blank',
           code: 'RATE_LIMIT_EXCEEDED',
           instance: req.url,
+          requestId: correlationIds?.requestId,
+          traceId: correlationIds?.traceId,
         })
         return new Response(JSON.stringify(problem), {
           status: 429,
@@ -70,6 +79,8 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
         type: 'about:blank',
         code: 'INTERNAL_ERROR',
         instance: req.url,
+        requestId: correlationIds?.requestId,
+        traceId: correlationIds?.traceId,
         extensions: includeStackInDev && isDev && errorStack ? { stack: errorStack } : undefined,
       })
       return new Response(JSON.stringify(problem), {
