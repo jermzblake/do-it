@@ -12,28 +12,6 @@ interface ProblemOptions {
 
 const isDev = process.env.NODE_ENV !== 'production'
 
-// Minimal reason phrase map to align titles with RFC 9457 guidance
-const statusReason = (status: number): string => {
-  switch (status) {
-    case 400:
-      return 'Bad Request'
-    case 401:
-      return 'Unauthorized'
-    case 403:
-      return 'Forbidden'
-    case 404:
-      return 'Not Found'
-    case 409:
-      return 'Conflict'
-    case 429:
-      return 'Too Many Requests'
-    case 500:
-      return 'Internal Server Error'
-    default:
-      return 'HTTP Error'
-  }
-}
-
 export const withProblemDetails = (handler: Handler, options: ProblemOptions = {}) => {
   const { mapValidation = true, includeStackInDev = false } = options
   return async (req: Bun.BunRequest): Promise<Response> => {
@@ -45,7 +23,7 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
         const validationEnvelope = handleValidationError(err)
         if (validationEnvelope) {
           const json = await validationEnvelope.json()
-          const problem = createProblem(statusReason(400), 400, {
+          const problem = createProblem('Request validation failed', 400, {
             detail: json.error?.message,
             type: 'about:blank',
             code: 'VALIDATION_ERROR',
@@ -63,7 +41,7 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
             name: i.path.join('.'),
             reason: i.message,
           }))
-          const problem = createProblem(statusReason(400), 400, {
+          const problem = createProblem('Request validation failed', 400, {
             detail: issues.map((i) => i.message).join(', '),
             type: 'about:blank',
             code: 'VALIDATION_ERROR',
@@ -78,8 +56,7 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
       }
 
       if (err instanceof HttpError) {
-        const problem = createProblem(statusReason(err.status), err.status, {
-          detail: err.message,
+        const problem = createProblem(err.message, err.status, {
           type: err.type || 'about:blank',
           code: err.code,
           instance: req.url,
@@ -91,7 +68,7 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
       }
 
       if (err instanceof RateLimitExceededError) {
-        const problem = createProblem(statusReason(429), 429, {
+        const problem = createProblem('Rate limit exceeded', 429, {
           detail: err.message,
           type: 'about:blank',
           code: 'RATE_LIMIT_EXCEEDED',
@@ -103,8 +80,7 @@ export const withProblemDetails = (handler: Handler, options: ProblemOptions = {
         })
       }
 
-      const problem = createProblem(statusReason(500), 500, {
-        detail: err?.message || 'Unexpected error',
+      const problem = createProblem(err?.message || 'An unexpected error occurred', 500, {
         type: 'about:blank',
         code: 'INTERNAL_ERROR',
         instance: req.url,
