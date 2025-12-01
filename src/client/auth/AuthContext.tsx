@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import type { UserResponse } from '@/types'
+import type { UserResponse } from '@/shared/user'
 import { apiClient } from '../lib/axios'
 
 type AuthContextType = {

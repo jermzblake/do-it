@@ -1,4 +1,4 @@
-import type { Task } from '@/types/tasks.types'
+import type { Task } from '@/shared/task'
 
 export const filterTasks = (tasks: Task[], searchQuery: string, filterPriority: string) => {
   return tasks.filter((task) => {

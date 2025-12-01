@@ -1,5 +1,5 @@
 import { useParams, Navigate, Link, useSearch } from '@tanstack/react-router'
-import type { Task } from '@/types/tasks.types'
+import type { Task } from '@/shared/task'
 import { useTaskDetailLogic } from '@/client/hooks/useTaskDetailLogic'
 import { TaskDetailsContent } from '@/client/components/task-details-content'
 import { useTaskById } from '@/client/hooks/use-tasks'

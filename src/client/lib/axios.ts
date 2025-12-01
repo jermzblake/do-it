@@ -1,6 +1,8 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import type { ApiResponse } from '../../types/api.types'
+import type { ApiResponse } from '../../shared/api'
+import { isApiResponse } from '../../shared/api'
+import { isProblemDetails } from '../../shared/problem'
 
 interface RequestConfig extends Record<string, any> {
   useApiPrefix?: boolean
@@ -46,45 +48,39 @@ class ApiClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response: AxiosResponse) => {
-        // Validate response schema
-        if (this.isValidResponseSchema(response.data)) {
+        // Validate success envelope; errors use RFC 9457 Problem Details
+        if (isApiResponse(response.data)) {
           return response
         }
         return Promise.reject(new Error('Invalid response schema'))
       },
       (error) => {
-        if (error.response?.data && this.isValidResponseSchema(error.response.data)) {
-          return Promise.reject(error.response.data)
+        const payload = error.response?.data
+        if (payload && isApiResponse(payload)) {
+          return Promise.reject(payload)
         }
-        // If the error response doesn't match our schema, create a standardized error
+        if (payload && isProblemDetails(payload)) {
+          return Promise.reject(payload)
+        }
+        // Fallback: construct standardized error envelope
+        const status = error.response?.status || 500
+        const message = error.message || 'An unexpected error occurred'
         return Promise.reject({
           data: null,
           metaData: {
-            message: error.message || 'An unexpected error occurred',
-            status: 'ERROR',
+            message,
+            status: 'E5000_INTERNAL_SERVER_ERROR',
             timestamp: new Date().toISOString(),
-            responseCode: error.response?.status || 500,
+            responseCode: status,
           },
           error: {
-            code: error.response?.status || 500,
-            message: error.message || 'An unexpected error occurred',
+            code: status,
+            message,
             details: error.response?.statusText || '',
           },
         } as ApiResponse<null>)
       },
     )
-  }
-
-  private isValidResponseSchema(payload: any): payload is ApiResponse<unknown | null> {
-    if (!payload || typeof payload !== 'object') return false
-
-    const hasDataKey = 'data' in payload
-    const meta = (payload as any).metaData
-
-    const hasValidMeta =
-      meta !== null && typeof meta === 'object' && 'message' in meta && 'status' in meta && 'timestamp' in meta
-
-    return hasDataKey && hasValidMeta
   }
 
   private getFullUrl(url: string, config: RequestConfig = {}): string {

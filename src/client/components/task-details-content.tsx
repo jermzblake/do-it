@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Task } from '@/types/tasks.types'
+import type { Task } from '@/shared/task'
 import { statusConfig, priorityConfig } from '@/client/lib/configs'
 import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
@@ -22,7 +22,7 @@ import { DateTimePicker } from '@/client/components/datetime-picker'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { TaskFormSchema } from '../../types/form.types'
+import { TaskFormSchema } from '@/client/types/form.types'
 import { Label } from './ui/label'
 
 interface TaskDetailsContentProps {

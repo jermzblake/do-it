@@ -3,8 +3,8 @@ import { describe, it, expect } from 'bun:test'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useTaskDetailLogic } from '@/client/hooks/useTaskDetailLogic'
-import type { Task } from '@/types/tasks.types'
-import type { ApiResponse } from '@/types/api.types'
+import type { Task } from '@/shared/task'
+import type { ApiResponse } from '@/shared/api'
 import { apiClient } from '@/client/lib/axios'
 import { createRootRoute, createRouter, RouterProvider } from '@tanstack/react-router'
 
@@ -51,8 +51,8 @@ function Wrapper({ client, children }: { client: QueryClient; children: React.Re
   )
 }
 
-let originalPut: typeof apiClient.put = apiClient.put.bind(apiClient)
-let originalDelete: typeof apiClient.delete = apiClient.delete.bind(apiClient)
+const originalPut: typeof apiClient.put = apiClient.put.bind(apiClient)
+const originalDelete: typeof apiClient.delete = apiClient.delete.bind(apiClient)
 
 describe('useTaskDetailLogic', () => {
   it('starts in non-editing mode', async () => {

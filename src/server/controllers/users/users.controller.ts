@@ -1,27 +1,18 @@
-import { createResponse, createErrorResponse, ResponseCode, StatusCode } from '../../utils/response.ts'
+import { createResponse, ResponseMessage, ResponseCode, StatusCode } from '../../utils/response.ts'
+import { BadRequestError, UnauthorizedError, NotFoundError, InternalServerError } from '../../errors/HttpError.ts'
 import * as UsersService from '../../services/users/users.service.ts'
 
 export const createUser = async (req: Bun.BunRequest) => {
   const userPayload = await req.json()
   if (!userPayload.name || !userPayload.email) {
-    const response = createErrorResponse(
-      'Invalid user payload',
-      ResponseCode.BAD_REQUEST,
-      'Name and email are required',
-    )
-    return Response.json(response, { status: 400 })
+    throw new BadRequestError('Name and email are required', 'MISSING_REQUIRED_FIELDS')
   }
   try {
     const newUser = await UsersService.createUser(userPayload)
-    const response = createResponse(newUser, 'User created successfully', StatusCode.CREATED, ResponseCode.CREATED)
+    const response = createResponse(newUser, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
     return Response.json(response, { status: 201 })
   } catch (error) {
-    const response = createErrorResponse(
-      'Error creating user',
-      ResponseCode.INTERNAL_SERVER_ERROR,
-      (error as Error).message,
-    )
-    return Response.json(response, { status: 500 })
+    throw new InternalServerError((error as Error).message, 'USER_CREATE_FAILED')
   }
 }
 
@@ -29,27 +20,17 @@ export const getMe = async (req: Bun.BunRequest) => {
   const cookies = req.headers.get('cookie') || ''
   const sessionToken = cookies.match(/session=([^;]+)/)?.[1]
   if (!sessionToken) {
-    const response = createErrorResponse('Unauthorized', ResponseCode.UNAUTHORIZED, 'No session token provided')
-    return Response.json(response, { status: 401 })
+    throw new UnauthorizedError('No session token provided', 'NO_SESSION_TOKEN')
   }
   try {
     const user = await UsersService.getUserBySessionToken(sessionToken)
     if (!user) {
-      const response = createErrorResponse(
-        'User not found',
-        ResponseCode.NOT_FOUND,
-        'No user associated with the provided session token',
-      )
-      return Response.json(response, { status: 404 })
+      throw new NotFoundError('No user associated with the provided session token', 'USER_NOT_FOUND')
     }
-    const response = createResponse(user, 'User retrieved successfully', StatusCode.SUCCESS, ResponseCode.SUCCESS)
+    const response = createResponse(user, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
     return Response.json(response, { status: 200 })
   } catch (error) {
-    const response = createErrorResponse(
-      'Error retrieving user',
-      ResponseCode.INTERNAL_SERVER_ERROR,
-      (error as Error).message,
-    )
-    return Response.json(response, { status: 500 })
+    if (error instanceof NotFoundError || error instanceof UnauthorizedError) throw error
+    throw new InternalServerError((error as Error).message, 'USER_RETRIEVAL_FAILED')
   }
 }

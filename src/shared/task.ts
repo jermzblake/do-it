@@ -1,3 +1,7 @@
+/**
+ * Shared task types used across client and server.
+ */
+
 export interface Task {
   id: string
   name: string

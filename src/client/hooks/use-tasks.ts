@@ -6,7 +6,7 @@ import {
   fetchTaskById,
 } from '@/client/services/tasks.service'
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { Task, TasksByStatusProps, TaskStatus } from '@/types/tasks.types'
+import type { Task, TasksByStatusProps, TaskStatus } from '@/shared/task'
 
 export const tasksKeys = {
   all: ['tasks'],

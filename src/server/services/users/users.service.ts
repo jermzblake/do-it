@@ -1,9 +1,11 @@
 import * as UsersRepository from '../../repositories/users/users.repository'
 import type { NewUser, User } from '../../db/schema.js'
-import type { UserResponse } from '../../../types/user.types.js'
+import type { UserResponse } from '../../../shared/user'
 
 export const createUser = async (userPayload: NewUser): Promise<User> => {
-  let { name, email, ssoId, ssoType } = userPayload
+  const { name, email } = userPayload
+  let ssoId = userPayload.ssoId
+  let ssoType = userPayload.ssoType
   if (!ssoType) {
     ssoType = 'none'
     ssoId = `${email}-none`

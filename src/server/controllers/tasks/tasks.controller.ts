@@ -1,91 +1,48 @@
-import {
-  createResponse,
-  createErrorResponse,
-  ResponseMessage,
-  StatusCode,
-  ResponseCode,
-  type PagingParams,
-} from '../../utils/response.ts'
+import { createResponse, ResponseMessage, StatusCode, ResponseCode } from '../../utils/response.ts'
 import * as TasksService from '../../services/tasks/tasks.service.ts'
 import type { TaskStatus } from '../../db/schema'
 import { TaskStatus as TaskStatusEnum } from '../../db/schema'
 import { getUserFromSessionCookie } from '../../utils/session.cookies.ts'
-import { handleValidationError } from '../../utils/validation-error-handler.ts'
-import { RateLimitExceededError } from '../../errors/RateLimitExceededError'
+import { BadRequestError } from '../../errors/HttpError'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
-  try {
-    const userId = await getUserFromSessionCookie(req)
-    const taskData = await req.json()
-    taskData.userId = userId
-    const newTask = await TasksService.createTask(taskData)
-    const response = createResponse(newTask, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
-    return Response.json(response, { status: 201 })
-  } catch (error: any) {
-    const validation = handleValidationError(error)
-    if (validation) return validation
-    if (error instanceof RateLimitExceededError) {
-      const response = createErrorResponse(
-        error.message,
-        ResponseCode.TOO_MANY_REQUESTS,
-        'TASK_CREATION_LIMIT_EXCEEDED',
-      )
-      return Response.json(response, { status: ResponseCode.TOO_MANY_REQUESTS })
-    }
-    const response = createErrorResponse('Failed to create task: ' + error.message, ResponseCode.INTERNAL_SERVER_ERROR)
-    return Response.json(response, { status: ResponseCode.INTERNAL_SERVER_ERROR })
-  }
+  const userId = await getUserFromSessionCookie(req)
+  const taskData = await req.json()
+  taskData.userId = userId
+  const newTask = await TasksService.createTask(taskData)
+  const response = createResponse(newTask, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
+  return Response.json(response, { status: 201 })
 }
 
 export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
   const { id: taskId } = req.params
   if (!taskId) {
-    const response = createErrorResponse('Missing task id in URL', 400)
-    return Response.json(response, { status: 400 })
+    throw new BadRequestError('Missing task id in URL')
   }
-  try {
-    const taskData = await req.json()
-    const updatedTask = await TasksService.updateTaskById(taskId, taskData)
-    const response = createResponse(updatedTask, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
-    return Response.json(response, { status: 200 })
-  } catch (error: any) {
-    const validation = handleValidationError(error)
-    if (validation) return validation
-    const response = createErrorResponse('Failed to update task: ' + error.message, 500)
-    return Response.json(response, { status: 500 })
-  }
+  const taskData = await req.json()
+  const updatedTask = await TasksService.updateTaskById(taskId, taskData)
+  const response = createResponse(updatedTask, ResponseMessage.UPDATED, StatusCode.SUCCESS, ResponseCode.SUCCESS)
+  return Response.json(response, { status: 200 })
 }
 
 export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
   const { id: taskId } = req.params
   if (!taskId) {
-    const response = createErrorResponse('Missing task id in URL', 400)
-    return Response.json(response, { status: 400 })
+    throw new BadRequestError('Missing task id in URL')
   }
-  try {
-    await TasksService.deleteTaskById(taskId)
-    const response = createResponse(null, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
-    return Response.json(response)
-  } catch (error: any) {
-    const response = createErrorResponse('Failed to delete task: ' + error.message, 500)
-    return Response.json(response, { status: 500 })
-  }
+  await TasksService.deleteTaskById(taskId)
+  const response = createResponse(null, ResponseMessage.DELETED, StatusCode.SUCCESS, ResponseCode.NO_CONTENT)
+  return Response.json(response)
 }
 
 export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promise<Response> => {
   const { id: taskId } = req.params
   if (!taskId) {
-    const response = createErrorResponse('Missing task id in URL', 400)
-    return Response.json(response, { status: 400 })
+    throw new BadRequestError('Missing task id in URL')
   }
-  try {
-    const task = await TasksService.getTaskById(taskId)
-    const response = createResponse(task, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
-    return Response.json(response, { status: 200 })
-  } catch (error: any) {
-    const response = createErrorResponse('Failed to get task: ' + error.message, 500)
-    return Response.json(response, { status: 500 })
-  }
+  const task = await TasksService.getTaskById(taskId)
+  const response = createResponse(task, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
+  return Response.json(response, { status: 200 })
 }
 
 export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
@@ -95,44 +52,28 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const pageParam = url.searchParams.get('page')
   const pageSizeParam = url.searchParams.get('pageSize')
   if (!userId) {
-    const response = createErrorResponse('Missing required query parameters: userId', 400)
-    return Response.json(response, { status: 400 })
+    throw new BadRequestError('Missing required query parameters: userId')
   }
-  let params: PagingParams | undefined =
+  const pagination =
     pageParam && pageSizeParam
       ? {
           page: parseInt(pageParam, 10),
           pageSize: parseInt(pageSizeParam, 10),
         }
       : undefined
-  try {
-    if (statusParam) {
-      if (!(Object.values(TaskStatusEnum) as TaskStatus[]).includes(statusParam as TaskStatus)) {
-        const validValues = Object.values(TaskStatusEnum).join(', ')
-        const response = createErrorResponse('Invalid status value. Allowed values are: ' + validValues, 400)
-        return Response.json(response, { status: 400 })
-      }
-      if (params === undefined) {
-        params = { page: 1, pageSize: 10 }
-      }
-      const status = statusParam as TaskStatus
-      const result = await TasksService.getTasksByStatus(userId, status, params)
-      const { data, ...pagination } = result
-      const response = createResponse(
-        data,
-        ResponseMessage.SUCCESS,
-        StatusCode.SUCCESS,
-        ResponseCode.SUCCESS,
-        pagination,
-      )
-      return Response.json(response, { status: 200 })
-    } else {
-      const result = await TasksService.getAllTasksByUserId(userId, params)
-      const response = createResponse(result, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS)
-      return Response.json(response, { status: 200 })
+  if (statusParam) {
+    if (!(Object.values(TaskStatusEnum) as TaskStatus[]).includes(statusParam as TaskStatus)) {
+      const validValues = Object.values(TaskStatusEnum).join(', ')
+      throw new BadRequestError('Invalid status value. Allowed values are: ' + validValues)
     }
-  } catch (error: any) {
-    const response = createErrorResponse('Failed to retrieve tasks: ' + error.message, 500)
-    return Response.json(response, { status: 500 })
+    const effectivePagination = pagination ?? { page: 1, pageSize: 10 }
+    const status = statusParam as TaskStatus
+    const { tasks, pagination: pageMeta } = await TasksService.getTasksByStatus(userId, status, effectivePagination)
+    const response = createResponse(tasks, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS, pageMeta)
+    return Response.json(response, { status: 200 })
+  } else {
+    const { tasks, pagination: pageMeta } = await TasksService.getAllTasksByUserId(userId, pagination)
+    const response = createResponse(tasks, ResponseMessage.SUCCESS, StatusCode.SUCCESS, ResponseCode.SUCCESS, pageMeta)
+    return Response.json(response, { status: 200 })
   }
 }

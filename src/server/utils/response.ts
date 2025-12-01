@@ -1,20 +1,15 @@
-export interface PagingParams<T = unknown> {
-  page: number
-  pageSize: number
-  totalCount?: number
-  direction?: 'asc' | 'desc'
-  sortBy?: string
-  data?: T[]
-}
+import type { Pagination } from '../../shared/api'
 
 export interface ResponseSchema<T> {
   data: T | null
   metaData: {
     message: string
-    status: string
+    status: StatusUnion
     timestamp: string
     responseCode?: number
-    pagination?: PagingParams<T>
+    pagination?: Pagination
+    requestId?: string
+    traceId?: string
   }
   error?: {
     code: number
@@ -38,7 +33,7 @@ export const ResponseMessage = {
   NO_CONTENT: 'Request successful but no content to return.',
   ACCEPTED: 'Request accepted but not processed.',
   RATE_LIMIT_EXCEEDED: 'Rate limit exceeded.',
-}
+} as const
 
 export const ResponseCode = {
   SUCCESS: 200,
@@ -54,7 +49,7 @@ export const ResponseCode = {
   NOT_IMPLEMENTED: 501,
   SERVICE_UNAVAILABLE: 503,
   DATABASE_ERROR: 500,
-}
+} as const
 
 export const StatusCode = {
   SUCCESS: 'S1000_SUCCESS',
@@ -70,32 +65,66 @@ export const StatusCode = {
   SERVICE_UNAVAILABLE: 'E5003_SERVICE_UNAVAILABLE',
   NOT_IMPLEMENTED: 'E5001_NOT_IMPLEMENTED',
   DATABASE_ERROR: 'E5005_DATABASE_ERROR',
+} as const
+
+export type StatusUnion = (typeof StatusCode)[keyof typeof StatusCode]
+export type ResponseCodeUnion = (typeof ResponseCode)[keyof typeof ResponseCode]
+
+const getDefaultMessage = (responseCode: ResponseCodeUnion): string => {
+  const codeToMessage: Record<number, string> = {
+    [ResponseCode.SUCCESS]: ResponseMessage.SUCCESS,
+    [ResponseCode.CREATED]: ResponseMessage.CREATED,
+    [ResponseCode.ACCEPTED]: ResponseMessage.ACCEPTED,
+    [ResponseCode.NO_CONTENT]: ResponseMessage.NO_CONTENT,
+    [ResponseCode.BAD_REQUEST]: ResponseMessage.BAD_REQUEST,
+    [ResponseCode.UNAUTHORIZED]: ResponseMessage.UNAUTHORIZED,
+    [ResponseCode.FORBIDDEN]: ResponseMessage.FORBIDDEN,
+    [ResponseCode.NOT_FOUND]: ResponseMessage.NOT_FOUND,
+    [ResponseCode.TOO_MANY_REQUESTS]: ResponseMessage.RATE_LIMIT_EXCEEDED,
+    [ResponseCode.INTERNAL_SERVER_ERROR]: ResponseMessage.INTERNAL_SERVER_ERROR,
+    [ResponseCode.NOT_IMPLEMENTED]: ResponseMessage.NOT_IMPLEMENTED,
+    [ResponseCode.SERVICE_UNAVAILABLE]: ResponseMessage.SERVICE_UNAVAILABLE,
+  }
+  return codeToMessage[responseCode] ?? ResponseMessage.SUCCESS
 }
 
 export const createResponse = <T>(
   data: T | null,
-  message = ResponseMessage.SUCCESS,
-  status = StatusCode.SUCCESS,
-  responseCode = ResponseCode.SUCCESS,
-  pagination?: PagingParams<T>,
+  message?: (typeof ResponseMessage)[keyof typeof ResponseMessage],
+  status: StatusUnion = StatusCode.SUCCESS,
+  responseCode: ResponseCodeUnion = ResponseCode.SUCCESS,
+  pagination?: Pagination,
+  requestId?: string,
+  traceId?: string,
 ): ResponseSchema<T> => ({
   data,
   metaData: {
-    message,
+    message: message ?? getDefaultMessage(responseCode),
     status,
     timestamp: new Date().toISOString(),
     responseCode,
     pagination,
+    requestId,
+    traceId,
   },
 })
 
-export const createErrorResponse = (message: string, code = 500, details = ''): ResponseSchema<null> => ({
+export const createErrorResponse = (
+  message: string,
+  code: ResponseCodeUnion = ResponseCode.INTERNAL_SERVER_ERROR,
+  details = '',
+  status: StatusUnion = StatusCode.INTERNAL_SERVER_ERROR,
+  requestId?: string,
+  traceId?: string,
+): ResponseSchema<null> => ({
   data: null,
   metaData: {
     message,
-    status: 'ERROR',
+    status,
     timestamp: new Date().toISOString(),
     responseCode: code,
+    requestId,
+    traceId,
   },
   error: {
     code,

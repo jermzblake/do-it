@@ -2,7 +2,7 @@ import { db } from '../../db/db'
 import { TaskTable } from '../../db/schema'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import { eq, and, sql, count, isNull, gte, lte } from 'drizzle-orm'
-import type { PagingParams } from '../../../types'
+import type { Pagination } from '../../../shared/api'
 
 const returnColumns = {
   id: TaskTable.id,
@@ -43,10 +43,11 @@ export const getTaskById = async (id: string) => {
   return task[0] || null
 }
 
-export const getAllTasksByUserId = async (userId: string, params?: PagingParams): Promise<PagingParams | Task[]> => {
-  if (params) {
-    const offSet = (((params.page as number) < 1 ? 1 : params.page) - 1) * params.pageSize
-    const limit = params.pageSize
+export const getAllTasksByUserId = async (
+  userId: string,
+  pagination?: { page: number; pageSize: number },
+): Promise<{ tasks: Task[]; pagination?: Pagination }> => {
+  if (!pagination) {
     const tasks = await db
       .select()
       .from(TaskTable)
@@ -56,33 +57,54 @@ export const getAllTasksByUserId = async (userId: string, params?: PagingParams)
           ${TaskTable.priority} DESC,
           ${TaskTable.effort} ASC`,
       )
-      .offset(offSet)
-      .limit(limit)
-    const totalCount = await db
-      .select({ value: count(TaskTable.id) })
-      .from(TaskTable)
-      .where(and(eq(TaskTable.userId, userId), isNull(TaskTable.deletedAt)))
-    params.totalCount = Number(totalCount[0]?.value || 0)
-    params.data = tasks
-    return params
+    return { tasks }
   }
-  const tasks = await db.select().from(TaskTable).where(eq(TaskTable.userId, userId))
-  return tasks
+  const page = pagination.page < 1 ? 1 : pagination.page
+  const offSet = (page - 1) * pagination.pageSize
+  const limit = pagination.pageSize
+  const tasks = await db
+    .select()
+    .from(TaskTable)
+    .where(and(eq(TaskTable.userId, userId), isNull(TaskTable.deletedAt)))
+    .orderBy(
+      sql`${TaskTable.dueDate} ASC NULLS LAST,
+        ${TaskTable.priority} DESC,
+        ${TaskTable.effort} ASC`,
+    )
+    .offset(offSet)
+    .limit(limit)
+  const totalCount = await db
+    .select({ value: count(TaskTable.id) })
+    .from(TaskTable)
+    .where(and(eq(TaskTable.userId, userId), isNull(TaskTable.deletedAt)))
+  const total = Number(totalCount[0]?.value || 0)
+  const totalPages = Math.ceil(total / pagination.pageSize) || 1
+  return {
+    tasks,
+    pagination: {
+      page,
+      pageSize: pagination.pageSize,
+      totalCount: total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
+  }
 }
 
 export const getTasksByStatus = async (
   userId: string,
   status: TaskStatus,
-  params: PagingParams,
-): Promise<PagingParams> => {
-  const offSet = (((params.page as number) < 1 ? 1 : params.page) - 1) * params.pageSize
-  const limit = params.pageSize
+  pagination: { page: number; pageSize: number },
+): Promise<{ tasks: Task[]; pagination: Pagination }> => {
+  const page = pagination.page < 1 ? 1 : pagination.page
+  const offSet = (page - 1) * pagination.pageSize
+  const limit = pagination.pageSize
   const tasks = await db
     .select()
     .from(TaskTable)
     .where(and(eq(TaskTable.userId, userId), eq(TaskTable.status, status), isNull(TaskTable.deletedAt)))
     .orderBy(
-      //TODO: move to helper function
       sql`${TaskTable.completedAt} DESC NULLS LAST,
           ${TaskTable.dueDate} ASC NULLS LAST,
           ${TaskTable.priority} DESC,
@@ -94,9 +116,19 @@ export const getTasksByStatus = async (
     .select({ value: count(TaskTable.id) })
     .from(TaskTable)
     .where(and(eq(TaskTable.userId, userId), eq(TaskTable.status, status), isNull(TaskTable.deletedAt)))
-  params.totalCount = Number(totalCount[0]?.value || 0)
-  params.data = tasks
-  return params
+  const total = Number(totalCount[0]?.value || 0)
+  const totalPages = Math.ceil(total / pagination.pageSize) || 1
+  return {
+    tasks,
+    pagination: {
+      page,
+      pageSize: pagination.pageSize,
+      totalCount: total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
+  }
 }
 
 export const updateTaskById = async (id: string, taskData: Partial<NewTask>) => {

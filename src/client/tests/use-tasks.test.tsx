@@ -3,8 +3,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'bun:test'
 import { render, renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { tasksKeys, useCreateTask, useDeleteTask, useTasksByStatus, useUpdateTask } from '@/client/hooks/use-tasks'
-import type { Task, TaskStatus, TasksByStatusProps } from '@/types/tasks.types'
-import type { ApiResponse } from '@/types/api.types'
+import type { Task, TaskStatus, TasksByStatusProps } from '@/shared/task'
+import type { ApiResponse } from '@/shared/api'
 import { apiClient } from '@/client/lib/axios'
 
 type MetaExtra<T> = {

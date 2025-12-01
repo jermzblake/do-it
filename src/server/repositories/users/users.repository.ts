@@ -2,7 +2,7 @@ import { db } from '../../db/db'
 import { UserTable, SessionTable } from '../../db/schema'
 import type { NewUser, User } from '../../db/schema'
 import { eq, isNull, gt, and } from 'drizzle-orm'
-import type { UserResponse } from '../../../types/user.types.js'
+import type { UserResponse } from '../../../shared/user'
 
 export const upsertUser = async (userPayload: NewUser) => {
   const result = await db

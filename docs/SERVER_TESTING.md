@@ -26,7 +26,8 @@ Server-side tests are organized by layer and focus on unit testing utilities and
 
 **validation-error-handler.test.ts** - Error Handling
 
-- `handleValidationError()`: Zod errors, custom validation errors, non-validation errors
+- `extractValidationError()`: Zod errors, custom validation errors, non-validation errors
+- Returns structured error data
 - Error formatting with single/multiple issues, nested paths
 - Custom error patterns: "Invalid field", "must be", "is required", "Invalid task status"
 
