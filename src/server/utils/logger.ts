@@ -14,7 +14,7 @@ const baseLogger = pino({
     remove: false,
   },
   formatters: {
-    level: (label) => ({ level: label }),
+    level: (label: string) => ({ level: label }),
   },
 })
 
