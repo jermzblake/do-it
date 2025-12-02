@@ -82,3 +82,86 @@ This project uses:
 - Shadcn/ui - UI components
 - Zod - Schema validation
 - React Hook Form - Form management
+
+## Logging & Correlation IDs
+
+### Overview
+
+The server uses `pino` for structured logging plus per-request correlation IDs:
+
+- `requestId` – unique per inbound HTTP request (header `X-Request-ID` if provided, else generated)
+- `traceId` – distributed trace identifier (parsed from `traceparent` or `X-Trace-ID`, else generated)
+
+### Using the Logger
+
+In request handlers or services where you have access to the Bun `Request`:
+
+```ts
+import { createLogger } from '@/server/utils/logger'
+
+export const handler = async (req: Bun.BunRequest) => {
+  const log = createLogger(req)
+  log.info({ action: 'doThing' }, 'starting work')
+  // ...
+  log.info({ resultCount: 3 }, 'completed work')
+}
+```
+
+All log entries automatically include `requestId` and `traceId` when created via `createLogger(req)`.
+
+### Log Levels
+
+Controlled via `LOG_LEVEL` in `.env`:
+
+- `warn` (recommended for local dev & tests – minimal noise)
+- `info` (production baseline)
+- `debug` (adds lifecycle `request:start` / `request:end` lines from correlation middleware)
+- `error` (only errors)
+
+### Redaction
+
+Sensitive paths are redacted automatically with `[REDACTED]`:
+
+```
+user.email
+user.name
+user.ssoId
+sessionToken
+headers.authorization
+cookie
+```
+
+Expand this list in `src/server/utils/logger.ts` if new PII surfaces.
+
+### Correlation in Responses
+
+Success and error envelopes include `requestId` and `traceId` inside `metaData` (success) or RFC 9457 Problem Details.
+Headers echo these values: `X-Request-ID`, `X-Trace-ID`.
+
+### Searching Logs
+
+Filter production logs by a specific request:
+
+```bash
+grep '"requestId":"<id>"' application.log
+```
+
+Or by trace to follow a distributed flow:
+
+```bash
+grep '"traceId":"<trace>"' application.log
+```
+
+### Adding Logging to New Code
+
+1. Avoid PII – prefer IDs / counts.
+2. Use `info` for high-level events, `debug` for granular internals, `error` for failures.
+3. Wrap external calls (DB, API) with start/end logs if they are critical to debugging.
+
+### Tests
+
+`tests/setup.ts` forces `LOG_LEVEL=warn` if unset to keep output quiet. Avoid assertions on log text.
+
+### Upgrading / Extending
+
+If adopting OpenTelemetry later, reuse `traceId` as the root span trace and add span IDs as needed.

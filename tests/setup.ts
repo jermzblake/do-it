@@ -95,3 +95,8 @@ console.error = (...args) => {
   }
   originalError(...args)
 }
+
+// Ensure test logging is quiet unless explicitly overridden
+if (!process.env.LOG_LEVEL) {
+  process.env.LOG_LEVEL = 'warn'
+}
