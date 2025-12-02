@@ -31,13 +31,31 @@ runs:
       id: check-deps
       shell: bash
       run: |
+        echo "🔍 Checking for node_modules..."
         if [ -d "node_modules" ] && [ "$(ls -A node_modules)" ]; then
+          echo "✅ node_modules found and not empty"
           echo "exists=true" >> $GITHUB_OUTPUT
         else
+          echo "❌ node_modules missing or empty"
           echo "exists=false" >> $GITHUB_OUTPUT
         fi
 
     - name: Install dependencies
       if: steps.check-deps.outputs.exists != 'true'
       shell: bash
-      run: bun install --frozen-lockfile
+      run: |
+        echo "📦 Installing dependencies with bun install..."
+        bun install --frozen-lockfile
+        echo "✅ Dependencies installed successfully"
+
+    - name: Verify installation
+      shell: bash
+      run: |
+        echo "🔍 Verifying node_modules after setup..."
+        if [ -d "node_modules" ] && [ "$(ls -A node_modules)" ]; then
+          echo "✅ node_modules verified - dependencies are available"
+          ls -la node_modules | head -20
+        else
+          echo "❌ ERROR: node_modules still missing after setup!"
+          exit 1
+        fi
