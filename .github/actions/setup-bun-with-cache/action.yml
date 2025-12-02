@@ -15,58 +15,18 @@ runs:
       with:
         bun-version: ${{ inputs.bun-version }}
 
-    - name: Get cache key
-      id: cache-key
-      shell: bash
-      run: |
-        LOCK_HASH="${{ hashFiles('bun.lock') }}"
-        if [ -z "$LOCK_HASH" ]; then
-          echo "⚠️ Warning: bun.lock not found, using fallback key"
-          LOCK_HASH="no-lock"
-        fi
-        echo "hash=$LOCK_HASH" >> $GITHUB_OUTPUT
-        echo "Cache key hash: $LOCK_HASH"
-
     - name: Restore dependencies cache
       id: cache-restore
       uses: actions/cache@v4
-      continue-on-error: true
       with:
-        path: node_modules
-        key: bun-deps-${{ runner.os }}-${{ steps.cache-key.outputs.hash }}
+        path: |
+          ~/.bun/install/cache
+          node_modules
+        key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
         restore-keys: |
-          bun-deps-${{ runner.os }}-
+          bun-${{ runner.os }}-
 
-    - name: Check if dependencies exist
-      id: check-deps
+    - name: Install deps on cache miss
+      if: steps.cache-restore.outputs.cache-hit != 'true'
       shell: bash
-      run: |
-        echo "🔍 Checking for node_modules..."
-        if [ -d "node_modules" ] && [ "$(ls -A node_modules)" ]; then
-          echo "✅ node_modules found and not empty"
-          echo "exists=true" >> $GITHUB_OUTPUT
-        else
-          echo "❌ node_modules missing or empty"
-          echo "exists=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Install dependencies
-      if: steps.check-deps.outputs.exists != 'true'
-      shell: bash
-      run: |
-        echo "📦 Installing dependencies with bun install..."
-        bun install --frozen-lockfile
-        echo "✅ Dependencies installed successfully"
-
-    - name: Verify installation
-      shell: bash
-      run: |
-        echo "🔍 Verifying node_modules after setup..."
-        if [ -d "node_modules" ] && [ "$(ls -A node_modules)" ]; then
-          echo "✅ node_modules verified - dependencies are available"
-          MODULE_COUNT=$(find node_modules -maxdepth 1 -type d | wc -l)
-          echo "📦 Found $MODULE_COUNT top-level modules"
-        else
-          echo "❌ ERROR: node_modules still missing after setup!"
-          exit 1
-        fi
+      run: bun install --frozen-lockfile
