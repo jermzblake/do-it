@@ -18,6 +18,7 @@ runs:
     - name: Restore dependencies cache
       id: cache-restore
       uses: actions/cache@v4
+      continue-on-error: true
       with:
         path: |
           ~/.bun/install/cache
@@ -26,7 +27,17 @@ runs:
         restore-keys: |
           bun-${{ runner.os }}-
 
-    - name: Install deps on cache miss
-      if: steps.cache-restore.outputs.cache-hit != 'true'
+    - name: Check if dependencies exist
+      id: check-deps
+      shell: bash
+      run: |
+        if [ -d "node_modules" ] && [ "$(ls -A node_modules)" ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Install dependencies
+      if: steps.check-deps.outputs.exists != 'true'
       shell: bash
       run: bun install --frozen-lockfile
