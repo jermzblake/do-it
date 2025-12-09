@@ -14,7 +14,7 @@ export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   taskData.userId = userId
   const newTask = await TasksService.createTask(taskData)
   const correlationIds = getCorrelation(req)
-  log.info({ userId }, 'task:create request received')
+  log.info({ userId }, 'task:create completed')
   const response = createResponse(
     newTask,
     ResponseMessage.CREATED,
@@ -36,7 +36,7 @@ export const updateTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
   const taskData = await req.json()
   const updatedTask = await TasksService.updateTaskById(taskId, taskData)
   const correlationIds = getCorrelation(req)
-  log.info({ taskId }, 'task:update request received')
+  log.info({ taskId }, 'task:update completed')
   const response = createResponse(
     updatedTask,
     ResponseMessage.UPDATED,
@@ -57,7 +57,7 @@ export const deleteTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Pro
   }
   await TasksService.deleteTaskById(taskId)
   const correlationIds = getCorrelation(req)
-  log.info({ taskId }, 'task:delete request received')
+  log.info({ taskId }, 'task:delete completed')
   const response = createResponse(
     null,
     ResponseMessage.DELETED,
@@ -78,7 +78,7 @@ export const getTaskById = async (req: Bun.BunRequest<'/api/tasks/:id'>): Promis
   }
   const task = await TasksService.getTaskById(taskId)
   const correlationIds = getCorrelation(req)
-  log.info({ taskId }, 'task:getById request received')
+  log.info({ taskId }, 'task:getById completed')
   const response = createResponse(
     task,
     ResponseMessage.SUCCESS,

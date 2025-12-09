@@ -13,7 +13,7 @@ export const createUser = async (req: Bun.BunRequest) => {
   try {
     const newUser = await UsersService.createUser(userPayload)
     const correlationIds = getCorrelation(req)
-    log.info({ ssoType: newUser.ssoType, hasEmail: !!newUser.email }, 'user:create request received')
+    log.info({ ssoType: newUser.ssoType, hasEmail: !!newUser.email }, 'user:create completed')
     const response = createResponse(
       newUser,
       ResponseMessage.CREATED,
@@ -42,7 +42,7 @@ export const getMe = async (req: Bun.BunRequest) => {
       throw new NotFoundError('No user associated with the provided session token', 'USER_NOT_FOUND')
     }
     const correlationIds = getCorrelation(req)
-    log.info({ userId: user.id }, 'user:getMe request received')
+    log.info({ userId: user.id }, 'user:getMe completed')
     const response = createResponse(
       user,
       ResponseMessage.SUCCESS,
