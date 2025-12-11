@@ -10,7 +10,7 @@ Production deployment (Fly.io): https://do-it-carpe-diem.fly.dev
 
 ## What is Do It?
 
-Do It is a full-stack task management solution that streamlines your workflow with intelligent task organization, priority management, and progress tracking. Whether you're managing personal projects or coordinating team efforts, Do It provides the tools you need to stay organized and productive.
+Do It is a full-stack task management solution that streamlines your workflow with intelligent task organization, priority management, and progress tracking. Whether you're managing personal projects or chores, Do It provides the tools you need to stay organized and productive.
 
 ## Key Features
 
