@@ -1,6 +1,6 @@
 # Do It - Task Management Application
 
-A modern, responsive task management application designed to help individuals and teams organize, track, and complete their work efficiently. Built with cutting-edge web technologies for a fast, intuitive user experience across desktop and mobile devices.
+A modern, responsive task management application designed to help individuals organize, track, and complete their work efficiently. Built with cutting-edge web technologies for a fast, intuitive user experience across desktop and mobile devices.
 
 ## Live Demo
 
