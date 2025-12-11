@@ -1,14 +1,15 @@
 import * as TasksController from '../../controllers/tasks/tasks.controller'
 import { withProblemDetails } from '../../middleware/problem-details'
+import { withCorrelation } from '../../middleware/correlation'
 
 export const tasksRoutes = {
   '/api/tasks': {
-    POST: withProblemDetails(TasksController.createTask),
-    GET: withProblemDetails(TasksController.getTasks),
+    POST: withCorrelation(withProblemDetails(TasksController.createTask)),
+    GET: withCorrelation(withProblemDetails(TasksController.getTasks)),
   },
   '/api/tasks/:id': {
-    GET: withProblemDetails(TasksController.getTaskById),
-    PUT: withProblemDetails(TasksController.updateTaskById),
-    DELETE: withProblemDetails(TasksController.deleteTaskById),
+    GET: withCorrelation(withProblemDetails(TasksController.getTaskById)),
+    PUT: withCorrelation(withProblemDetails(TasksController.updateTaskById)),
+    DELETE: withCorrelation(withProblemDetails(TasksController.deleteTaskById)),
   },
 }

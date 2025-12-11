@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'bun:test'
 import { withProblemDetails } from '../../middleware/problem-details'
 import { BadRequestError, NotFoundError, UnauthorizedError, ForbiddenError } from '../../errors/HttpError'
+import { withCorrelation } from '../../middleware/correlation'
 
 describe('withProblemDetails middleware', () => {
   test('wraps thrown error into Problem Details response (RFC 9457)', async () => {
@@ -37,9 +38,11 @@ describe('withProblemDetails middleware', () => {
   })
 
   test('maps BadRequestError to 400 problem response', async () => {
-    const handler = withProblemDetails(async () => {
-      throw new BadRequestError('Invalid input')
-    })
+    const handler = withCorrelation(
+      withProblemDetails(async () => {
+        throw new BadRequestError('Invalid input')
+      }),
+    )
     const req = new Request('http://localhost/api/test') as any
     const res = await handler(req)
     expect(res.status).toBe(400)
@@ -49,6 +52,10 @@ describe('withProblemDetails middleware', () => {
     expect(body).toHaveProperty('status', 400)
     expect(body).toHaveProperty('code', 'BAD_REQUEST')
     expect(body).toHaveProperty('instance', req.url)
+    expect(body).toHaveProperty('requestId')
+    expect(body).toHaveProperty('traceId')
+    expect(typeof body.requestId).toBe('string')
+    expect(typeof body.traceId).toBe('string')
   })
 
   test('maps NotFoundError to 404 problem response', async () => {
