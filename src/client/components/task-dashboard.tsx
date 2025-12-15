@@ -65,7 +65,6 @@ const TaskDashboard = () => {
                 filterPriority={filterPriority}
                 searchQuery={searchQuery}
                 setEditingTask={setEditingTask}
-                setDeleteTaskId={setDeleteTaskId}
                 setTaskToBlockId={setTaskToBlockId}
                 setSelectedTask={setSelectedTask}
               />
@@ -81,7 +80,6 @@ const TaskDashboard = () => {
               status={status}
               filterPriority={filterPriority}
               searchQuery={searchQuery}
-              setDeleteTaskId={setDeleteTaskId}
               setTaskToBlockId={setTaskToBlockId}
             />
           ))}
