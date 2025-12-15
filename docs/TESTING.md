@@ -21,6 +21,7 @@ Test files live here:
 
 - Hook tests: `src/client/tests/use-tasks.test.tsx`
 - Component/Dialog tests: `src/client/tests/create-task-dialog.guard.test.tsx`, `src/client/tests/edit-task-dialog.guard.test.tsx`
+- Utility/Helper tests: `src/client/tests/is-overdue.test.ts`
 - Test utilities: `src/client/tests/test-utils.tsx`
 - Test environment setup: `tests/setup.ts`
 
