@@ -1,3 +1,5 @@
+import { TASK_DATE_KEYS } from '@/shared/date-keys'
+
 export const toIsoString = (value?: string | Date | null): string | undefined => {
   if (!value) return undefined
 
@@ -18,12 +20,12 @@ export const toIsoString = (value?: string | Date | null): string | undefined =>
 export const normalizeDates = <T extends Record<string, any> | undefined>(obj: T): T | undefined => {
   if (!obj) return obj
   const copy = { ...(obj as Record<string, any>) }
-  const dateKeys = ['dueDate', 'startBy', 'startedAt', 'completedAt', 'createdAt', 'updatedAt']
+  const dateKeys = TASK_DATE_KEYS
 
   dateKeys.forEach((k) => {
-    const v = copy[k]
+    const v = (copy as any)[k]
     if (v instanceof Date) {
-      copy[k] = v.toISOString()
+      ;(copy as any)[k] = v.toISOString()
     }
   })
 
