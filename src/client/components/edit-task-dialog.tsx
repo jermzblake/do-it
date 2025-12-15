@@ -52,6 +52,7 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
       effort: editingTask?.effort || 3,
       dueDate: editingTask?.dueDate ? new Date(editingTask.dueDate) : undefined,
       blockedReason: editingTask?.blockedReason || '',
+      startBy: editingTask?.startBy ? new Date(editingTask.startBy) : undefined,
     },
   })
 
@@ -65,6 +66,7 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
         effort: editingTask.effort,
         dueDate: editingTask.dueDate ? new Date(editingTask.dueDate) : undefined,
         blockedReason: editingTask.blockedReason || '',
+        startBy: editingTask.startBy ? new Date(editingTask.startBy) : undefined,
       })
     }
   }, [editingTask, reset])
@@ -72,6 +74,7 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
   const priority = watch('priority')
   const effort = watch('effort')
   const dueDate = watch('dueDate')
+  const startBy = watch('startBy')
   const isValid = !!watch('name') && !!watch('effort')
   const isFormDirty = Object.keys(dirtyFields).length > 0
 
@@ -186,6 +189,17 @@ export const EditTaskDialog = ({ editingTask, setEditingTask }: EditTaskDialogPr
                 </Select>
                 {errors.effort && <p className="text-sm text-red-500">{errors.effort.message}</p>}
               </div>
+            </div>
+
+            {/* Start By Field */}
+            <div>
+              <Label className="text-sm font-medium mb-1 block">Start By</Label>
+              <DateTimePicker
+                value={startBy}
+                onChange={(date: Date | undefined) => setValue('startBy', date)}
+                granularity="minute"
+              />
+              {errors.startBy && <p className="text-sm text-red-500">{errors.startBy.message}</p>}
             </div>
 
             {/* Due Date & Time Field */}

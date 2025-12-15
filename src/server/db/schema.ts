@@ -57,6 +57,7 @@ export const TaskTable = pgTable(
     dueDate: timestamp('due_date'),
     startedAt: timestamp('started_at'),
     completedAt: timestamp('completed_at'),
+    startBy: timestamp('start_by'),
     ...timestampColumns,
   },
   (table) => [

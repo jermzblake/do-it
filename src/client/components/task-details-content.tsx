@@ -68,6 +68,7 @@ export const TaskDetailsContent = ({
       dueDate: task?.dueDate ? new Date(task.dueDate) : undefined,
       blockedReason: task?.blockedReason || '',
       status: task?.status,
+      startBy: task?.startBy ? new Date(task.startBy) : undefined,
     },
   })
 
@@ -82,6 +83,7 @@ export const TaskDetailsContent = ({
         dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
         blockedReason: task.blockedReason || '',
         status: task.status,
+        startBy: task.startBy ? new Date(task.startBy) : undefined,
       })
     }
   }, [task, isEditing, reset])
@@ -89,6 +91,7 @@ export const TaskDetailsContent = ({
   const priority = watch('priority')
   const effort = watch('effort')
   const dueDate = watch('dueDate')
+  const startBy = watch('startBy')
   const isValid = !!watch('name') && !!watch('effort')
   const taskStatus = watch('status')
 
@@ -340,6 +343,25 @@ export const TaskDetailsContent = ({
                     />
                   ))}
                 </div>
+              )}
+            </div>
+
+            {/* Start By */}
+            <div>
+              <Label htmlFor="startBy" className="text-xs font-medium text-slate-500 mb-1.5 block">
+                Start By
+              </Label>
+              {isEditing ? (
+                <>
+                  <DateTimePicker
+                    value={startBy ? new Date(startBy) : undefined}
+                    onChange={(date: Date | undefined) => setValue('startBy', date)}
+                    granularity="minute"
+                    previewFormat="short"
+                  />
+                </>
+              ) : (
+                <p className="text-sm text-slate-900">{formatDate(task?.startBy as string)}</p>
               )}
             </div>
 

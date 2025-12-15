@@ -45,6 +45,7 @@ export function TaskForm({ setShowForm, onDirtyChange }: TaskFormProps) {
       dueDate: undefined,
       blockedReason: undefined,
       notes: undefined,
+      startBy: undefined,
     },
   })
 
@@ -52,6 +53,7 @@ export function TaskForm({ setShowForm, onDirtyChange }: TaskFormProps) {
   const priority = watch('priority')
   const effort = watch('effort')
   const dueDate = watch('dueDate')
+  const startBy = watch('startBy')
   const isValid = !!watch('name') && !!watch('effort')
 
   React.useEffect(() => {
@@ -199,6 +201,17 @@ export function TaskForm({ setShowForm, onDirtyChange }: TaskFormProps) {
           </Select>
           {errors.effort && <p className="text-sm text-red-500">{errors.effort.message}</p>}
         </div>
+      </div>
+
+      {/* Start By Field */}
+      <div className="space-y-2">
+        <Label>Start By</Label>
+        <DateTimePicker
+          value={startBy}
+          onChange={(date: Date | undefined) => setValue('startBy', date)}
+          granularity="minute"
+        />
+        {errors.startBy && <p className="text-sm text-red-500">{errors.startBy.message}</p>}
       </div>
 
       {/* Due Date and Time Field */}

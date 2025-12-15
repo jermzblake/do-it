@@ -22,7 +22,7 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
   const navigate = useNavigate()
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
-  const overdue = isOverdue(task.dueDate as string)
+  const overdue = isOverdue(task.dueDate)
 
   const handleQuickStatusUpdate = async (newStatus: TaskStatus, additionalUpdates: Partial<Task> = {}) => {
     const updates: Partial<Task> = { status: newStatus, ...additionalUpdates }
@@ -92,7 +92,9 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
           {task.dueDate && (
             <div className={`flex items-center gap-1 ${overdue ? 'text-red-600 font-medium' : ''}`}>
               <Calendar className="w-3 h-3" />
-              <span>{formatDate(typeof task.dueDate === 'object' ? task.dueDate.toISOString() : task.dueDate)}</span>
+              <span>
+                {formatDate(typeof task.dueDate === 'object' ? task.dueDate.toISOString() : task.dueDate, true)}
+              </span>
             </div>
           )}
           <div className="flex items-center gap-1">

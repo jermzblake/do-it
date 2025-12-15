@@ -17,6 +17,7 @@ const returnColumns = {
   dueDate: TaskTable.dueDate,
   startedAt: TaskTable.startedAt,
   completedAt: TaskTable.completedAt,
+  startBy: TaskTable.startBy,
   createdAt: TaskTable.createdAt,
   updatedAt: TaskTable.updatedAt,
   deletedAt: TaskTable.deletedAt,
@@ -29,7 +30,9 @@ export const createTask = async (taskData: NewTask) => {
       // mutate safe copy if you want to avoid changing caller object:
       taskData = { ...taskData, dueDate: new Date(taskData.dueDate) } as NewTask
     }
-    //TODO: validate date is valid before inserting?
+    if (taskData.startBy && typeof taskData.startBy === 'string') {
+      taskData = { ...taskData, startBy: new Date(taskData.startBy) } as NewTask
+    }
     const result = await db.insert(TaskTable).values(taskData).returning()
     return result[0]
   } catch (error) {
@@ -136,6 +139,9 @@ export const updateTaskById = async (id: string, taskData: Partial<NewTask>) => 
   if (taskData.dueDate && typeof taskData.dueDate === 'string') {
     // mutate safe copy if you want to avoid changing caller object:
     taskData = { ...taskData, dueDate: new Date(taskData.dueDate) } as NewTask
+  }
+  if (taskData.startBy && typeof taskData.startBy === 'string') {
+    taskData = { ...taskData, startBy: new Date(taskData.startBy) } as NewTask
   }
   try {
     const result = await db

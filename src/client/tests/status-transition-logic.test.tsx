@@ -83,6 +83,10 @@ describe('Status transition business logic', () => {
     expect(capturedUpdates!.status).toBe('in_progress')
     expect(capturedUpdates!.startedAt).toBeTruthy()
     expect(new Date(capturedUpdates!.startedAt!).getTime()).toBeLessThanOrEqual(Date.now())
+    if (capturedUpdates!.startBy !== undefined) {
+      expect(capturedUpdates!.startBy).toBeTruthy()
+      expect(new Date(capturedUpdates!.startBy!).getTime()).toBeLessThanOrEqual(Date.now())
+    }
 
     // restore
     // @ts-ignore
@@ -118,6 +122,10 @@ describe('Status transition business logic', () => {
     expect(capturedUpdates!.status).toBe('in_progress')
     // Should NOT set a new startedAt because it already exists
     expect(capturedUpdates!.startedAt).toBeUndefined()
+    if (capturedUpdates!.startBy !== undefined) {
+      // If UI submits startBy when resuming, it should equal the existing value
+      expect(capturedUpdates!.startBy).toBe(existingStartedAt)
+    }
 
     // restore
     // @ts-ignore
@@ -153,6 +161,10 @@ describe('Status transition business logic', () => {
     expect(capturedUpdates!.status).toBe('completed')
     expect(capturedUpdates!.completedAt).toBeTruthy()
     expect(new Date(capturedUpdates!.completedAt!).getTime()).toBeLessThanOrEqual(Date.now())
+    if (capturedUpdates!.startBy !== undefined) {
+      expect(capturedUpdates!.startBy).toBeTruthy()
+      expect(new Date(capturedUpdates!.startBy!).getTime()).toBeLessThanOrEqual(Date.now())
+    }
 
     // restore
     // @ts-ignore

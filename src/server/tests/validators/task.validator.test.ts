@@ -251,6 +251,7 @@ describe('insertTaskSchema', () => {
       dueDate: '2025-12-31',
       startedAt: '2025-11-20T10:00:00Z',
       completedAt: '2025-11-21T15:30:00Z',
+      startBy: '2025-12-01T09:00:00Z',
     }
 
     const result = insertTaskSchema.safeParse(validTask)
@@ -259,6 +260,7 @@ describe('insertTaskSchema', () => {
       expect(result.data.dueDate).toBeInstanceOf(Date)
       expect(result.data.startedAt).toBeInstanceOf(Date)
       expect(result.data.completedAt).toBeInstanceOf(Date)
+      expect(result.data.startBy).toBeInstanceOf(Date)
     }
   })
 
@@ -387,12 +389,14 @@ describe('updateTaskSchema', () => {
   test('should coerce date strings in updates', () => {
     const validUpdate = {
       dueDate: '2025-12-31',
+      startBy: '2025-12-01T09:00:00Z',
     }
 
     const result = updateTaskSchema.safeParse(validUpdate)
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.dueDate).toBeInstanceOf(Date)
+      expect(result.data.startBy).toBeInstanceOf(Date)
     }
   })
 

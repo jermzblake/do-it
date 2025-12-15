@@ -14,6 +14,7 @@ export interface Task {
   notes?: string
   startedAt?: Date | string
   completedAt?: Date | string
+  startBy?: Date | string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
