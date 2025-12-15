@@ -10,16 +10,15 @@ import { useUpdateTask } from '@/client/hooks/use-tasks'
 import { isOverdue } from '@/client/utils/is-overdue'
 import { formatDate } from '@/client/utils/format-date'
 import { routes } from '@/client/routes/routes'
-import { Edit2, Play, Check, Ban, Trash2, Calendar, AlertCircle, Loader2, X } from 'lucide-react'
+import { Edit2, Play, Check, Ban, Calendar, AlertCircle, Loader2, X } from 'lucide-react'
 
 interface MobileTaskCardProps {
   task: Task
-  onDelete: () => void
   onBlock: () => void
   onSelect?: () => void
 }
 
-export const MobileTaskCard = ({ task, onDelete, onBlock, onSelect }: MobileTaskCardProps) => {
+export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps) => {
   const navigate = useNavigate()
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
@@ -198,7 +197,7 @@ export const MobileTaskCard = ({ task, onDelete, onBlock, onSelect }: MobileTask
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700"
+              className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 ml-auto"
               onClick={(e) => {
                 e.stopPropagation()
                 handleQuickStatusUpdate('cancelled')
@@ -209,19 +208,6 @@ export const MobileTaskCard = ({ task, onDelete, onBlock, onSelect }: MobileTask
               {updateTask.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
             </Button>
           )}
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 ml-auto"
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete()
-            }}
-            title="Delete task"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
         </div>
       </CardContent>
     </Card>

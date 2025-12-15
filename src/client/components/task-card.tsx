@@ -8,17 +8,16 @@ import { Button } from '@/client/components/ui/button'
 import { useUpdateTask } from '@/client/hooks/use-tasks'
 import { isOverdue } from '@/client/utils/is-overdue'
 import { formatDate } from '@/client/utils/format-date'
-import { Edit2, Play, Check, Ban, Trash2, Calendar, AlertCircle, Loader2, X } from 'lucide-react'
+import { Edit2, Play, Check, Ban, Calendar, AlertCircle, Loader2, X } from 'lucide-react'
 
 interface TaskCardProps {
   task: Task
   onEdit: () => void
-  onDelete: () => void
   onBlock: () => void
   onSelect?: () => void
 }
 
-export const TaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: TaskCardProps) => {
+export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => {
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
   const overdue = isOverdue(task.dueDate as string)
@@ -232,18 +231,6 @@ export const TaskCard = ({ task, onEdit, onDelete, onBlock, onSelect }: TaskCard
               </Button>
             </>
           )}
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs text-red-600 hover:text-red-700 ml-auto"
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete()
-            }}
-          >
-            <Trash2 className="w-3 h-3" />
-          </Button>
         </div>
       </CardContent>
     </Card>
