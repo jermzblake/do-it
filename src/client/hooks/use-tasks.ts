@@ -7,6 +7,7 @@ import {
 } from '@/client/services/tasks.service'
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Task, TasksByStatusProps, TaskStatus } from '@/shared/task'
+import { normalizeDates } from '@/client/utils/normalize-date'
 
 export const tasksKeys = {
   all: ['tasks'],
@@ -54,16 +55,17 @@ export const useUpdateTask = (taskId: string) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (taskPayload: Partial<Task>) => updateTaskById(taskId, taskPayload),
+    mutationFn: (taskPayload: Partial<Task>) => updateTaskById(taskId, normalizeDates(taskPayload) || taskPayload),
     onMutate: async (updatedTask) => {
       await queryClient.cancelQueries({ queryKey: tasksKeys.lists() })
 
       // Optimistically update the task detail cache as well
       const previousById = queryClient.getQueryData<{ data: Task }>(tasksKeys.byId(taskId))
       if (previousById?.data) {
+        const normalized = normalizeDates(updatedTask) || updatedTask
         queryClient.setQueryData(tasksKeys.byId(taskId), {
           ...previousById,
-          data: { ...previousById.data, ...updatedTask },
+          data: { ...previousById.data, ...normalized },
         })
       }
 
@@ -96,9 +98,10 @@ export const useUpdateTask = (taskId: string) => {
           const taskExists = oldData.data.some((task: Task) => task.id === taskId)
 
           if (taskExists) {
+            const normalized = normalizeDates(updatedTask) || updatedTask
             queryClient.setQueryData(queryKey, {
               ...oldData,
-              data: oldData.data.map((task: Task) => (task.id === taskId ? { ...task, ...updatedTask } : task)),
+              data: oldData.data.map((task: Task) => (task.id === taskId ? { ...task, ...normalized } : task)),
             })
           }
         })

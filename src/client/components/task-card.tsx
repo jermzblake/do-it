@@ -20,7 +20,7 @@ interface TaskCardProps {
 export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => {
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
-  const overdue = isOverdue(task.dueDate as string)
+  const overdue = isOverdue(task.dueDate)
 
   const handleQuickStatusUpdate = async (newStatus: TaskStatus, additionalUpdates: Partial<Task> = {}) => {
     const updates: Partial<Task> = { status: newStatus, ...additionalUpdates }
