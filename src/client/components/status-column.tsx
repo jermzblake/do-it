@@ -11,7 +11,6 @@ import { TaskCard } from '@/client/components/task-card'
 interface StatusColumnProps {
   status: string
   setEditingTask: (task: Task | null) => void
-  setDeleteTaskId: (taskId: string | null) => void
   setTaskToBlockId: (taskId: string | null) => void
   searchQuery: string
   filterPriority: string
@@ -21,7 +20,6 @@ interface StatusColumnProps {
 export const StatusColumn = ({
   status,
   setEditingTask,
-  setDeleteTaskId,
   setTaskToBlockId,
   searchQuery,
   filterPriority,
@@ -90,7 +88,6 @@ export const StatusColumn = ({
               key={task.id}
               task={task}
               onEdit={() => setEditingTask(task)}
-              onDelete={() => setDeleteTaskId(task.id)}
               onBlock={() => setTaskToBlockId(task.id)}
               onSelect={setSelectedTask ? () => setSelectedTask(task) : undefined}
             />
