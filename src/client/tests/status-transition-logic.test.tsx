@@ -51,7 +51,7 @@ function Wrapper({ client, children }: { client: QueryClient; children: React.Re
   )
 }
 
-let originalPut: typeof apiClient.put = apiClient.put.bind(apiClient)
+const originalPut: typeof apiClient.put = apiClient.put.bind(apiClient)
 
 describe('Status transition business logic', () => {
   it('sets startedAt timestamp when starting a todo task', async () => {
@@ -66,7 +66,7 @@ describe('Status transition business logic', () => {
 
     const { container } = render(
       <Wrapper client={qc}>
-        <MobileTaskCard task={task({ status: 'todo', startedAt: undefined })} onDelete={() => {}} onBlock={() => {}} />
+        <MobileTaskCard task={task({ status: 'todo', startedAt: undefined })} onBlock={() => {}} />
       </Wrapper>,
     )
 
@@ -102,11 +102,7 @@ describe('Status transition business logic', () => {
 
     const { container } = render(
       <Wrapper client={qc}>
-        <MobileTaskCard
-          task={task({ status: 'todo', startedAt: existingStartedAt })}
-          onDelete={() => {}}
-          onBlock={() => {}}
-        />
+        <MobileTaskCard task={task({ status: 'todo', startedAt: existingStartedAt })} onBlock={() => {}} />
       </Wrapper>,
     )
 
@@ -140,7 +136,7 @@ describe('Status transition business logic', () => {
 
     const { container } = render(
       <Wrapper client={qc}>
-        <MobileTaskCard task={task({ status: 'in_progress' })} onDelete={() => {}} onBlock={() => {}} />
+        <MobileTaskCard task={task({ status: 'in_progress' })} onBlock={() => {}} />
       </Wrapper>,
     )
 
@@ -177,7 +173,6 @@ describe('Status transition business logic', () => {
       <Wrapper client={qc}>
         <MobileTaskCard
           task={task({ status: 'blocked', blockedReason: 'Waiting for API', notes: 'Original notes' })}
-          onDelete={() => {}}
           onBlock={() => {}}
         />
       </Wrapper>,
