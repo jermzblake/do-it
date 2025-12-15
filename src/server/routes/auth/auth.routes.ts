@@ -5,8 +5,8 @@ import { withCorrelation } from '../../middleware/correlation'
 export const authRoutes = {
   '/api/auth/google': {
     GET: withCorrelation(
-      withProblemDetails(async () => {
-        return AuthController.handleAuthStart()
+      withProblemDetails(async (req: Bun.BunRequest) => {
+        return AuthController.handleAuthStart(req)
       }),
     ),
   },
