@@ -95,7 +95,9 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
           {task.dueDate && (
             <div className={`flex items-center gap-1 ${overdue ? 'text-red-600 font-medium' : ''}`}>
               <Calendar className="w-3 h-3" />
-              <span>{formatDate(typeof task.dueDate === 'object' ? task.dueDate.toISOString() : task.dueDate)}</span>
+              <span>
+                {formatDate(typeof task.dueDate === 'object' ? task.dueDate.toISOString() : task.dueDate, true)}
+              </span>
             </div>
           )}
           <div className="flex items-center gap-1">

@@ -1,9 +1,11 @@
 import { format, formatDistance, formatRelative, subDays, formatDistanceToNow } from 'date-fns'
-export const formatDate = (dateString: string) => {
-  if (!dateString) return null
-  const date = new Date(dateString)
-  const now = new Date()
 
+export const formatDate = (dateInput?: string | Date | null, returnShortVersion = false): string | null => {
+  if (!dateInput) return null
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : (dateInput as Date)
+  if (isNaN(date.getTime())) return null
+
+  const now = new Date()
   const dateAtMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const nowAtMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
@@ -18,5 +20,18 @@ export const formatDate = (dateString: string) => {
     return 'Tomorrow'
   }
   if (diffDays < 7) return `${diffDays}d`
+
+  // If caller requested short version, return compact human-friendly string
+  if (returnShortVersion) {
+    const short = format(date, 'EEE MMM dd')
+    if (date.getFullYear() !== now.getFullYear()) {
+      return `${short}, ${format(date, 'yyyy')}`
+    }
+    return short
+  }
+
+  // Default / long form fallback
   return date.toString()
 }
+
+export const formatShortDate = (dateInput?: string | Date | null): string | null => formatDate(dateInput, true)
