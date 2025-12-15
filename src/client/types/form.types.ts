@@ -31,6 +31,7 @@ export const TaskFormSchema = z
     dueDate: z.date().optional(),
     blockedReason: z.string().trim().optional(),
     notes: z.string().optional(),
+    startBy: z.date().optional(),
   })
   .refine(
     (data) => {
