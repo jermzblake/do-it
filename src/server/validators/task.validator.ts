@@ -13,6 +13,7 @@ export const insertTaskSchema = createInsertSchema(TaskTable, {
   dueDate: z.coerce.date().optional(),
   startedAt: z.coerce.date().optional(),
   completedAt: z.coerce.date().optional(),
+  startBy: z.coerce.date().optional(),
 })
 
 export const updateTaskSchema = insertTaskSchema.partial().omit({

@@ -17,6 +17,7 @@ const returnColumns = {
   dueDate: TaskTable.dueDate,
   startedAt: TaskTable.startedAt,
   completedAt: TaskTable.completedAt,
+  startBy: TaskTable.startBy,
   createdAt: TaskTable.createdAt,
   updatedAt: TaskTable.updatedAt,
   deletedAt: TaskTable.deletedAt,
