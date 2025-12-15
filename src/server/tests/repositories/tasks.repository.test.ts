@@ -37,7 +37,7 @@ describe('tasks.repository startBy handling', () => {
 
     const res = await createTask(payload)
     expect(res).toBeDefined()
-    expect(res.startBy).toBeInstanceOf(Date)
+    expect(res?.startBy).toBeInstanceOf(Date)
   })
 
   test('updateTaskById coerces startBy string to Date and returns Date', async () => {
@@ -51,7 +51,7 @@ describe('tasks.repository startBy handling', () => {
 
     const res = await updateTaskById('id-1', { startBy: '2026-01-01T00:00:00Z' } as any)
     expect(res).toBeDefined()
-    expect(res.startBy).toBeInstanceOf(Date)
+    expect(res?.startBy).toBeInstanceOf(Date)
   })
 
   test('getTaskById returns the selected row (proxy for startBy presence)', async () => {
