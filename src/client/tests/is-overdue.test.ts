@@ -31,6 +31,7 @@ describe('normalizeDates', () => {
       id: 't1',
       dueDate: new Date('2020-01-01T00:00:00.000Z'),
       startedAt: new Date('2020-01-02T00:00:00.000Z'),
+      startBy: new Date('2020-01-03T00:00:00.000Z'),
       name: 'task',
     }
 
@@ -39,6 +40,8 @@ describe('normalizeDates', () => {
     expect(normalized.dueDate).toBe('2020-01-01T00:00:00.000Z')
     expect(typeof normalized.startedAt).toBe('string')
     expect(normalized.startedAt).toBe('2020-01-02T00:00:00.000Z')
+    expect(typeof normalized.startBy).toBe('string')
+    expect(normalized.startBy).toBe('2020-01-03T00:00:00.000Z')
     expect(normalized.name).toBe('task')
   })
 })
