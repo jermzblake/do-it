@@ -64,7 +64,7 @@ export function TaskForm({ setShowForm, onDirtyChange }: TaskFormProps) {
   const onSubmit = async (payload: z.infer<typeof TaskFormSchema>) => {
     try {
       await createTaskMutation.mutateAsync(payload)
-      isDevEnvironment && console.log('SUCCESS: Task created successfully')
+      if (isDevEnvironment) console.log('SUCCESS: Task created successfully')
       toast.success('Task created successfully')
       reset()
       if (!isDesktop) {
@@ -72,7 +72,7 @@ export function TaskForm({ setShowForm, onDirtyChange }: TaskFormProps) {
       }
       setShowForm?.(false)
     } catch (error: unknown) {
-      isDevEnvironment && console.log('ERROR:', error)
+      if (isDevEnvironment) console.error('ERROR:', error)
 
       if (isApiResponseError(error)) {
         if (hasErrorDetail(error, 'TASK_CREATION_LIMIT_EXCEEDED')) {

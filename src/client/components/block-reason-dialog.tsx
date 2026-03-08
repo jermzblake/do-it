@@ -33,7 +33,7 @@ export const BlockReasonDialog = ({ taskToBlockId, setTaskToBlockId }: BlockReas
       setBlockedReason('')
       toast.success('Task blocked successfully')
     } catch (error) {
-      isDevEnvironment && console.log('ERROR:', error)
+      if (isDevEnvironment) console.error('ERROR:', error)
       toast.error('Error blocking task')
     }
   }
