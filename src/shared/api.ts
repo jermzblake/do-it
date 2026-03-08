@@ -22,11 +22,6 @@ export interface ResponseMetaData {
 export interface ApiResponse<T> {
   data: T | null
   metaData: ResponseMetaData
-  error?: {
-    code: number
-    details: string
-    message: string
-  }
 }
 
 export const isApiResponse = (payload: any): payload is ApiResponse<unknown | null> => {

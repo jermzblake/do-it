@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test'
-import { createResponse, createErrorResponse, ResponseMessage, ResponseCode, StatusCode } from '../../utils/response'
+import { createResponse, ResponseMessage, ResponseCode, StatusCode } from '../../utils/response'
 import type { Pagination } from '../../../shared/api'
 
 describe('createResponse', () => {
@@ -12,7 +12,6 @@ describe('createResponse', () => {
     expect(response.metaData.status).toBe(StatusCode.SUCCESS)
     expect(response.metaData.responseCode).toBe(ResponseCode.SUCCESS)
     expect(response.metaData.timestamp).toBeDefined()
-    expect(response.error).toBeUndefined()
   })
 
   test('should create response with null data', () => {
@@ -38,6 +37,12 @@ describe('createResponse', () => {
     const response = createResponse({ id: 1 }, ResponseMessage.CREATED, StatusCode.CREATED, ResponseCode.CREATED)
 
     expect(response.metaData.responseCode).toBe(ResponseCode.CREATED)
+  })
+
+  test('should infer default message from response code when message is omitted', () => {
+    const response = createResponse({ id: 1 }, undefined, StatusCode.CREATED, ResponseCode.CREATED)
+
+    expect(response.metaData.message).toBe(ResponseMessage.CREATED)
   })
 
   test('should include pagination params when provided', () => {
@@ -78,76 +83,6 @@ describe('createResponse', () => {
     const response = createResponse([])
 
     expect(response.data).toEqual([])
-  })
-})
-
-describe('createErrorResponse', () => {
-  test('should create error response with default code', () => {
-    const response = createErrorResponse('Something went wrong')
-
-    expect(response.data).toBeNull()
-    expect(response.metaData.message).toBe('Something went wrong')
-    expect(response.metaData.status).toBe(StatusCode.INTERNAL_SERVER_ERROR)
-    expect(response.metaData.responseCode).toBe(500)
-    expect(response.error).toBeDefined()
-    expect(response.error?.code).toBe(500)
-    expect(response.error?.message).toBe('Something went wrong')
-    expect(response.error?.details).toBe('')
-  })
-
-  test('should create error response with custom code', () => {
-    const response = createErrorResponse('Not found', 404)
-
-    expect(response.metaData.responseCode).toBe(404)
-    expect(response.error?.code).toBe(404)
-  })
-
-  test('should create error response with details', () => {
-    const response = createErrorResponse('Validation failed', 400, 'name: Required, email: Invalid format')
-
-    expect(response.error?.details).toBe('name: Required, email: Invalid format')
-  })
-
-  test('should create 400 error response', () => {
-    const response = createErrorResponse('Bad request', 400, 'Invalid input')
-
-    expect(response.error?.code).toBe(400)
-    expect(response.error?.message).toBe('Bad request')
-    expect(response.error?.details).toBe('Invalid input')
-  })
-
-  test('should create 401 error response', () => {
-    const response = createErrorResponse('Unauthorized', 401)
-
-    expect(response.error?.code).toBe(401)
-    expect(response.error?.message).toBe('Unauthorized')
-  })
-
-  test('should create 404 error response', () => {
-    const response = createErrorResponse('Not found', 404)
-
-    expect(response.error?.code).toBe(404)
-    expect(response.error?.message).toBe('Not found')
-  })
-
-  test('should always set data to null', () => {
-    const response = createErrorResponse('Error')
-
-    expect(response.data).toBeNull()
-  })
-
-  test('should generate ISO timestamp', () => {
-    const response = createErrorResponse('Error')
-    const timestamp = response.metaData.timestamp
-
-    expect(timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
-    expect(() => new Date(timestamp)).not.toThrow()
-  })
-
-  test('should default status to INTERNAL_SERVER_ERROR when not provided', () => {
-    const response = createErrorResponse('Any error', 400)
-
-    expect(response.metaData.status).toBe(StatusCode.INTERNAL_SERVER_ERROR)
   })
 })
 

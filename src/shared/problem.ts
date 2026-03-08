@@ -11,12 +11,15 @@ export interface ProblemDetails {
 }
 
 export const isProblemDetails = (payload: any): payload is ProblemDetails => {
-  return (
+  return Boolean(
     payload &&
-    typeof payload === 'object' &&
-    'title' in payload &&
-    'status' in payload &&
-    typeof (payload as any).status === 'number'
+      typeof payload === 'object' &&
+      !Array.isArray(payload) &&
+      'title' in payload &&
+      'status' in payload &&
+      typeof (payload as { title?: unknown }).title === 'string' &&
+      typeof (payload as { status?: unknown }).status === 'number' &&
+      Number.isFinite((payload as { status?: number }).status),
   )
 }
 
