@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'bun:test'
 import { withProblemDetails } from '../../middleware/problem-details'
 import { BadRequestError, NotFoundError, UnauthorizedError, ForbiddenError } from '../../errors/HttpError'
+import { RateLimitExceededError } from '../../errors/RateLimitExceededError'
 import { withCorrelation } from '../../middleware/correlation'
 
 describe('withProblemDetails middleware', () => {
@@ -15,6 +16,7 @@ describe('withProblemDetails middleware', () => {
     expect(body).toHaveProperty('title', 'Boom')
     expect(body).toHaveProperty('status', 500)
     expect(body).toHaveProperty('code', 'INTERNAL_ERROR')
+    expect(body).toHaveProperty('instance', 'http://localhost/api/problem-demo')
   })
 
   test('maps validation error when enabled', async () => {
@@ -34,7 +36,46 @@ describe('withProblemDetails middleware', () => {
     expect(body).toHaveProperty('status', 400)
     expect(body).toHaveProperty('code', 'VALIDATION_ERROR')
     expect(body).toHaveProperty('instance')
-    expect(Array.isArray(body.invalidParams) || (body as any).invalidParams === undefined).toBe(true)
+    const invalidParams = (body as { invalidParams?: unknown }).invalidParams
+    expect(Array.isArray(invalidParams) || invalidParams === undefined).toBe(true)
+  })
+
+  test('returns internal error when validation mapping is disabled', async () => {
+    const validationError: any = {
+      issues: [{ path: ['name'], message: 'Required' }],
+      name: 'ZodError',
+    }
+    const handler = withProblemDetails(
+      async () => {
+        throw validationError
+      },
+      { mapValidation: false },
+    )
+    const res = await handler(new Request('http://localhost/api/problem-demo') as any)
+    expect(res.status).toBe(500)
+    expect(res.headers.get('Content-Type')).toBe('application/problem+json')
+    const body = await res.json()
+    expect(body).toHaveProperty('title', 'An unexpected error occurred')
+    expect(body).toHaveProperty('status', 500)
+    expect(body).toHaveProperty('code', 'INTERNAL_ERROR')
+  })
+
+  test('maps RateLimitExceededError to 429 problem response', async () => {
+    const handler = withProblemDetails(async () => {
+      throw new RateLimitExceededError('Too many requests from this client')
+    })
+
+    const req = new Request('http://localhost/api/test') as any
+    const res = await handler(req)
+
+    expect(res.status).toBe(429)
+    expect(res.headers.get('Content-Type')).toBe('application/problem+json')
+    const body = await res.json()
+    expect(body).toHaveProperty('title', 'Rate limit exceeded')
+    expect(body).toHaveProperty('status', 429)
+    expect(body).toHaveProperty('code', 'RATE_LIMIT_EXCEEDED')
+    expect(body).toHaveProperty('instance', req.url)
+    expect(body).toHaveProperty('detail', 'Too many requests from this client')
   })
 
   test('maps BadRequestError to 400 problem response', async () => {
