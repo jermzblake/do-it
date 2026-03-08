@@ -19,5 +19,5 @@ export const isApiResponseError = (error: unknown): error is ApiResponse<any> =>
  * Useful for intercepting specific server-side error conditions like rate limiting.
  */
 export const hasErrorDetail = (error: ApiResponse<any>, detailCode: string): boolean => {
-  return error.error?.details === detailCode
+  return (error as any).metaData?.details === detailCode
 }
