@@ -11,12 +11,12 @@ export interface ProblemDetails {
 }
 
 export const isProblemDetails = (payload: any): payload is ProblemDetails => {
-  return (
+  return Boolean(
     payload &&
-    typeof payload === 'object' &&
-    'title' in payload &&
-    'status' in payload &&
-    typeof (payload as any).status === 'number'
+      typeof payload === 'object' &&
+      'title' in payload &&
+      'status' in payload &&
+      typeof (payload as any).status === 'number',
   )
 }
 
