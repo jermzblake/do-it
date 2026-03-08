@@ -1,6 +1,7 @@
 import { RateLimitExceededError } from '../errors/RateLimitExceededError'
 import * as TasksRepository from '../repositories/tasks/tasks.repository'
 import * as UsersRepository from '../repositories/users/users.repository'
+import { logger } from './logger'
 
 const getWhitelist = (): ReadonlySet<string> => {
   const rawList = (process.env.TASK_CREATION_WHITELIST || '')
@@ -53,7 +54,7 @@ export const setRateLimitTestOverrides = (o: typeof overrides) => {
 // This helps catch accidental leakage of test override configuration.
 export const assertNoOverridesInProduction = () => {
   if (process.env.NODE_ENV === 'production' && Object.values(overrides).some((fn) => typeof fn === 'function')) {
-    console.warn('[rate-limit] Overrides detected in production environment. This should not happen.')
+    logger.warn('[rate-limit] Overrides detected in production environment. This should not happen.')
   }
 }
 

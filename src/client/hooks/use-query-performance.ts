@@ -58,7 +58,9 @@ export const useQueryPerformance = (
         }
         // Warn if query is slow
         if (duration > 1000) {
-          isDevEnvironment && console.warn(`⚠️ Slow query detected: ${queryName} took ${Math.round(duration)}ms`)
+          if (isDevEnvironment) {
+            console.warn(`⚠️ Slow query detected: ${queryName} took ${Math.round(duration)}ms`)
+          }
         }
       }
 
@@ -114,7 +116,7 @@ export class QueryPerformanceMonitor {
   static printStats(queryKey?: string) {
     const stats = this.getStats(queryKey)
     if (!stats) {
-      isDevEnvironment && console.log('No performance data available')
+      if (isDevEnvironment) console.log('No performance data available')
       return
     }
 

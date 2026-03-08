@@ -3,6 +3,7 @@ import { TaskTable } from '../../db/schema'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import { eq, and, sql, count, isNull, gte, lte } from 'drizzle-orm'
 import type { Pagination } from '../../../shared/api'
+import { logger } from '../../utils/logger'
 
 const returnColumns = {
   id: TaskTable.id,
@@ -36,7 +37,7 @@ export const createTask = async (taskData: NewTask) => {
     const result = await db.insert(TaskTable).values(taskData).returning()
     return result[0]
   } catch (error) {
-    console.error('Error inserting task into database:', error)
+    logger.error({ err: error }, 'Error inserting task into database')
     throw error
   }
 }
@@ -152,7 +153,7 @@ export const updateTaskById = async (id: string, taskData: Partial<NewTask>) => 
 
     return result[0]
   } catch (error) {
-    console.error('Error updating task in database:', error)
+    logger.error({ err: error }, 'Error updating task in database')
     throw new Error('Error updating task: ' + (error as Error).message)
   }
 }
