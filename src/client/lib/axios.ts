@@ -2,7 +2,7 @@ import axios from 'axios'
 import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import type { ApiResponse } from '../../shared/api'
 import { isApiResponse } from '../../shared/api'
-import { isProblemDetails } from '../../shared/problem'
+import { isProblemDetails, type ProblemDetails } from '../../shared/problem'
 
 interface RequestConfig extends Record<string, any> {
   useApiPrefix?: boolean
@@ -65,20 +65,16 @@ class ApiClient {
         // Fallback: construct standardized error envelope
         const status = error.response?.status || 500
         const message = error.message || 'An unexpected error occurred'
-        return Promise.reject({
-          data: null,
-          metaData: {
-            message,
-            status: 'E5000_INTERNAL_SERVER_ERROR',
-            timestamp: new Date().toISOString(),
-            responseCode: status,
-          },
-          error: {
-            code: status,
-            message,
-            details: error.response?.statusText || '',
-          },
-        } as ApiResponse<null>)
+        const fallbackProblem: ProblemDetails = {
+          type: 'about:blank',
+          title: message,
+          status,
+          code: status,
+        }
+        if (error.response?.statusText) {
+          fallbackProblem.detail = error.response.statusText
+        }
+        return Promise.reject(fallbackProblem)
       },
     )
   }
