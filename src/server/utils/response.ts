@@ -11,11 +11,6 @@ export interface ResponseSchema<T> {
     requestId?: string
     traceId?: string
   }
-  error?: {
-    code: number
-    details: string
-    message: string
-  }
 }
 
 export const ResponseMessage = {
@@ -106,30 +101,5 @@ export const createResponse = <T>(
     pagination,
     requestId,
     traceId,
-  },
-})
-
-//TODO: get rid of this since we have problem details now (also in response.test.ts)
-export const createErrorResponse = (
-  message: string,
-  code: ResponseCodeUnion = ResponseCode.INTERNAL_SERVER_ERROR,
-  details = '',
-  status: StatusUnion = StatusCode.INTERNAL_SERVER_ERROR,
-  requestId?: string,
-  traceId?: string,
-): ResponseSchema<null> => ({
-  data: null,
-  metaData: {
-    message,
-    status,
-    timestamp: new Date().toISOString(),
-    responseCode: code,
-    requestId,
-    traceId,
-  },
-  error: {
-    code,
-    message,
-    details,
   },
 })
