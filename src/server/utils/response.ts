@@ -109,6 +109,7 @@ export const createResponse = <T>(
   },
 })
 
+//TODO: get rid of this since we have problem details now (also in response.test.ts)
 export const createErrorResponse = (
   message: string,
   code: ResponseCodeUnion = ResponseCode.INTERNAL_SERVER_ERROR,

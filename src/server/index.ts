@@ -5,6 +5,7 @@ import { authRoutes } from './routes/auth/auth.routes'
 import { tasksRoutes } from './routes/tasks/tasks.routes'
 import { healthRoutes } from './routes/health/health.routes'
 import { demoRoutes } from './routes/demo/demo.routes'
+import { logger } from './utils/logger'
 
 const isDevEnvironment = process.env.NODE_ENV !== 'production'
 const PORT = Number(process.env.PORT || 3000)
@@ -13,11 +14,11 @@ const PORT = Number(process.env.PORT || 3000)
 let indexHtml
 try {
   const htmlPath = isDevEnvironment ? '../index.html' : '../../dist/index.html'
-  console.log(`Attempting to load HTML from: ${htmlPath}`)
+  logger.debug({ htmlPath }, 'Attempting to load HTML')
   indexHtml = await import(htmlPath)
-  console.log('HTML file loaded successfully')
+  logger.debug('HTML file loaded successfully')
 } catch (error) {
-  console.error('Failed to load HTML file:', error)
+  logger.error({ err: error }, 'Failed to load HTML file')
   process.exit(1)
 }
 
@@ -60,7 +61,7 @@ const server = serve({
   },
 })
 
-console.log(`🚀 Server running at ${server.url}`)
+logger.info(`🚀 Server running at ${server.url}`)
 
 // Explicitly keep the event loop alive
 const keepAlive = setInterval(() => {
@@ -69,27 +70,27 @@ const keepAlive = setInterval(() => {
 
 // Prevent the process from exiting - keep event loop alive
 process.on('SIGINT', () => {
-  console.log('Received SIGINT, shutting down gracefully...')
+  logger.info('Received SIGINT, shutting down gracefully...')
   server.stop()
   process.exit(0)
 })
 
 process.on('SIGTERM', () => {
-  console.log('Received SIGTERM, shutting down gracefully...')
+  logger.info('Received SIGTERM, shutting down gracefully...')
   server.stop()
   process.exit(0)
 })
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught exception:', error)
+  logger.error({ err: error }, 'Uncaught exception')
   clearInterval(keepAlive)
   server.stop()
   process.exit(1)
 })
 
 process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled rejection:', reason)
+  logger.error({ reason }, 'Unhandled rejection')
   clearInterval(keepAlive)
   server.stop()
   process.exit(1)
