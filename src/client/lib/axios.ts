@@ -62,7 +62,7 @@ class ApiClient {
         if (payload && isProblemDetails(payload)) {
           return Promise.reject(payload)
         }
-        // Fallback: construct standardized error envelope
+        // Fallback: construct RFC 9457 Problem Details object
         const status = error.response?.status || 500
         const message = error.message || 'An unexpected error occurred'
         const fallbackProblem: ProblemDetails = {
