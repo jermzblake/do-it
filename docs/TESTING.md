@@ -32,9 +32,14 @@ Comprehensive unit tests cover server utilities and validators:
 **Utility Functions** (`src/server/tests/utils/`)
 
 - `cookies.test.ts` - Cookie setting, getting, and deletion
-- `response.test.ts` - Response formatting and error handling
+- `response.test.ts` - Success response envelope formatting
+- `problem.test.ts` - Problem Details factory and type guard behavior
 - `validation-error-handler.test.ts` - Zod and custom validation error handling
 - `session.cookies.test.ts` - Session cookie extraction and validation
+
+**Middleware** (`src/server/tests/middleware/`)
+
+- `problem-details.test.ts` - RFC 9457 Problem Details response mapping and headers
 
 **Validators** (`src/server/tests/validators/`)
 
@@ -43,7 +48,7 @@ Comprehensive unit tests cover server utilities and validators:
 These tests validate:
 
 - Input validation and sanitization
-- Error handling and formatting
+- Error handling and RFC 9457 Problem Details formatting
 - Cookie management and security
 - Schema constraints (string length, numeric ranges, enums)
 - Date coercion and optional fields
@@ -265,8 +270,11 @@ src/
         ├── utils/          # Utility function tests
         │   ├── cookies.test.ts
         │   ├── response.test.ts
+        │   ├── problem.test.ts
         │   ├── validation-error-handler.test.ts
         │   └── session.cookies.test.ts
+        ├── middleware/     # Middleware tests
+        │   └── problem-details.test.ts
         └── validators/     # Validator tests
             └── task.validator.test.ts
 tests/

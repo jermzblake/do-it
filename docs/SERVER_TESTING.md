@@ -21,10 +21,23 @@ Server-side tests are organized by layer and focus on unit testing utilities and
 **response.test.ts** - Response Formatting
 
 - `createResponse()`: Success responses with data, null data, custom messages, pagination
-- `createErrorResponse()`: Error structure, status codes, error details
 - Constants validation: ResponseMessage, ResponseCode, StatusCode
 
-**validation-error-handler.test.ts** - Error Handling
+**problem.test.ts** - Problem Details Factory
+
+- `createProblem()`: RFC 9457 payload creation with standard fields and extensions
+- `isProblemDetails()`: Type guard behavior for valid/invalid payloads
+
+#### 2. Middleware (`src/server/tests/middleware/`)
+
+**problem-details.test.ts** - Error Response Contract
+
+- `withProblemDetails()`: Maps thrown errors to `application/problem+json` responses
+- Covers HttpError mapping, validation mapping, rate-limit mapping, and internal fallback handling
+
+#### 3. Validators (`src/server/tests/validators/`)
+
+**validation-error-handler.test.ts** - Validation Error Extraction
 
 - `extractValidationError()`: Zod errors, custom validation errors, non-validation errors
 - Returns structured error data
@@ -36,8 +49,6 @@ Server-side tests are organized by layer and focus on unit testing utilities and
 - `getUserFromSessionCookie()`: Valid sessions, missing cookies, invalid tokens
 - Error propagation from dependencies
 - Mocking external functions (getCookie, getUserIdBySessionToken)
-
-#### 2. Validators (`src/server/tests/validators/`)
 
 **task.validator.test.ts** - Schema Validation
 
