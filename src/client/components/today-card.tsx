@@ -48,6 +48,8 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
         <button
           onClick={() => onChange(task.id, task.status === 'completed' ? 'todo' : 'completed')}
           className="mt-0.5 shrink-0 active:scale-90 transition-transform"
+          title={task.status === 'completed' ? 'Mark as To Do' : 'Mark as Completed'}
+          aria-label={task.status === 'completed' ? 'Mark as To Do' : 'Mark as Completed'}
         >
           <StatusIcon status={task.status} />
         </button>
@@ -107,6 +109,8 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
+                  title={task.status === 'blocked' ? 'Mark as To Do' : 'Mark as Blocked'}
+                  aria-label={task.status === 'blocked' ? 'Mark as To Do' : 'Mark as Blocked'}
                 >
                   <Ban className="w-3.5 h-3.5 text-red-400" />
                   Mark Blocked
@@ -119,6 +123,8 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
+                  title={task.status === 'cancelled' ? 'Mark as To Do' : 'Mark as Cancelled'}
+                  aria-label={task.status === 'cancelled' ? 'Mark as To Do' : 'Mark as Cancelled'}
                 >
                   <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
                   Cancel
@@ -132,6 +138,8 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
         <div className="ml-auto flex items-center gap-2.5">
           <span
             className={`inline-flex items-center gap-1 text-[10px] font-medium h-5 px-1.5 rounded border ${sizeConfig.cls}`}
+            title={sizeConfig.label}
+            aria-label={sizeConfig.label}
           >
             <sizeConfig.Icon className="w-3 h-3" />
             {sizeConfig.label}
