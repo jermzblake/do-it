@@ -18,7 +18,7 @@ export const useTodayCard = () => {
     return Math.round((dateAtMidnight.getTime() - nowAtMidnight.getTime()) / 864e5)
   }
 
-  const formatDate = (date: string) => {
+  const formatDate = (date: string | Date) => {
     const dateDifference = diffDays(date)
     if (dateDifference === null) return null
 
