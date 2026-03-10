@@ -9,6 +9,7 @@ import { CreateTaskPage } from '@/client/pages/create-task-page'
 import { AuthProvider, useAuth } from '../auth/AuthContext'
 import { ErrorBoundary } from '@/client/components/error-boundary'
 import { useEffect } from 'react'
+import { TodayViewPage } from '../pages/today'
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth()
@@ -52,6 +53,16 @@ const dashboardRoute = createRoute({
   ),
 })
 
+const todayRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: routes.today,
+  component: () => (
+    <RequireAuth>
+      <TodayViewPage />
+    </RequireAuth>
+  ),
+})
+
 const taskDetailsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: routes.taskDetailsPattern,
@@ -73,7 +84,7 @@ const createTaskRoute = createRoute({
 })
 
 // Assemble the route tree
-const routeTree = rootRoute.addChildren([indexRoute, dashboardRoute, taskDetailsRoute, createTaskRoute])
+const routeTree = rootRoute.addChildren([indexRoute, dashboardRoute, todayRoute, taskDetailsRoute, createTaskRoute])
 
 // Create the router
 export const router = createRouter({
