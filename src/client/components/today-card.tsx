@@ -12,8 +12,7 @@ const SIZE_CONFIG = {
 
 const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, status: string) => void }) => {
   const [open, setOpen] = useState(false)
-  const { formatDate, getTaskUrgency } = useTodayCard()
-  const urgency = getTaskUrgency(task)
+  const { formatDate } = useTodayCard()
 
   const getSize = (effort: number) => (effort >= 4 ? 'big' : effort >= 2 ? 'medium' : 'small')
   const size = getSize(task.effort)
@@ -137,19 +136,19 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
+        <span
+          className={`inline-flex items-center gap-1 text-[10px] font-medium h-5 px-1.5 rounded border ${sizeConfig.cls}`}
+          title={sizeConfig.label}
+          aria-label={sizeConfig.label}
+        >
+          <sizeConfig.Icon className="w-3 h-3" />
+          {sizeConfig.label}
+        </span>
         <div className="ml-auto flex items-center gap-2.5">
-          <span
-            className={`inline-flex items-center gap-1 text-[10px] font-medium h-5 px-1.5 rounded border ${sizeConfig.cls}`}
-            title={sizeConfig.label}
-            aria-label={sizeConfig.label}
-          >
-            <sizeConfig.Icon className="w-3 h-3" />
-            {sizeConfig.label}
-          </span>
-          {task.dueDate && !urgency && (
+          {task.dueDate && formatDate(task.dueDate) !== 'Today' && (
             <span className="text-[10px] text-slate-500 flex items-center gap-1">
               <CalendarClock className="w-3 h-3" />
-              {formatDate(task.dueDate as string)}
+              {formatDate(task.dueDate)}
             </span>
           )}
           <span className={`w-2 h-2 rounded-full ${PIPDOT[priority]}`} title={PIPLABEL[priority] + ' Priority'} />
