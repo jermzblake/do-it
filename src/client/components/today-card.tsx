@@ -70,6 +70,8 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
             onClick={() => setOpen((v) => !v)}
             className="h-6 w-6 flex items-center justify-center rounded opacity-100 lg:opacity-0 lg:group-hover:opacity-100
               text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition-opacity"
+            title="More actions"
+            aria-label="More actions"
           >
             <MoreHorizontal className="w-3.5 h-3.5" />
           </button>
