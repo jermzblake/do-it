@@ -40,10 +40,9 @@ export default function TodayView() {
   const filteredTasks = tasks.filter((t) => {
     if (!showDone && (t.status === 'completed' || t.status === 'cancelled')) return false
     if (filter !== 'all') {
-      const urgency = getTaskUrgency(t)
-      if (filter === 'big' && urgency !== 'overdue' && t.effort >= 4) return true
-      if (filter === 'medium' && urgency !== 'overdue' && t.effort >= 2 && t.effort < 4) return true
-      if (filter === 'small' && urgency !== 'overdue' && t.effort < 2) return true
+      if (filter === 'big' && t.effort >= 4) return true
+      if (filter === 'medium' && t.effort >= 2 && t.effort < 4) return true
+      if (filter === 'small' && t.effort < 2) return true
       return false
     }
     return true
