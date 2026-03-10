@@ -5,15 +5,6 @@ import { useTodayCard } from '@/client/hooks/use-today-card'
 // TODO replace seed data once we have an API
 import { SEED } from '@/client/utils/today-seed'
 import type { Task } from '@/shared/task'
-import { isToday, isPast } from '@/client/utils/date-predicates'
-
-function getColumn(task: Task) {
-  const { dueDate: dd, startBy: sb } = task
-  if (dd && isPast(dd)) return 'overdue'
-  if (dd && isToday(dd)) return 'due-today'
-  if (sb && isToday(sb)) return 'start-today'
-  return 'upcoming'
-}
 
 const FILTERS = [
   { value: 'all', label: 'All' },
@@ -36,6 +27,14 @@ export default function TodayView() {
   const [showDone, setShowDone] = useState(false)
   const { getTaskUrgency } = useTodayCard()
 
+  const getColumn = (task: Task): (typeof COLUMNS)[number] => {
+    const urgency = getTaskUrgency(task)
+    if (urgency === 'overdue' || urgency === 'due-today' || urgency === 'start-today') {
+      return urgency
+    }
+    return 'upcoming'
+  }
+
   const onChange = (id: string, status: string) => setTasks((p) => p.map((t) => (t.id === id ? { ...t, status } : t)))
 
   const filteredTasks = tasks.filter((t) => {
@@ -49,7 +48,12 @@ export default function TodayView() {
     }
     return true
   })
-  const buckets: Record<string, Task[]> = { overdue: [], ['due-today']: [], ['start-today']: [], upcoming: [] }
+  const buckets: Record<(typeof COLUMNS)[number], Task[]> = {
+    overdue: [],
+    ['due-today']: [],
+    ['start-today']: [],
+    upcoming: [],
+  }
   filteredTasks.forEach((task) => buckets[getColumn(task)]?.push(task))
 
   const pills = [
