@@ -32,7 +32,7 @@ const BUCKET_CONFIG = {
   },
   upcoming: {
     label: 'Upcoming',
-    sub: 'Due within 3 days',
+    sub: 'Due soon',
     Icon: CalendarDays,
     accent: 'text-violet-400',
     hbg: 'bg-violet-500/5',
