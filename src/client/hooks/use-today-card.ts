@@ -19,7 +19,7 @@ export const useTodayCard = () => {
     const { dueDate: dd, startBy: sb } = task
     if (dd && isPast(dd as string)) return 'overdue'
     if (dd && isToday(dd as string)) return 'due-today'
-    if (sb && isToday(sb as string) && !dd) return 'starts-today'
+    if (sb && isToday(sb as string) && !dd) return 'start-today'
     const d = diffDays(dd as string)
     if (d && d <= 3 && d > 0) return 'due-soon'
     return null
