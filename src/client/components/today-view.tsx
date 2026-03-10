@@ -9,9 +9,9 @@ import { isToday, isPast } from '@/client/utils/date-predicates'
 
 function getColumn(task: Task) {
   const { dueDate: dd, startBy: sb } = task
-  if (dd && isPast(dd as string)) return 'overdue'
-  if (dd && isToday(dd as string)) return 'due-today'
-  if (sb && isToday(sb as string)) return 'start-today'
+  if (dd && isPast(dd)) return 'overdue'
+  if (dd && isToday(dd)) return 'due-today'
+  if (sb && isToday(sb)) return 'start-today'
   return 'upcoming'
 }
 

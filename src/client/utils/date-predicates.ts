@@ -1,4 +1,4 @@
-export const isToday = (date: string): boolean => {
+export const isToday = (date: string | Date | null): boolean => {
   if (!date) {
     return false
   }
@@ -9,7 +9,7 @@ export const isToday = (date: string): boolean => {
   const today = new Date()
   return d.toDateString() === today.toDateString()
 }
-export const isPast = (date: string): boolean => {
+export const isPast = (date: string | Date | null): boolean => {
   if (!date) {
     return false
   }
