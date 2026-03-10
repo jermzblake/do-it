@@ -2,16 +2,29 @@ import type { Task } from '@/shared/task'
 import { isToday, isPast } from '@/client/utils/date-predicates'
 
 export const useTodayCard = () => {
-  const diffDays = (date: string | Date | null | undefined) =>
-    date ? Math.ceil((new Date(date).getTime() - new Date().getTime()) / 864e5) : null
+  const toMidnight = (date: string | Date | null | undefined) => {
+    if (!date) return null
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) return null
+    return new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate())
+  }
+
+  const diffDays = (date: string | Date | null | undefined) => {
+    const dateAtMidnight = toMidnight(date)
+    if (!dateAtMidnight) return null
+
+    const now = new Date()
+    const nowAtMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    return Math.round((dateAtMidnight.getTime() - nowAtMidnight.getTime()) / 864e5)
+  }
+
   const formatDate = (date: string) => {
-    if (isToday(date)) return 'Today'
-    if (isPast(date)) {
-      const dateDifference = diffDays(date)
-      if (dateDifference === null) return null
-      return dateDifference && dateDifference === 0 ? 'Yesterday' : `${Math.abs(dateDifference)}d ago`
-    }
     const dateDifference = diffDays(date)
+    if (dateDifference === null) return null
+
+    if (dateDifference === 0) return 'Today'
+    if (dateDifference === -1) return 'Yesterday'
+    if (dateDifference < 0) return `${Math.abs(dateDifference)}d ago`
     return dateDifference === 1 ? 'Tomorrow' : `in ${dateDifference}d`
   }
 
