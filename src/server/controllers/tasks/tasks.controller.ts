@@ -146,11 +146,12 @@ export const getTodayTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const log = createLogger(req)
   const userId = await getUserFromSessionCookie(req)
 
-  const requestedTimezone = req.headers.get('x-timezone')
+  const requestedTimezoneHeader = req.headers.get('x-timezone')
+  const requestedTimezone = requestedTimezoneHeader?.trim() || null
   const timezone = sanitizeTimezoneHeader(requestedTimezone)
-  if (timezone === 'UTC' && requestedTimezone !== 'UTC') {
+  if (requestedTimezone && timezone === 'UTC' && requestedTimezone !== 'UTC') {
     log.warn(
-      { requestedTimezone, fallbackTimezone: 'UTC' },
+      { requestedTimezone: requestedTimezoneHeader, fallbackTimezone: 'UTC' },
       'tasks:todayView invalid timezone header, falling back to UTC',
     )
   }
