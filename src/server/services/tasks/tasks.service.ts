@@ -4,10 +4,11 @@ import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import type { Pagination } from '../../../shared/api'
 import { insertTaskSchema, updateTaskSchema } from '../../validators/task.validator'
 import { RateLimitExceededError } from '../../errors/RateLimitExceededError'
+import { InternalServerError, BadRequestError } from '../../errors/HttpError'
 
 export const createTask = async (taskPayload: NewTask): Promise<Task> => {
   if (!taskPayload.userId) {
-    throw new Error('User ID is required to create a task')
+    throw new BadRequestError('User ID is required to create a task')
   }
 
   const validatedData = insertTaskSchema.parse(taskPayload)
@@ -17,12 +18,12 @@ export const createTask = async (taskPayload: NewTask): Promise<Task> => {
   try {
     const newTask = await TasksRepository.createTask(validatedData)
     if (!newTask) {
-      throw new Error('Failed to create task')
+      throw new InternalServerError('Failed to create task')
     }
     return newTask
   } catch (error: unknown) {
     if (error instanceof RateLimitExceededError) throw error
-    throw new Error('Error creating task: ' + (error as Error).message)
+    throw new InternalServerError('Error creating task: ' + (error as Error).message)
   }
 }
 
@@ -31,7 +32,7 @@ export const getTaskById = async (id: string): Promise<Task | null> => {
     const task = await TasksRepository.getTaskById(id)
     return task
   } catch (error) {
-    throw new Error('Error retrieving task: ' + (error as Error).message)
+    throw new InternalServerError('Error retrieving task: ' + (error as Error).message)
   }
 }
 
@@ -42,7 +43,7 @@ export const getAllTasksByUserId = async (
   try {
     return await TasksRepository.getAllTasksByUserId(userId, pagination)
   } catch (error) {
-    throw new Error('Error retrieving tasks: ' + (error as Error).message)
+    throw new InternalServerError('Error retrieving tasks: ' + (error as Error).message)
   }
 }
 
@@ -54,7 +55,7 @@ export const getTasksByStatus = async (
   try {
     return await TasksRepository.getTasksByStatus(userId, status, pagination)
   } catch (error) {
-    throw new Error('Error retrieving tasks by status: ' + (error as Error).message)
+    throw new InternalServerError('Error retrieving tasks by status: ' + (error as Error).message)
   }
 }
 
@@ -62,7 +63,7 @@ export const getTodayViewTasks = async (userId: string, timezone: string): Promi
   try {
     return await TasksRepository.getTodayViewTasks(userId, timezone)
   } catch (error) {
-    throw new Error("Error retrieving today's tasks: " + (error as Error).message)
+    throw new InternalServerError("Error retrieving today's tasks: " + (error as Error).message)
   }
 }
 
@@ -72,11 +73,11 @@ export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>):
   try {
     const updatedTask = await TasksRepository.updateTaskById(id, validatedData)
     if (!updatedTask) {
-      throw new Error('No task found to update with the provided ID')
+      throw new InternalServerError('No task found to update with the provided ID')
     }
     return updatedTask
   } catch (error) {
-    throw new Error('Error updating task: ' + (error as Error).message)
+    throw new InternalServerError('Error updating task: ' + (error as Error).message)
   }
 }
 
@@ -84,6 +85,6 @@ export const deleteTaskById = async (id: string): Promise<void> => {
   try {
     await TasksRepository.deleteTaskById(id)
   } catch (error) {
-    throw new Error('Error deleting task: ' + (error as Error).message)
+    throw new InternalServerError('Error deleting task: ' + (error as Error).message)
   }
 }
