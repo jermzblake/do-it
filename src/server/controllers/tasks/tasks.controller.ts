@@ -6,6 +6,7 @@ import { getUserFromSessionCookie } from '../../utils/session.cookies.ts'
 import { BadRequestError } from '../../errors/HttpError'
 import { getCorrelation } from '../../utils/request-context'
 import { createLogger } from '../../utils/logger'
+import { sanitizeTimezoneHeader } from '../../utils/timezone'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   const log = createLogger(req)
@@ -145,7 +146,14 @@ export const getTodayTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const log = createLogger(req)
   const userId = await getUserFromSessionCookie(req)
 
-  const timezone = req.headers.get('x-timezone') || 'UTC'
+  const requestedTimezone = req.headers.get('x-timezone')
+  const timezone = sanitizeTimezoneHeader(requestedTimezone)
+  if (timezone === 'UTC' && requestedTimezone !== 'UTC') {
+    log.warn(
+      { requestedTimezone, fallbackTimezone: 'UTC' },
+      'tasks:todayView invalid timezone header, falling back to UTC',
+    )
+  }
   const correlationIds = getCorrelation(req)
   const tasks = await TasksService.getTodayViewTasks(userId, timezone)
   log.info({ userId, count: tasks.length }, 'tasks:todayView')
