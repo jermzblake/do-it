@@ -58,6 +58,14 @@ export const getTasksByStatus = async (
   }
 }
 
+export const getTodayViewTasks = async (userId: string, timezone: string): Promise<Task[]> => {
+  try {
+    return await TasksRepository.getTodayViewTasks(userId, timezone)
+  } catch (error) {
+    throw new Error("Error retrieving today's tasks: " + (error as Error).message)
+  }
+}
+
 export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>): Promise<Task> => {
   const validatedData = updateTaskSchema.parse(taskPayload)
 

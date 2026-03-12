@@ -143,3 +143,27 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
     return Response.json(response, { status: 200 })
   }
 }
+
+export const getTodayTasks = async (req: Bun.BunRequest): Promise<Response> => {
+  const log = createLogger(req)
+  const userId = await getUserFromSessionCookie(req)
+  if (!userId) {
+    throw new BadRequestError('Missing required query parameters: userId')
+  }
+
+  const timezone = req.headers.get('x-timezone') || 'UTC'
+  const correlationIds = getCorrelation(req)
+  const tasks = await TasksService.getTodayViewTasks(userId, timezone)
+  log.info({ userId, count: tasks.length }, 'tasks:todayView')
+
+  const response = createResponse(
+    tasks,
+    ResponseMessage.SUCCESS,
+    StatusCode.SUCCESS,
+    ResponseCode.SUCCESS,
+    undefined,
+    correlationIds?.requestId,
+    correlationIds?.traceId,
+  )
+  return Response.json(response, { status: 200 })
+}
