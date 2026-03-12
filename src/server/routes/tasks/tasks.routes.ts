@@ -12,4 +12,7 @@ export const tasksRoutes = {
     PUT: withCorrelation(withProblemDetails(TasksController.updateTaskById)),
     DELETE: withCorrelation(withProblemDetails(TasksController.deleteTaskById)),
   },
+  '/api/tasks/today-view': {
+    GET: withCorrelation(withProblemDetails(TasksController.getTodayTasks)),
+  },
 }
