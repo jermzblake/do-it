@@ -1,9 +1,10 @@
 import { db } from '../../db/db'
 import { TaskTable } from '../../db/schema'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
-import { eq, and, sql, count, isNull, gte, lte } from 'drizzle-orm'
+import { eq, and, sql, count, isNull, isNotNull, gte, lte, lt, or } from 'drizzle-orm'
 import type { Pagination } from '../../../shared/api'
 import { logger } from '../../utils/logger'
+import { getTodayViewUtcBoundaries } from '../../utils/timezone'
 
 const returnColumns = {
   id: TaskTable.id,
@@ -133,6 +134,44 @@ export const getTasksByStatus = async (
       hasPrev: page > 1,
     },
   }
+}
+
+export const getTodayViewTasks = async (userId: string, timezone: string): Promise<Task[]> => {
+  const { startOfTodayUtc, startOfTomorrowUtc, startOfThreeDaysOutUtc } = getTodayViewUtcBoundaries(timezone)
+
+  const tasks = await db
+    .select()
+    .from(TaskTable)
+    .where(
+      and(
+        eq(TaskTable.userId, userId),
+        isNull(TaskTable.deletedAt),
+        sql`(${TaskTable.completedAt} IS NULL AND ${TaskTable.status} != 'completed' AND ${TaskTable.status} != 'cancelled')`,
+        or(
+          // Goal 1: dueDate is today or in the past (in user's timezone)
+          and(isNotNull(TaskTable.dueDate), lt(TaskTable.dueDate, startOfTomorrowUtc)),
+          // Goal 2: startBy is today (in user's timezone)
+          and(
+            isNotNull(TaskTable.startBy),
+            gte(TaskTable.startBy, startOfTodayUtc),
+            lt(TaskTable.startBy, startOfTomorrowUtc),
+          ),
+          // Goal 3: dueDate is within the next 2 days (future, in user's timezone)
+          and(
+            isNotNull(TaskTable.dueDate),
+            gte(TaskTable.dueDate, startOfTomorrowUtc),
+            lt(TaskTable.dueDate, startOfThreeDaysOutUtc),
+          ),
+        ),
+      ),
+    )
+    .orderBy(
+      sql`${TaskTable.dueDate} ASC NULLS LAST,
+          ${TaskTable.priority} DESC,
+          ${TaskTable.effort} ASC`,
+    )
+    .limit(10)
+  return tasks
 }
 
 export const updateTaskById = async (id: string, taskData: Partial<NewTask>) => {

@@ -6,6 +6,7 @@ import { getUserFromSessionCookie } from '../../utils/session.cookies.ts'
 import { BadRequestError } from '../../errors/HttpError'
 import { getCorrelation } from '../../utils/request-context'
 import { createLogger } from '../../utils/logger'
+import { sanitizeTimezoneHeader } from '../../utils/timezone'
 
 export const createTask = async (req: Bun.BunRequest): Promise<Response> => {
   const log = createLogger(req)
@@ -98,9 +99,6 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const statusParam = url.searchParams.get('status')
   const pageParam = url.searchParams.get('page')
   const pageSizeParam = url.searchParams.get('pageSize')
-  if (!userId) {
-    throw new BadRequestError('Missing required query parameters: userId')
-  }
   const pagination =
     pageParam && pageSizeParam
       ? {
@@ -142,4 +140,33 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
     )
     return Response.json(response, { status: 200 })
   }
+}
+
+export const getTodayTasks = async (req: Bun.BunRequest): Promise<Response> => {
+  const log = createLogger(req)
+  const userId = await getUserFromSessionCookie(req)
+
+  const requestedTimezoneHeader = req.headers.get('x-timezone')
+  const requestedTimezone = requestedTimezoneHeader?.trim() || null
+  const timezone = sanitizeTimezoneHeader(requestedTimezone)
+  if (requestedTimezone && timezone === 'UTC' && requestedTimezone !== 'UTC') {
+    log.warn(
+      { requestedTimezone: requestedTimezoneHeader, fallbackTimezone: 'UTC' },
+      'tasks:todayView invalid timezone header, falling back to UTC',
+    )
+  }
+  const correlationIds = getCorrelation(req)
+  const tasks = await TasksService.getTodayViewTasks(userId, timezone)
+  log.info({ userId, count: tasks.length }, 'tasks:todayView')
+
+  const response = createResponse(
+    tasks,
+    ResponseMessage.SUCCESS,
+    StatusCode.SUCCESS,
+    ResponseCode.SUCCESS,
+    undefined,
+    correlationIds?.requestId,
+    correlationIds?.traceId,
+  )
+  return Response.json(response, { status: 200 })
 }

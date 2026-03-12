@@ -2,6 +2,7 @@ import { describe, test, expect, spyOn } from 'bun:test'
 import { getUserFromSessionCookie } from '../../utils/session.cookies'
 import * as cookiesModule from '../../utils/cookies'
 import * as sessionsService from '../../services/auth/sessions.service'
+import { UnauthorizedError } from '../../errors/HttpError'
 
 describe('getUserFromSessionCookie', () => {
   test('should return userId when session token is valid', async () => {
@@ -27,7 +28,12 @@ describe('getUserFromSessionCookie', () => {
 
     const getCookieSpy = spyOn(cookiesModule, 'getCookie').mockReturnValue(null)
 
-    await expect(getUserFromSessionCookie(mockReq)).rejects.toThrow('No session token found in cookies')
+    await expect(getUserFromSessionCookie(mockReq)).rejects.toThrow(UnauthorizedError)
+    await expect(getUserFromSessionCookie(mockReq)).rejects.toMatchObject({
+      message: 'No session token found in cookies',
+      code: 'NO_SESSION_TOKEN',
+      status: 401,
+    })
 
     getCookieSpy.mockRestore()
   })
@@ -39,7 +45,12 @@ describe('getUserFromSessionCookie', () => {
     const getCookieSpy = spyOn(cookiesModule, 'getCookie').mockReturnValue(mockSessionToken)
     const getUserIdSpy = spyOn(sessionsService, 'getUserIdBySessionToken').mockResolvedValue(null)
 
-    await expect(getUserFromSessionCookie(mockReq)).rejects.toThrow('Invalid session token')
+    await expect(getUserFromSessionCookie(mockReq)).rejects.toThrow(UnauthorizedError)
+    await expect(getUserFromSessionCookie(mockReq)).rejects.toMatchObject({
+      message: 'Invalid session token',
+      code: 'INVALID_SESSION',
+      status: 401,
+    })
 
     getCookieSpy.mockRestore()
     getUserIdSpy.mockRestore()
