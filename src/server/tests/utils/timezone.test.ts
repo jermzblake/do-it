@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { sanitizeTimezoneHeader } from '../../utils/timezone'
+import { getTodayViewUtcBoundaries, sanitizeTimezoneHeader } from '../../utils/timezone'
 
 describe('sanitizeTimezoneHeader', () => {
   test('returns UTC when timezone header is missing', () => {
@@ -20,5 +20,36 @@ describe('sanitizeTimezoneHeader', () => {
   test('returns UTC when timezone header is invalid', () => {
     expect(sanitizeTimezoneHeader('Not/A_Real_Timezone')).toBe('UTC')
     expect(sanitizeTimezoneHeader("'; DROP TABLE tasks; --")).toBe('UTC')
+  })
+})
+
+describe('getTodayViewUtcBoundaries', () => {
+  test('computes UTC day boundaries for a standard day', () => {
+    const now = new Date('2026-01-15T12:00:00.000Z')
+    const boundaries = getTodayViewUtcBoundaries('America/New_York', now)
+
+    expect(boundaries.startOfTodayUtc.toISOString()).toBe('2026-01-15T05:00:00.000Z')
+    expect(boundaries.startOfTomorrowUtc.toISOString()).toBe('2026-01-16T05:00:00.000Z')
+    expect(boundaries.startOfThreeDaysOutUtc.toISOString()).toBe('2026-01-18T05:00:00.000Z')
+  })
+
+  test('handles spring-forward DST transition with a 23-hour local day', () => {
+    const now = new Date('2026-03-08T12:00:00.000Z')
+    const boundaries = getTodayViewUtcBoundaries('America/New_York', now)
+    const dayLengthMs = boundaries.startOfTomorrowUtc.getTime() - boundaries.startOfTodayUtc.getTime()
+
+    expect(boundaries.startOfTodayUtc.toISOString()).toBe('2026-03-08T05:00:00.000Z')
+    expect(boundaries.startOfTomorrowUtc.toISOString()).toBe('2026-03-09T04:00:00.000Z')
+    expect(dayLengthMs).toBe(23 * 60 * 60 * 1000)
+  })
+
+  test('handles fall-back DST transition with a 25-hour local day', () => {
+    const now = new Date('2026-11-01T12:00:00.000Z')
+    const boundaries = getTodayViewUtcBoundaries('America/New_York', now)
+    const dayLengthMs = boundaries.startOfTomorrowUtc.getTime() - boundaries.startOfTodayUtc.getTime()
+
+    expect(boundaries.startOfTodayUtc.toISOString()).toBe('2026-11-01T04:00:00.000Z')
+    expect(boundaries.startOfTomorrowUtc.toISOString()).toBe('2026-11-02T05:00:00.000Z')
+    expect(dayLengthMs).toBe(25 * 60 * 60 * 1000)
   })
 })
