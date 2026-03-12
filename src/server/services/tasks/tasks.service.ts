@@ -4,7 +4,7 @@ import type { NewTask, Task, TaskStatus } from '../../db/schema'
 import type { Pagination } from '../../../shared/api'
 import { insertTaskSchema, updateTaskSchema } from '../../validators/task.validator'
 import { RateLimitExceededError } from '../../errors/RateLimitExceededError'
-import { InternalServerError, BadRequestError } from '../../errors/HttpError'
+import { InternalServerError, BadRequestError, NotFoundError } from '../../errors/HttpError'
 
 export const createTask = async (taskPayload: NewTask): Promise<Task> => {
   if (!taskPayload.userId) {
@@ -30,8 +30,12 @@ export const createTask = async (taskPayload: NewTask): Promise<Task> => {
 export const getTaskById = async (id: string): Promise<Task | null> => {
   try {
     const task = await TasksRepository.getTaskById(id)
+    if (!task) {
+      throw new NotFoundError('Task not found')
+    }
     return task
   } catch (error) {
+    if (error instanceof NotFoundError) throw error
     throw new InternalServerError('Error retrieving task: ' + (error as Error).message)
   }
 }
@@ -73,10 +77,11 @@ export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>):
   try {
     const updatedTask = await TasksRepository.updateTaskById(id, validatedData)
     if (!updatedTask) {
-      throw new InternalServerError('No task found to update with the provided ID')
+      throw new NotFoundError('No task found to update with the provided ID')
     }
     return updatedTask
   } catch (error) {
+    if (error instanceof NotFoundError) throw error
     throw new InternalServerError('Error updating task: ' + (error as Error).message)
   }
 }
