@@ -98,9 +98,6 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const statusParam = url.searchParams.get('status')
   const pageParam = url.searchParams.get('page')
   const pageSizeParam = url.searchParams.get('pageSize')
-  if (!userId) {
-    throw new BadRequestError('Missing required query parameters: userId')
-  }
   const pagination =
     pageParam && pageSizeParam
       ? {
@@ -147,9 +144,6 @@ export const getTasks = async (req: Bun.BunRequest): Promise<Response> => {
 export const getTodayTasks = async (req: Bun.BunRequest): Promise<Response> => {
   const log = createLogger(req)
   const userId = await getUserFromSessionCookie(req)
-  if (!userId) {
-    throw new BadRequestError('Missing required query parameters: userId')
-  }
 
   const timezone = req.headers.get('x-timezone') || 'UTC'
   const correlationIds = getCorrelation(req)
