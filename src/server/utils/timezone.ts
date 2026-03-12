@@ -3,12 +3,12 @@ const DEFAULT_TIMEZONE = 'UTC'
 const timezoneFormatterCache = new Map<string, Intl.DateTimeFormat>()
 
 type ZonedDateParts = {
-  year: number | undefined
-  month: number | undefined
-  day: number | undefined
-  hour: number | undefined
-  minute: number | undefined
-  second: number | undefined
+  year: number
+  month: number
+  day: number
+  hour: number
+  minute: number
+  second: number
 }
 
 const getTimezoneFormatter = (timezone: string) => {
@@ -47,18 +47,18 @@ const getZonedDateParts = (date: Date, timezone: string): ZonedDateParts => {
   }
 
   return {
-    year: values.year,
-    month: values.month,
-    day: values.day,
-    hour: values.hour,
-    minute: values.minute,
-    second: values.second,
+    year: values.year!,
+    month: values.month!,
+    day: values.day!,
+    hour: values.hour!,
+    minute: values.minute!,
+    second: values.second!,
   }
 }
 
 const getTimezoneOffsetMs = (date: Date, timezone: string): number => {
   const parts = getZonedDateParts(date, timezone)
-  const zonedAsUtcMs = Date.UTC(parts.year!, parts.month! - 1, parts.day, parts.hour, parts.minute, parts.second)
+  const zonedAsUtcMs = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second)
   return zonedAsUtcMs - date.getTime()
 }
 
@@ -91,12 +91,12 @@ const addDaysToDateParts = (year: number, month: number, day: number, daysToAdd:
 
 export const getTodayViewUtcBoundaries = (timezone: string, now: Date = new Date()) => {
   const today = getZonedDateParts(now, timezone)
-  const tomorrow = addDaysToDateParts(today.year!, today.month!, today.day!, 1)
-  const inThreeDays = addDaysToDateParts(today.year!, today.month!, today.day!, 3)
+  const tomorrow = addDaysToDateParts(today.year, today.month, today.day, 1)
+  const inThreeDays = addDaysToDateParts(today.year, today.month, today.day, 3)
 
   return {
-    startOfTodayUtc: getUtcForZonedMidnight(today.year!, today.month!, today.day!, timezone),
-    startOfTomorrowUtc: getUtcForZonedMidnight(tomorrow.year!, tomorrow.month!, tomorrow.day!, timezone),
+    startOfTodayUtc: getUtcForZonedMidnight(today.year, today.month, today.day, timezone),
+    startOfTomorrowUtc: getUtcForZonedMidnight(tomorrow.year, tomorrow.month, tomorrow.day, timezone),
     startOfThreeDaysOutUtc: getUtcForZonedMidnight(inThreeDays.year, inThreeDays.month, inThreeDays.day, timezone),
   }
 }
