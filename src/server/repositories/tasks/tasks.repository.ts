@@ -1,9 +1,10 @@
 import { db } from '../../db/db'
 import { TaskTable } from '../../db/schema'
 import type { NewTask, Task, TaskStatus } from '../../db/schema'
-import { eq, and, sql, count, isNull, isNotNull, gte, lte, or } from 'drizzle-orm'
+import { eq, and, sql, count, isNull, isNotNull, gte, lte, lt, or } from 'drizzle-orm'
 import type { Pagination } from '../../../shared/api'
 import { logger } from '../../utils/logger'
+import { getTodayViewUtcBoundaries } from '../../utils/timezone'
 
 const returnColumns = {
   id: TaskTable.id,
@@ -136,6 +137,8 @@ export const getTasksByStatus = async (
 }
 
 export const getTodayViewTasks = async (userId: string, timezone: string): Promise<Task[]> => {
+  const { startOfTodayUtc, startOfTomorrowUtc, startOfThreeDaysOutUtc } = getTodayViewUtcBoundaries(timezone)
+
   const tasks = await db
     .select()
     .from(TaskTable)
@@ -146,21 +149,18 @@ export const getTodayViewTasks = async (userId: string, timezone: string): Promi
         sql`(${TaskTable.completedAt} IS NULL AND ${TaskTable.status} != 'completed' AND ${TaskTable.status} != 'cancelled')`,
         or(
           // Goal 1: dueDate is today or in the past (in user's timezone)
-          and(
-            isNotNull(TaskTable.dueDate),
-            sql`(${TaskTable.dueDate} AT TIME ZONE 'UTC' AT TIME ZONE ${timezone})::date <= (CURRENT_TIMESTAMP AT TIME ZONE ${timezone})::date`,
-          ),
+          and(isNotNull(TaskTable.dueDate), lt(TaskTable.dueDate, startOfTomorrowUtc)),
           // Goal 2: startBy is today (in user's timezone)
           and(
             isNotNull(TaskTable.startBy),
-            sql`(${TaskTable.startBy} AT TIME ZONE 'UTC' AT TIME ZONE ${timezone})::date = (CURRENT_TIMESTAMP AT TIME ZONE ${timezone})::date`,
+            gte(TaskTable.startBy, startOfTodayUtc),
+            lt(TaskTable.startBy, startOfTomorrowUtc),
           ),
           // Goal 3: dueDate is within the next 2 days (future, in user's timezone)
           and(
             isNotNull(TaskTable.dueDate),
-            sql`(${TaskTable.dueDate} AT TIME ZONE 'UTC' AT TIME ZONE ${timezone})::date
-                BETWEEN (CURRENT_TIMESTAMP AT TIME ZONE ${timezone})::date
-                AND (CURRENT_TIMESTAMP AT TIME ZONE ${timezone})::date + INTERVAL '2 days'`,
+            gte(TaskTable.dueDate, startOfTomorrowUtc),
+            lt(TaskTable.dueDate, startOfThreeDaysOutUtc),
           ),
         ),
       ),
