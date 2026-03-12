@@ -148,19 +148,19 @@ export const getTodayViewTasks = async (userId: string, timezone: string): Promi
           // Goal 1: dueDate is today or in the past (in user's timezone)
           and(
             isNotNull(TaskTable.dueDate),
-            sql`(${TaskTable.dueDate} AT TIME ZONE 'UTC' AT TIME ZONE ${timezone})::date <= CURRENT_DATE AT TIME ZONE ${timezone}`,
+            sql`(${TaskTable.dueDate} AT TIME ZONE 'UTC' AT TIME ZONE ${timezone})::date <= (CURRENT_TIMESTAMP AT TIME ZONE ${timezone})::date`,
           ),
           // Goal 2: startBy is today (in user's timezone)
           and(
             isNotNull(TaskTable.startBy),
-            sql`(${TaskTable.startBy} AT TIME ZONE 'UTC' AT TIME ZONE ${timezone})::date = CURRENT_DATE AT TIME ZONE ${timezone}`,
+            sql`(${TaskTable.startBy} AT TIME ZONE 'UTC' AT TIME ZONE ${timezone})::date = (CURRENT_TIMESTAMP AT TIME ZONE ${timezone})::date`,
           ),
           // Goal 3: dueDate is within the next 2 days (future, in user's timezone)
           and(
             isNotNull(TaskTable.dueDate),
             sql`(${TaskTable.dueDate} AT TIME ZONE 'UTC' AT TIME ZONE ${timezone})::date
-                BETWEEN (CURRENT_DATE AT TIME ZONE ${timezone})
-                AND (CURRENT_DATE AT TIME ZONE ${timezone} + INTERVAL '2 days')`,
+                BETWEEN (CURRENT_TIMESTAMP AT TIME ZONE ${timezone})::date
+                AND (CURRENT_TIMESTAMP AT TIME ZONE ${timezone})::date + INTERVAL '2 days'`,
           ),
         ),
       ),

@@ -137,10 +137,10 @@ describe('tasks.repository getTodayViewTasks', () => {
     expect(whereSql).toContain('due_date')
     expect(whereSql).toContain('start_by')
     expect(whereSql).toContain('America/New_York')
-    expect(whereSql).toContain('<= CURRENT_DATE AT TIME ZONE')
-    expect(whereSql).toContain('= CURRENT_DATE AT TIME ZONE')
+    expect(whereSql).toContain('<= (CURRENT_TIMESTAMP AT TIME ZONE')
+    expect(whereSql).toContain('= (CURRENT_TIMESTAMP AT TIME ZONE')
     expect(whereSql).toContain("INTERVAL '2 days'")
-    expect(whereSql).toContain('BETWEEN (CURRENT_DATE AT TIME ZONE')
+    expect(whereSql).toContain('BETWEEN (CURRENT_TIMESTAMP AT TIME ZONE')
   })
 
   test('orders by due date asc nulls last, then priority desc, then effort asc, and limits to 10 rows', async () => {
