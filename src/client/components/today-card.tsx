@@ -135,7 +135,7 @@ const TodayCard = ({ task }: { task: Task }) => {
                   Mark Complete
                 </button>
               )}
-              {task.status !== 'blocked' && (
+              {/* {task.status !== 'blocked' && (
                 <button
                   onClick={() => {
                     void handleStatusChange('blocked')
@@ -148,7 +148,7 @@ const TodayCard = ({ task }: { task: Task }) => {
                   <Ban className="w-3.5 h-3.5 text-red-400" />
                   Mark Blocked
                 </button>
-              )}
+              )} */}
               {task.status !== 'cancelled' && (
                 <button
                   onClick={() => {
