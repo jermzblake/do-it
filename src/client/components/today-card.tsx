@@ -19,6 +19,9 @@ const TodayCard = ({ task }: { task: Task }) => {
 
   const handleStatusChange = async (newStatus: string) => {
     if (updateTask.isPending) return
+    if (newStatus === task.status) {
+      return
+    }
     if (newStatus === 'blocked') {
       // TODO: Implement reason input for blocking a task before updating status
       return
