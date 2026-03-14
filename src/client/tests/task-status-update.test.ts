@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, afterEach } from 'bun:test'
 import { handleQuickStatusUpdate } from '@/client/utils/task-status-update'
 import type { Task } from '@/shared/task'
 
 const RealDate = Date
+let restoreDate: (() => void) | null = null
 
 const freezeTime = (isoDate: string) => {
   const fixed = new RealDate(isoDate)
@@ -36,6 +37,11 @@ const freezeTime = (isoDate: string) => {
   }
 }
 
+afterEach(() => {
+  restoreDate?.()
+  restoreDate = null
+})
+
 const makeTask = (overrides: Partial<Task> = {}): Task => ({
   id: 't1',
   name: 'Task',
@@ -48,7 +54,7 @@ const makeTask = (overrides: Partial<Task> = {}): Task => ({
 
 describe('handleQuickStatusUpdate', () => {
   it('sets startedAt only when moving to in_progress and startedAt is absent, while merging additional updates', async () => {
-    const restore = freezeTime('2026-03-14T10:00:00.000Z')
+    restoreDate = freezeTime('2026-03-14T10:00:00.000Z')
     const calls: Partial<Task>[] = []
 
     await handleQuickStatusUpdate(
@@ -67,12 +73,10 @@ describe('handleQuickStatusUpdate', () => {
       blockedReason: '',
       startedAt: '2026-03-14T10:00:00.000Z',
     })
-
-    restore()
   })
 
   it('does not set startedAt when moving to in_progress if task already has startedAt', async () => {
-    const restore = freezeTime('2026-03-14T10:00:00.000Z')
+    restoreDate = freezeTime('2026-03-14T10:00:00.000Z')
     const calls: Partial<Task>[] = []
 
     await handleQuickStatusUpdate(
@@ -85,12 +89,10 @@ describe('handleQuickStatusUpdate', () => {
 
     expect(calls).toHaveLength(1)
     expect(calls[0]).toEqual({ status: 'in_progress' })
-
-    restore()
   })
 
   it('always sets completedAt when moving to completed and can override stale completedAt from additional updates', async () => {
-    const restore = freezeTime('2026-03-14T11:30:00.000Z')
+    restoreDate = freezeTime('2026-03-14T11:30:00.000Z')
     const calls: Partial<Task>[] = []
 
     await handleQuickStatusUpdate(
@@ -111,7 +113,5 @@ describe('handleQuickStatusUpdate', () => {
       notes: 'Finished work',
       completedAt: '2026-03-14T11:30:00.000Z',
     })
-
-    restore()
   })
 })
