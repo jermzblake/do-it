@@ -2,7 +2,14 @@ import React from 'react'
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test'
 import { render, renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { tasksKeys, useCreateTask, useDeleteTask, useTasksByStatus, useUpdateTask } from '@/client/hooks/use-tasks'
+import {
+  tasksKeys,
+  useCreateTask,
+  useDeleteTask,
+  useTasksByStatus,
+  useTodayTasks,
+  useUpdateTask,
+} from '@/client/hooks/use-tasks'
 import type { Task, TaskStatus, TasksByStatusProps } from '@/shared/task'
 import type { ApiResponse } from '@/shared/api'
 import { apiClient } from '@/client/lib/axios'
@@ -230,6 +237,32 @@ describe('useDeleteTask', () => {
 
     expect(todoData?.data?.some((t) => t.id === 't1')).toBe(false)
     expect(blockedData?.data?.some((t) => t.id === 't1')).toBe(false)
+  })
+})
+
+describe('useTodayTasks', () => {
+  it('uses today-view key and calls the today-view endpoint', async () => {
+    const qc = new QueryClient()
+    const wrapper = createWrapper(qc)
+
+    const todayTasks: Task[] = [baseTask({ id: 'tv1', status: 'in_progress', name: 'Today task' })]
+    const getCalls: string[] = []
+
+    // @ts-ignore
+    apiClient.get = async (url: string) => {
+      getCalls.push(url)
+      return makeResponse(todayTasks)
+    }
+
+    const { result } = renderHook(() => useTodayTasks(), { wrapper })
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true)
+    })
+
+    expect(getCalls).toEqual(['/tasks/today-view'])
+    expect(result.current.data?.data).toEqual(todayTasks)
+    expect(qc.getQueryData(tasksKeys.todayView())).toBeTruthy()
   })
 })
 
