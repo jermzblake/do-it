@@ -44,12 +44,10 @@ const BUCKET_CONFIG = {
 function TodayColumn({
   bucket,
   tasks,
-  onChange,
   showEmpty = true,
 }: {
   bucket: 'overdue' | 'due-today' | 'start-today' | 'upcoming'
   tasks: Task[]
-  onChange: (id: string, status: string) => void
   showEmpty?: boolean
 }) {
   const config = BUCKET_CONFIG[bucket]
@@ -76,7 +74,7 @@ function TodayColumn({
       </div>
       <div className="flex flex-col gap-2">
         {tasks.map((t) => (
-          <TodayCard key={t.id} task={t} onChange={onChange} />
+          <TodayCard key={t.id} task={t} />
         ))}
         {tasks.length === 0 && (
           <div
