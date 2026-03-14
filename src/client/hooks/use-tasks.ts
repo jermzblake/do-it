@@ -67,7 +67,11 @@ export const useUpdateTask = (taskId: string) => {
   return useMutation({
     mutationFn: (taskPayload: Partial<Task>) => updateTaskById(taskId, normalizeDates(taskPayload) || taskPayload),
     onMutate: async (updatedTask) => {
-      await queryClient.cancelQueries({ queryKey: tasksKeys.lists() })
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey: tasksKeys.lists() }),
+        queryClient.cancelQueries({ queryKey: tasksKeys.todayView() }),
+        queryClient.cancelQueries({ queryKey: tasksKeys.byId(taskId) }),
+      ])
 
       const normalized = normalizeDates(updatedTask) || updatedTask
       const isStatusChange = 'status' in updatedTask
