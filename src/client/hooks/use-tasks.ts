@@ -121,13 +121,19 @@ export const useUpdateTask = (taskId: string) => {
           const taskExists = oldData.data.some((task: Task) => task.id === taskId)
 
           if (taskExists) {
-            const normalized = normalizeDates(updatedTask) || updatedTask
             queryClient.setQueryData(queryKey, {
               ...oldData,
               data: oldData.data.map((task: Task) => (task.id === taskId ? { ...task, ...normalized } : task)),
             })
           }
         })
+
+        if (previousTodayView?.data) {
+          queryClient.setQueryData(tasksKeys.todayView(), {
+            ...previousTodayView,
+            data: previousTodayView.data.map((task: Task) => (task.id === taskId ? { ...task, ...normalized } : task)),
+          })
+        }
       }
 
       return {
