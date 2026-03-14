@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle2, CalendarClock, Clock, Layers, Target, Zap } from 'lucide-react'
+import { CheckCircle2, CalendarClock, Clock, Layers, Target, Zap, RefreshCw, AlertCircle, Loader2 } from 'lucide-react'
 import TodayColumn from '@/client/components/today-column'
 import { useTodayCard } from '@/client/hooks/use-today-card'
 import { useTodayTasks } from '@/client/hooks/use-tasks'
@@ -34,6 +34,39 @@ export default function TodayView() {
       return urgency
     }
     return 'upcoming'
+  }
+
+  const renderColumns = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin mb-2" />
+          Loading tasks...
+        </div>
+      )
+    } else if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <AlertCircle className="w-8 h-8 mb-2" />
+          Failed to load tasks.
+          <button
+            onClick={() => refetch()}
+            className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-300"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Retry
+          </button>
+        </div>
+      )
+    } else {
+      return (
+        <>
+          {COLUMNS.map((c) => (
+            <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} />
+          ))}
+        </>
+      )
+    }
   }
 
   const filteredTasks = tasks.filter((t) => {
@@ -141,14 +174,11 @@ export default function TodayView() {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-          {COLUMNS.map((c) => (
-            <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} />
-          ))}
-        </div>
+        {/* Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">{renderColumns()}</div>
 
-        {/* Grid */}
-        {filteredTasks.length > 0 && (
+        {/* Tasks Grid */}
+        {filteredTasks.length > 0 ? (
           <div className="flex flex-wrap gap-x-5 gap-y-2 pt-4 border-t border-slate-800/80 text-[10px] text-slate-600">
             {[
               { Icon: Zap, color: 'text-amber-400', label: 'Big (effort 4–5)' },
@@ -171,6 +201,10 @@ export default function TodayView() {
                 {label}
               </span>
             ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <p className="text-sm">No tasks for today</p>
           </div>
         )}
       </div>
