@@ -4,6 +4,7 @@ import {
   updateTaskById,
   deleteTaskById,
   fetchTaskById,
+  fetchTodayTasks,
 } from '@/client/services/tasks.service'
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Task, TasksByStatusProps, TaskStatus } from '@/shared/task'
@@ -15,6 +16,7 @@ export const tasksKeys = {
   statusList: (params: TasksByStatusProps) => [...tasksKeys.lists(), params],
   byId: (id: string) => [...tasksKeys.all, id],
   byUserId: (userId: string) => [...tasksKeys.all, userId],
+  todayView: () => [...tasksKeys.all, 'today-view'],
 }
 
 export const useTasksByStatus = ({ status, page, pageSize = 5 }: TasksByStatusProps) => {
@@ -29,6 +31,14 @@ export const useTaskById = (taskId: string) => {
   return useQuery({
     queryKey: tasksKeys.byId(taskId),
     queryFn: () => fetchTaskById(taskId),
+    // TODO: consider using placeholderData with the task from the lists if available to avoid loading state on detail view when coming from a list
+  })
+}
+
+export const useTodayTasks = () => {
+  return useQuery({
+    queryKey: tasksKeys.todayView(),
+    queryFn: () => fetchTodayTasks(),
   })
 }
 
@@ -59,22 +69,24 @@ export const useUpdateTask = (taskId: string) => {
     onMutate: async (updatedTask) => {
       await queryClient.cancelQueries({ queryKey: tasksKeys.lists() })
 
+      const normalized = normalizeDates(updatedTask) || updatedTask
+      const isStatusChange = 'status' in updatedTask
+
       // Optimistically update the task detail cache as well
       const previousById = queryClient.getQueryData<{ data: Task }>(tasksKeys.byId(taskId))
       if (previousById?.data) {
-        const normalized = normalizeDates(updatedTask) || updatedTask
         queryClient.setQueryData(tasksKeys.byId(taskId), {
           ...previousById,
           data: { ...previousById.data, ...normalized },
         })
       }
 
-      const previousQueries = queryClient.getQueriesData<{ data: Task[] }>({ queryKey: tasksKeys.lists() })
-      const isStatusChange = 'status' in updatedTask
+      const previousListQueries = queryClient.getQueriesData<{ data: Task[] }>({ queryKey: tasksKeys.lists() })
+      const previousTodayView = queryClient.getQueryData<{ data: Task[] }>(tasksKeys.todayView())
 
       if (isStatusChange) {
         // For status changes, we need to remove from old list and add to new list
-        previousQueries.forEach(([queryKey, oldData]) => {
+        previousListQueries.forEach(([queryKey, oldData]) => {
           if (!oldData?.data) return
 
           const taskInList = oldData.data.find((task: Task) => task.id === taskId)
@@ -88,11 +100,18 @@ export const useUpdateTask = (taskId: string) => {
           }
         })
 
+        if (previousTodayView?.data) {
+          queryClient.setQueryData(tasksKeys.todayView(), {
+            ...previousTodayView,
+            data: previousTodayView.data.map((task: Task) => (task.id === taskId ? { ...task, ...normalized } : task)),
+          })
+        }
+
         // Note: We don't optimistically add to the new list because we don't know
         // which page it should appear on. Let invalidation handle the refetch.
       } else {
         // For non-status updates (like name, priority, etc.), update in place
-        previousQueries.forEach(([queryKey, oldData]) => {
+        previousListQueries.forEach(([queryKey, oldData]) => {
           if (!oldData?.data) return
 
           const taskExists = oldData.data.some((task: Task) => task.id === taskId)
@@ -108,17 +127,21 @@ export const useUpdateTask = (taskId: string) => {
       }
 
       return {
-        previousQueries,
+        previousListQueries,
+        previousTodayView,
         isStatusChange,
         newStatus: updatedTask.status as TaskStatus | undefined,
         previousById,
       }
     },
     onError: (err, variables, context) => {
-      if (context?.previousQueries) {
-        context.previousQueries.forEach(([queryKey, data]) => {
+      if (context?.previousListQueries) {
+        context.previousListQueries.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data)
         })
+      }
+      if (context?.previousTodayView) {
+        queryClient.setQueryData(tasksKeys.todayView(), context.previousTodayView)
       }
       if (context?.previousById) {
         queryClient.setQueryData(tasksKeys.byId(taskId), context.previousById)
