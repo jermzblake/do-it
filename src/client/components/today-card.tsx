@@ -18,11 +18,17 @@ const TodayCard = ({ task }: { task: Task }) => {
   const updateTask = useUpdateTask(task.id)
 
   const handleStatusChange = async (newStatus: string) => {
+    if (updateTask.isPending) return
     if (newStatus === 'blocked') {
       // TODO: Implement reason input for blocking a task before updating status
       return
     }
-    await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus as TaskStatus)
+    try {
+      await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus as TaskStatus)
+    } catch (error) {
+      // TODO: Replace with user-facing error notification
+      console.error('Error updating task status:', error)
+    }
   }
 
   const handleStatusIconClick = () => {
@@ -69,7 +75,9 @@ const TodayCard = ({ task }: { task: Task }) => {
       <span className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-full ${PIPDOT[priority]} opacity-60`} />
       <div className="flex items-start gap-2.5">
         <button
-          onClick={() => handleStatusChange(handleStatusIconClick())}
+          onClick={() => {
+            void handleStatusChange(handleStatusIconClick())
+          }}
           className="mt-0.5 shrink-0 active:scale-90 transition-transform"
           title={task.status === 'completed' ? 'Mark as To Do' : 'Mark as Completed'}
           aria-label={task.status === 'completed' ? 'Mark as To Do' : 'Mark as Completed'}
@@ -106,7 +114,7 @@ const TodayCard = ({ task }: { task: Task }) => {
               {task.status !== 'in_progress' && task.status !== 'completed' && (
                 <button
                   onClick={() => {
-                    handleStatusChange('in_progress')
+                    void handleStatusChange('in_progress')
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
@@ -118,7 +126,7 @@ const TodayCard = ({ task }: { task: Task }) => {
               {task.status !== 'completed' && (
                 <button
                   onClick={() => {
-                    handleStatusChange('completed')
+                    void handleStatusChange('completed')
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
@@ -130,7 +138,7 @@ const TodayCard = ({ task }: { task: Task }) => {
               {task.status !== 'blocked' && (
                 <button
                   onClick={() => {
-                    handleStatusChange('blocked')
+                    void handleStatusChange('blocked')
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
@@ -144,7 +152,7 @@ const TodayCard = ({ task }: { task: Task }) => {
               {task.status !== 'cancelled' && (
                 <button
                   onClick={() => {
-                    handleStatusChange('cancelled')
+                    void handleStatusChange('cancelled')
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
