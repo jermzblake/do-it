@@ -61,9 +61,13 @@ export default function TodayView() {
     } else {
       return (
         <>
-          {COLUMNS.map((c) => (
-            <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} />
-          ))}
+          {filteredTasks.length > 0 ? (
+            COLUMNS.map((c) => <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} />)
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <p className="text-sm">No tasks for today</p>
+            </div>
+          )}
         </>
       )
     }
@@ -177,7 +181,7 @@ export default function TodayView() {
         {/* Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">{renderColumns()}</div>
 
-        {/* Tasks Grid */}
+        {/* Labels Grid */}
         {filteredTasks.length > 0 ? (
           <div className="flex flex-wrap gap-x-5 gap-y-2 pt-4 border-t border-slate-800/80 text-[10px] text-slate-600">
             {[
@@ -202,11 +206,7 @@ export default function TodayView() {
               </span>
             ))}
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <p className="text-sm">No tasks for today</p>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   )
