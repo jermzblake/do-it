@@ -23,6 +23,11 @@ export const fetchTaskById = async (taskId: string): Promise<ApiResponse<Task>> 
   return response
 }
 
+export const fetchTodayTasks = async (): Promise<ApiResponse<Task[]>> => {
+  const response: ApiResponse<Task[]> = await apiClient.get('/tasks/today-view')
+  return response
+}
+
 export const createTask = async (taskPayload: Partial<Task>): Promise<ApiResponse<Task>> => {
   const response: ApiResponse<Task> = await apiClient.post('/tasks', taskPayload)
   return response
