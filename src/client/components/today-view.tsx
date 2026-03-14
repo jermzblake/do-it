@@ -26,7 +26,7 @@ export default function TodayView() {
   const { getTaskUrgency } = useTodayCard()
 
   const { data: todayTasks, isLoading, error, refetch } = useTodayTasks()
-  const tasks = (todayTasks?.data as Task[]) || []
+  const tasks = todayTasks?.data || []
 
   const getColumn = (task: Task): (typeof COLUMNS)[number] => {
     const urgency = getTaskUrgency(task)
