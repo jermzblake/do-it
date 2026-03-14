@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Ban, CalendarClock, CheckCircle2, MoreHorizontal, Play, AlertCircle, Target, Layers, Zap } from 'lucide-react'
 import { useTodayCard } from '@/client/hooks/use-today-card'
+import { useUpdateTask } from '@/client/hooks/use-tasks'
 import { StatusIcon } from '@/client/components/ui/status-icon'
-import type { Task } from '@/shared/task'
+import type { Task, TaskStatus } from '@/shared/task'
+import { handleQuickStatusUpdate } from '@/client/utils/task-status-update'
 
 const SIZE_CONFIG = {
   big: { label: 'Big', Icon: Zap, cls: 'bg-amber-500/10 text-amber-400 border-amber-500/25' },
@@ -10,9 +12,40 @@ const SIZE_CONFIG = {
   small: { label: 'Small', Icon: Layers, cls: 'bg-slate-500/10 text-slate-400 border-slate-500/25' },
 }
 
-const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, status: string) => void }) => {
+const TodayCard = ({ task }: { task: Task }) => {
   const [open, setOpen] = useState(false)
   const { formatDate } = useTodayCard()
+  const updateTask = useUpdateTask(task.id)
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (updateTask.isPending) return
+    if (newStatus === task.status) {
+      return
+    }
+    if (newStatus === 'blocked') {
+      // TODO: Implement reason input for blocking a task before updating status
+      return
+    }
+    try {
+      await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus as TaskStatus)
+    } catch (error) {
+      // TODO: Replace with user-facing error notification
+      console.error('Error updating task status:', error)
+    }
+  }
+
+  const handleStatusIconClick = () => {
+    switch (task.status) {
+      case 'in_progress':
+        return 'completed'
+      case 'completed':
+        return 'in_progress'
+      case 'todo':
+        return 'in_progress'
+      default:
+        return task.status
+    }
+  }
 
   const getSize = (effort: number) => (effort >= 4 ? 'big' : effort >= 2 ? 'medium' : 'small')
   const size = getSize(task.effort)
@@ -45,7 +78,9 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
       <span className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-full ${PIPDOT[priority]} opacity-60`} />
       <div className="flex items-start gap-2.5">
         <button
-          onClick={() => onChange(task.id, task.status === 'completed' ? 'todo' : 'completed')}
+          onClick={() => {
+            void handleStatusChange(handleStatusIconClick())
+          }}
           className="mt-0.5 shrink-0 active:scale-90 transition-transform"
           title={task.status === 'completed' ? 'Mark as To Do' : 'Mark as Completed'}
           aria-label={task.status === 'completed' ? 'Mark as To Do' : 'Mark as Completed'}
@@ -82,7 +117,7 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
               {task.status !== 'in_progress' && task.status !== 'completed' && (
                 <button
                   onClick={() => {
-                    onChange(task.id, 'in_progress')
+                    void handleStatusChange('in_progress')
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
@@ -94,7 +129,7 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
               {task.status !== 'completed' && (
                 <button
                   onClick={() => {
-                    onChange(task.id, 'completed')
+                    void handleStatusChange('completed')
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
@@ -103,10 +138,10 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
                   Mark Complete
                 </button>
               )}
-              {task.status !== 'blocked' && (
+              {/* {task.status !== 'blocked' && (
                 <button
                   onClick={() => {
-                    onChange(task.id, 'blocked')
+                    void handleStatusChange('blocked')
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
@@ -116,11 +151,11 @@ const TodayCard = ({ task, onChange }: { task: Task; onChange: (id: string, stat
                   <Ban className="w-3.5 h-3.5 text-red-400" />
                   Mark Blocked
                 </button>
-              )}
+              )} */}
               {task.status !== 'cancelled' && (
                 <button
                   onClick={() => {
-                    onChange(task.id, 'cancelled')
+                    void handleStatusChange('cancelled')
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
