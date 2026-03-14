@@ -73,7 +73,7 @@ export const getTodayViewTasks = async (userId: string, timezone: string): Promi
 
 export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>): Promise<Task> => {
   const validatedData = updateTaskSchema.parse(taskPayload)
-  if (validatedData?.status === 'in_progress') {
+  if (validatedData?.status && validatedData.status !== 'completed' && validatedData.status !== 'cancelled') {
     ;(validatedData as Record<string, unknown>).completedAt = null // Type assertion to bypass Drizzle ORM design (inferInsertModel uses undefined for optional fields rather than null) since we're conditionally allowing this field to be null on update
   }
 
