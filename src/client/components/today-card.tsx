@@ -18,6 +18,10 @@ const TodayCard = ({ task }: { task: Task }) => {
   const updateTask = useUpdateTask(task.id)
 
   const handleStatusChange = async (newStatus: string) => {
+    if (newStatus === 'blocked') {
+      // TODO: Implement reason input for blocking a task before updating status
+      return
+    }
     await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus as TaskStatus)
   }
 
