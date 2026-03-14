@@ -1,12 +1,13 @@
-import { useUpdateTask } from '@/client/hooks/use-tasks'
 import type { Task, TaskStatus } from '@/shared/task'
 
+type UpdateTaskFn = (updates: Partial<Task>) => Promise<unknown>
+
 export const handleQuickStatusUpdate = async (
+  updateTask: UpdateTaskFn,
   task: Task,
   newStatus: TaskStatus,
   additionalUpdates: Partial<Task> = {},
 ) => {
-  const updateTask = useUpdateTask(task.id)
   const updates: Partial<Task> = { status: newStatus, ...additionalUpdates }
 
   // Set timestamps based on status
@@ -17,5 +18,5 @@ export const handleQuickStatusUpdate = async (
     updates.completedAt = new Date().toISOString()
   }
 
-  await updateTask.mutateAsync(updates)
+  await updateTask(updates)
 }
