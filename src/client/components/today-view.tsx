@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { CheckCircle2, CalendarClock, Clock, Layers, Target, Zap } from 'lucide-react'
 import TodayColumn from '@/client/components/today-column'
 import { useTodayCard } from '@/client/hooks/use-today-card'
-// TODO replace seed data once we have an API
-import { SEED } from '@/client/utils/today-seed'
+import { useTodayTasks } from '@/client/hooks/use-tasks'
 import type { Task } from '@/shared/task'
 
 const FILTERS = [
@@ -21,11 +20,13 @@ const COLUMNS: ('overdue' | 'due-today' | 'start-today' | 'upcoming')[] = [
 ]
 
 export default function TodayView() {
-  const [tasks, setTasks] = useState(SEED)
   const [filter, setFilter] = useState('all')
   const [showEmpty, setShowEmpty] = useState(false)
   const [showDone, setShowDone] = useState(false)
   const { getTaskUrgency } = useTodayCard()
+
+  const { data: todayTasks, isLoading, error, refetch } = useTodayTasks()
+  const tasks = (todayTasks?.data as Task[]) || []
 
   const getColumn = (task: Task): (typeof COLUMNS)[number] => {
     const urgency = getTaskUrgency(task)
@@ -34,8 +35,6 @@ export default function TodayView() {
     }
     return 'upcoming'
   }
-
-  const onChange = (id: string, status: string) => setTasks((p) => p.map((t) => (t.id === id ? { ...t, status } : t)))
 
   const filteredTasks = tasks.filter((t) => {
     if (!showDone && (t.status === 'completed' || t.status === 'cancelled')) return false
@@ -144,7 +143,7 @@ export default function TodayView() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
           {COLUMNS.map((c) => (
-            <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} onChange={onChange} />
+            <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} />
           ))}
         </div>
 
