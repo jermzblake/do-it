@@ -21,6 +21,19 @@ const TodayCard = ({ task }: { task: Task }) => {
     await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus as TaskStatus)
   }
 
+  const handleStatusIconClick = () => {
+    switch (task.status) {
+      case 'in_progress':
+        return 'completed'
+      case 'completed':
+        return 'in_progress'
+      case 'todo':
+        return 'in_progress'
+      default:
+        return task.status
+    }
+  }
+
   const getSize = (effort: number) => (effort >= 4 ? 'big' : effort >= 2 ? 'medium' : 'small')
   const size = getSize(task.effort)
   const sizeConfig = SIZE_CONFIG[size]
@@ -52,7 +65,7 @@ const TodayCard = ({ task }: { task: Task }) => {
       <span className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-full ${PIPDOT[priority]} opacity-60`} />
       <div className="flex items-start gap-2.5">
         <button
-          onClick={() => handleStatusChange(task.status === 'completed' ? 'todo' : 'completed')}
+          onClick={() => handleStatusChange(handleStatusIconClick())}
           className="mt-0.5 shrink-0 active:scale-90 transition-transform"
           title={task.status === 'completed' ? 'Mark as To Do' : 'Mark as Completed'}
           aria-label={task.status === 'completed' ? 'Mark as To Do' : 'Mark as Completed'}
