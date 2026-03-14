@@ -128,6 +128,7 @@ describe('useUpdateTask - status change', () => {
 
     const oldTasks: Task[] = [baseTask({ id: 't1', status: 'todo' })]
     const newTasks: Task[] = []
+    const todayTasks: Task[] = [baseTask({ id: 't1', status: 'todo', name: 'Today Original' })]
 
     qc.setQueryData(
       statusKey(oldParams),
@@ -141,6 +142,7 @@ describe('useUpdateTask - status change', () => {
         metaData: { pagination: { page: 1, pageSize: 5, totalCount: 0 } as any },
       }),
     )
+    qc.setQueryData(tasksKeys.todayView(), makeResponse(todayTasks))
 
     // Track GET calls per status when refetch occurs
     let getCallsNew = 0
@@ -194,11 +196,83 @@ describe('useUpdateTask - status change', () => {
     const oldData = qc.getQueryData<ApiResponse<Task[]>>(statusKey(oldParams))
     expect(oldData?.data?.some((t) => t.id === 't1')).toBe(false)
 
+    // Today view gets an optimistic in-place update for the same task
+    const todayData = qc.getQueryData<ApiResponse<Task[]>>(tasksKeys.todayView())
+    expect(todayData?.data?.find((t) => t.id === 't1')?.status).toBe('in_progress')
+
     // Wait for refetch to happen only for new status
     await waitFor(() => {
       expect(getCallsNew).toBeGreaterThan(0)
       expect(getCallsOld).toBe(0)
     })
+  })
+
+  it('rolls back today-view optimistic update when status change mutation fails', async () => {
+    const qc = new QueryClient()
+    const wrapper = createWrapper(qc)
+
+    const oldParams = { status: 'todo', page: 1, pageSize: 5 } as const
+    const newParams = { status: 'in_progress', page: 1, pageSize: 5 } as const
+
+    const oldTasks: Task[] = [baseTask({ id: 't1', status: 'todo' })]
+    const newTasks: Task[] = []
+    const todayTasks: Task[] = [baseTask({ id: 't1', status: 'todo', name: 'Rollback Me' })]
+
+    qc.setQueryData(
+      statusKey(oldParams),
+      makeResponse(oldTasks, {
+        metaData: { pagination: { page: 1, pageSize: 5, totalCount: 1 } as any },
+      }),
+    )
+    qc.setQueryData(
+      statusKey(newParams),
+      makeResponse(newTasks, {
+        metaData: { pagination: { page: 1, pageSize: 5, totalCount: 0 } as any },
+      }),
+    )
+    qc.setQueryData(tasksKeys.todayView(), makeResponse(todayTasks))
+
+    // Keep queries inactive to avoid background refetch noise in this rollback test
+    // @ts-ignore
+    apiClient.get = async () => makeResponse([] as Task[])
+
+    type Deferred<T> = { promise: Promise<T>; resolve: (v: T) => void; reject: (e: any) => void }
+    const deferred = <T,>(): Deferred<T> => {
+      let resolve!: (v: T) => void
+      let reject!: (e: any) => void
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res
+        reject = rej
+      })
+      return { promise, resolve, reject }
+    }
+
+    const putDeferred = deferred<ApiResponse<Task>>()
+    // @ts-ignore
+    apiClient.put = async () => putDeferred.promise
+
+    const { result } = renderHook(() => useUpdateTask('t1'), { wrapper })
+
+    result.current.mutate({ status: 'in_progress' as TaskStatus })
+
+    await waitFor(() => {
+      const oldData = qc.getQueryData<ApiResponse<Task[]>>(statusKey(oldParams))
+      const todayData = qc.getQueryData<ApiResponse<Task[]>>(tasksKeys.todayView())
+      expect(oldData?.data?.some((t) => t.id === 't1')).toBe(false)
+      expect(todayData?.data?.find((t) => t.id === 't1')?.status).toBe('in_progress')
+    })
+
+    putDeferred.reject(new Error('boom'))
+
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true)
+    })
+
+    const rolledBackOldData = qc.getQueryData<ApiResponse<Task[]>>(statusKey(oldParams))
+    const rolledBackTodayData = qc.getQueryData<ApiResponse<Task[]>>(tasksKeys.todayView())
+
+    expect(rolledBackOldData?.data?.find((t) => t.id === 't1')?.status).toBe('todo')
+    expect(rolledBackTodayData?.data?.find((t) => t.id === 't1')?.status).toBe('todo')
   })
 })
 
