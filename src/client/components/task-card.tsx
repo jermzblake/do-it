@@ -1,6 +1,6 @@
 import React from 'react'
 import { priorityConfig } from '@/client/lib/configs'
-import type { Task, TaskStatus } from '@/shared/task'
+import type { Task } from '@/shared/task'
 import { Card, CardContent, CardHeader, CardTitle } from '@/client/components/ui/card'
 import { Input } from '@/client/components/ui/input'
 import { Badge } from '@/client/components/ui/badge'
@@ -9,6 +9,7 @@ import { useUpdateTask } from '@/client/hooks/use-tasks'
 import { isOverdue } from '@/client/utils/is-overdue'
 import { formatDate } from '@/client/utils/format-date'
 import { Edit2, Play, Check, Ban, Calendar, AlertCircle, Loader2, X } from 'lucide-react'
+import { handleQuickStatusUpdate } from '@/client/utils/task-status-update'
 
 interface TaskCardProps {
   task: Task
@@ -21,20 +22,6 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
   const overdue = isOverdue(task.dueDate)
-
-  const handleQuickStatusUpdate = async (newStatus: TaskStatus, additionalUpdates: Partial<Task> = {}) => {
-    const updates: Partial<Task> = { status: newStatus, ...additionalUpdates }
-
-    // Set timestamps based on status
-    if (newStatus === 'in_progress' && !task.startedAt) {
-      updates.startedAt = new Date().toISOString()
-    }
-    if (newStatus === 'completed') {
-      updates.completedAt = new Date().toISOString()
-    }
-
-    await updateTask.mutateAsync(updates)
-  }
 
   const handleNameUpdate = async (newName: string) => {
     if (newName && newName !== task.name) {
@@ -139,7 +126,7 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
               className="h-7 text-xs text-blue-600 hover:text-blue-700"
               onClick={(e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate('in_progress')
+                handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress')
               }}
               disabled={updateTask.isPending}
             >
@@ -160,7 +147,7 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
                 className="h-7 text-xs text-green-600 hover:text-green-700"
                 onClick={(e) => {
                   e.stopPropagation()
-                  handleQuickStatusUpdate('completed')
+                  handleQuickStatusUpdate(updateTask.mutateAsync, task, 'completed')
                 }}
                 disabled={updateTask.isPending}
               >
@@ -197,7 +184,7 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
               className="h-7 text-xs text-blue-600 hover:text-blue-700"
               onClick={(e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate('in_progress', {
+                handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress', {
                   blockedReason: '',
                   notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
                 })
@@ -220,7 +207,7 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
                 className="h-7 text-xs text-yellow-600 hover:text-yellow-700"
                 onClick={(e) => {
                   e.stopPropagation()
-                  handleQuickStatusUpdate('cancelled')
+                  handleQuickStatusUpdate(updateTask.mutateAsync, task, 'cancelled')
                 }}
                 disabled={updateTask.isPending}
               >
