@@ -17,7 +17,7 @@ const TodayCard = ({ task }: { task: Task }) => {
   const { formatDate } = useTodayCard()
   const updateTask = useUpdateTask(task.id)
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: TaskStatus, additionalUpdates: Partial<Omit<Task, 'status'>> = {}) => {
     if (updateTask.isPending) return
     if (newStatus === task.status) {
       return
@@ -27,14 +27,14 @@ const TodayCard = ({ task }: { task: Task }) => {
       return
     }
     try {
-      await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus as TaskStatus)
+      await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus, additionalUpdates)
     } catch (error) {
       // TODO: Replace with user-facing error notification
       console.error('Error updating task status:', error)
     }
   }
 
-  const handleStatusIconClick = () => {
+  const handleStatusIconClick = (): TaskStatus => {
     switch (task.status) {
       case 'in_progress':
         return 'completed'
@@ -43,7 +43,7 @@ const TodayCard = ({ task }: { task: Task }) => {
       case 'todo':
         return 'in_progress'
       default:
-        return task.status
+        return task.status as TaskStatus
     }
   }
 
@@ -117,13 +117,20 @@ const TodayCard = ({ task }: { task: Task }) => {
               {task.status !== 'in_progress' && task.status !== 'completed' && (
                 <button
                   onClick={() => {
-                    void handleStatusChange('in_progress')
+                    if (task.status === 'blocked') {
+                      void handleStatusChange('in_progress', {
+                        blockedReason: '',
+                        notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
+                      })
+                    } else {
+                      void handleStatusChange('in_progress')
+                    }
                     setOpen(false)
                   }}
                   className="flex items-center gap-2 w-full px-3 py-1.5 text-slate-200 hover:bg-slate-800"
                 >
                   <Play className="w-3.5 h-3.5 text-sky-400" />
-                  Start
+                  {task.status === 'blocked' ? 'Resume' : 'Start'}
                 </button>
               )}
               {task.status !== 'completed' && (

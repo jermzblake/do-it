@@ -47,6 +47,44 @@ export const StatusColumn = ({
   const filteredTasks = filterTasks(tasks, searchQuery, filterPriority)
   const statusTotalCount = data?.metaData?.pagination?.totalCount || 0
 
+  const renderTasks = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin mb-2" />
+          <p className="text-sm">Loading tasks...</p>
+        </div>
+      )
+    }
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-red-600">
+          <AlertCircle className="w-8 h-8 mb-2" />
+          <p className="text-sm">Error loading tasks</p>
+          <Button variant="link" size="sm" onClick={() => refetch()} className="mt-2">
+            Try again
+          </Button>
+        </div>
+      )
+    }
+    if (filteredTasks.length === 0) {
+      return (
+        <div className="text-center text-muted-foreground text-sm py-8">
+          {tasks.length === 0 ? 'No tasks yet' : 'No tasks match filters'}
+        </div>
+      )
+    }
+    return filteredTasks.map((task) => (
+      <TaskCard
+        key={task.id}
+        task={task}
+        onEdit={() => setEditingTask(task)}
+        onBlock={() => setTaskToBlockId(task.id)}
+        onSelect={setSelectedTask ? () => setSelectedTask(task) : undefined}
+      />
+    ))
+  }
+
   return (
     <div className="flex flex-col min-w-[280px] max-w-[320px]">
       <div className={`${config?.color} border rounded-lg p-3 mb-3 flex items-center justify-between`}>
@@ -65,34 +103,7 @@ export const StatusColumn = ({
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-2 min-h-[200px] max-h-[calc(100vh-300px)] rounded-lg border-2 border-dashed border-gray-200 p-2 bg-white/50">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="w-8 h-8 animate-spin mb-2" />
-            <p className="text-sm">Loading tasks...</p>
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center py-12 text-red-600">
-            <AlertCircle className="w-8 h-8 mb-2" />
-            <p className="text-sm">Error loading tasks</p>
-            <Button variant="link" size="sm" onClick={() => refetch()} className="mt-2">
-              Try again
-            </Button>
-          </div>
-        ) : filteredTasks.length === 0 ? (
-          <div className="text-center text-muted-foreground text-sm py-8">
-            {tasks.length === 0 ? 'No tasks yet' : 'No tasks match filters'}
-          </div>
-        ) : (
-          filteredTasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onEdit={() => setEditingTask(task)}
-              onBlock={() => setTaskToBlockId(task.id)}
-              onSelect={setSelectedTask ? () => setSelectedTask(task) : undefined}
-            />
-          ))
-        )}
+        {renderTasks()}
       </div>
     </div>
   )
