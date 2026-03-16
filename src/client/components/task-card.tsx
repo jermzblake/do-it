@@ -124,9 +124,14 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
               variant="ghost"
               size="sm"
               className="h-7 text-xs text-blue-600 hover:text-blue-700"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress')
+                try {
+                  await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress')
+                } catch (error) {
+                  // TODO: Replace with user-facing error notification
+                  console.error('Error updating task status:', error)
+                }
               }}
               disabled={updateTask.isPending}
             >
@@ -145,9 +150,14 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs text-green-600 hover:text-green-700"
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.stopPropagation()
-                  handleQuickStatusUpdate(updateTask.mutateAsync, task, 'completed')
+                  try {
+                    await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'completed')
+                  } catch (error) {
+                    // TODO: Replace with user-facing error notification
+                    console.error('Error updating task status:', error)
+                  }
                 }}
                 disabled={updateTask.isPending}
               >
@@ -162,7 +172,7 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs text-red-600 hover:text-red-700"
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.stopPropagation()
                   onBlock()
                 }}
@@ -182,9 +192,9 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
               variant="ghost"
               size="sm"
               className="h-7 text-xs text-blue-600 hover:text-blue-700"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress', {
+                await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress', {
                   blockedReason: '',
                   notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
                 })
@@ -205,9 +215,14 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs text-yellow-600 hover:text-yellow-700"
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.stopPropagation()
-                  handleQuickStatusUpdate(updateTask.mutateAsync, task, 'cancelled')
+                  try {
+                    await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'cancelled')
+                  } catch (error) {
+                    // TODO: Replace with user-facing error notification
+                    console.error('Error updating task status:', error)
+                  }
                 }}
                 disabled={updateTask.isPending}
               >
