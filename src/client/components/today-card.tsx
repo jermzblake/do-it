@@ -17,7 +17,7 @@ const TodayCard = ({ task }: { task: Task }) => {
   const { formatDate } = useTodayCard()
   const updateTask = useUpdateTask(task.id)
 
-  const handleStatusChange = async (newStatus: string, additionalUpdates: Partial<Task> = {}) => {
+  const handleStatusChange = async (newStatus: TaskStatus, additionalUpdates: Partial<Omit<Task, 'status'>> = {}) => {
     if (updateTask.isPending) return
     if (newStatus === task.status) {
       return
@@ -27,14 +27,14 @@ const TodayCard = ({ task }: { task: Task }) => {
       return
     }
     try {
-      await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus as TaskStatus, additionalUpdates)
+      await handleQuickStatusUpdate(updateTask.mutateAsync, task, newStatus, additionalUpdates)
     } catch (error) {
       // TODO: Replace with user-facing error notification
       console.error('Error updating task status:', error)
     }
   }
 
-  const handleStatusIconClick = () => {
+  const handleStatusIconClick = (): TaskStatus => {
     switch (task.status) {
       case 'in_progress':
         return 'completed'
@@ -43,7 +43,7 @@ const TodayCard = ({ task }: { task: Task }) => {
       case 'todo':
         return 'in_progress'
       default:
-        return task.status
+        return task.status as TaskStatus
     }
   }
 
