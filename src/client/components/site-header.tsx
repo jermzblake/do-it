@@ -18,7 +18,6 @@ export const SiteHeader = ({ pageTitle }: SiteHeaderProps) => {
   const isDesktop = useIsDesktop()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isTodayView = pathname === routes.today
-  console.log('Current pathname:', pathname)
   if (!user) return null
 
   return (
