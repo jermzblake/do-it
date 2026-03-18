@@ -1,4 +1,3 @@
-import React from 'react'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { Button } from '@/client/components/ui/button'
 import { Separator } from '@/client/components/ui/separator'
@@ -6,7 +5,6 @@ import { useAuth } from '@/client/auth/AuthContext'
 import { CreateTaskDialog } from '@/client/components/create-task-dialog'
 import { useIsDesktop } from '@/client/hooks/use-media-query'
 import { routes } from '@/client/routes/routes'
-
 
 interface SiteHeaderProps {
   pageTitle?: string
