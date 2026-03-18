@@ -6,6 +6,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { CreateTaskDialog } from '@/client/components/create-task-dialog'
 import { useIsDesktop } from '@/client/hooks/use-media-query'
 import { routes } from '@/client/routes/routes'
+import { useRouterState } from '@tanstack/react-router'
 
 interface SiteHeaderProps {
   pageTitle?: string
@@ -15,15 +16,25 @@ export const SiteHeader = ({ pageTitle }: SiteHeaderProps) => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const isDesktop = useIsDesktop()
-
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const isTodayView = pathname === routes.today
+  console.log('Current pathname:', pathname)
   if (!user) return null
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-sm supports-[backdrop-filter:blur(0)]:bg-white/80 shadow-md border-b px-4 py-3 flex justify-between items-center w-full">
       <h1 className="text-2xl font-bold">Do It {pageTitle && <span className="text-blue-900">{pageTitle}</span>}</h1>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 lg:gap-4">
         <span className="hidden md:block text-sm text-gray-600">Hey, {user.name}</span>
         <Separator orientation="vertical" className="h-6" />
+        <Button
+          variant="link"
+          size="sm"
+          onClick={() => navigate({ to: isTodayView ? routes.dashboard : routes.today })}
+          className="text-blue-900 cursor-pointer"
+        >
+          {isTodayView ? 'Dashboard' : 'Today'}
+        </Button>
         {isDesktop ? (
           <CreateTaskDialog
             trigger={
@@ -40,7 +51,7 @@ export const SiteHeader = ({ pageTitle }: SiteHeaderProps) => {
               navigate({ to: routes.createTask })
             }}
           >
-            Create Task
+            Create
           </Button>
         )}
         <Button variant="outline" size="sm" onClick={logout}>
