@@ -65,7 +65,14 @@ export default function TodayView() {
             COLUMNS.map((c) => <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} />)
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <p className="text-sm">No tasks for today</p>
+              <p className="text-sm">
+                No tasks for today
+                <span>
+                  <a className="underline text-sky-400 ml-2" href="/dashboard">
+                    Go to Dashboard
+                  </a>
+                </span>
+              </p>
             </div>
           )}
         </>
