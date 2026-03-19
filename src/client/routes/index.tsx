@@ -24,8 +24,9 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading)
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center h-screen" role="status" aria-live="polite" aria-label="Loading">
+        <Loader className="w-8 h-8 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading...</span>
       </div>
     )
   if (!isAuthenticated) return null
@@ -37,8 +38,9 @@ const RedirectAuthenticatedFromLanding = ({ children }: { children: React.ReactN
 
   if (isLoading)
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center h-screen" role="status" aria-live="polite" aria-label="Loading">
+        <Loader className="w-8 h-8 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading...</span>
       </div>
     )
   if (isAuthenticated) return <Navigate to={routes.today} replace />
