@@ -1,4 +1,4 @@
-import { createRoute, createRootRoute, Outlet, createRouter, useNavigate } from '@tanstack/react-router'
+import { createRoute, createRootRoute, Outlet, createRouter, Navigate, useNavigate } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { routes } from './routes'
 import { LandingPage } from '@/client/pages/landing'
@@ -34,13 +34,6 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 
 const RedirectAuthenticatedFromLanding = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      navigate({ to: routes.today })
-    }
-  }, [isAuthenticated, isLoading, navigate])
 
   if (isLoading)
     return (
@@ -48,7 +41,7 @@ const RedirectAuthenticatedFromLanding = ({ children }: { children: React.ReactN
         <Loader className="w-8 h-8 animate-spin" />
       </div>
     )
-  if (isAuthenticated) return null
+  if (isAuthenticated) return <Navigate to={routes.today} replace />
   return <>{children}</>
 }
 
