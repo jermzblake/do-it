@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from '../auth/AuthContext'
 import { ErrorBoundary } from '@/client/components/error-boundary'
 import { useEffect } from 'react'
 import { TodayViewPage } from '../pages/today'
+import { Loader2 as Loader } from 'lucide-react'
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth()
@@ -21,8 +22,33 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isAuthenticated, navigate, isLoading])
 
-  if (isLoading) return <div className="flex items-center justify-center h-screen">Loading...</div>
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="w-8 h-8 animate-spin" />
+      </div>
+    )
   if (!isAuthenticated) return null
+  return <>{children}</>
+}
+
+const RedirectAuthenticatedFromLanding = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate({ to: routes.today })
+    }
+  }, [isAuthenticated, isLoading, navigate])
+
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="w-8 h-8 animate-spin" />
+      </div>
+    )
+  if (isAuthenticated) return null
   return <>{children}</>
 }
 
@@ -40,7 +66,11 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: routes.landing,
-  component: LandingPage,
+  component: () => (
+    <RedirectAuthenticatedFromLanding>
+      <LandingPage />
+    </RedirectAuthenticatedFromLanding>
+  ),
 })
 
 const dashboardRoute = createRoute({
@@ -91,7 +121,11 @@ export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   scrollRestoration: true,
-  defaultPendingComponent: () => <div className="flex items-center justify-center h-screen">Loading...</div>, // Global fallback component
+  defaultPendingComponent: () => (
+    <div className="flex items-center justify-center h-screen">
+      <Loader className="w-8 h-8 animate-spin" />
+    </div>
+  ), // Global fallback component
   // Optional: Configure minimum display time to avoid flashes
   defaultPendingMinMs: 500,
 })
