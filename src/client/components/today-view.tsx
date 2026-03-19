@@ -4,6 +4,7 @@ import TodayColumn from '@/client/components/today-column'
 import { useTodayCard } from '@/client/hooks/use-today-card'
 import { useTodayTasks } from '@/client/hooks/use-tasks'
 import type { Task } from '@/shared/task'
+import { Link } from '@tanstack/react-router'
 
 const FILTERS = [
   { value: 'all', label: 'All' },
@@ -68,9 +69,9 @@ export default function TodayView() {
               <p className="text-sm">
                 No tasks for today
                 <span>
-                  <a className="underline text-sky-400 ml-2" href="/dashboard">
+                  <Link className="underline text-sky-400 ml-2" to="/dashboard">
                     Go to Dashboard
-                  </a>
+                  </Link>
                 </span>
               </p>
             </div>
