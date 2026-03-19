@@ -68,7 +68,7 @@ export default function TodayView() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <p className="text-sm">
-                No tasks for today
+                No tasks for today{' '}
                 <span>
                   <Link className="underline text-sky-400 ml-2" to={routes.dashboard}>
                     Go to Dashboard
