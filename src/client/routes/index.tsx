@@ -1,4 +1,4 @@
-import { createRoute, createRootRoute, Outlet, createRouter, useNavigate } from '@tanstack/react-router'
+import { createRoute, createRootRoute, Outlet, createRouter, Navigate, useNavigate } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { routes } from './routes'
 import { LandingPage } from '@/client/pages/landing'
@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from '../auth/AuthContext'
 import { ErrorBoundary } from '@/client/components/error-boundary'
 import { useEffect } from 'react'
 import { TodayViewPage } from '../pages/today'
+import { FullScreenLoader } from '@/client/components/full-screen-loader'
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth()
@@ -21,8 +22,16 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isAuthenticated, navigate, isLoading])
 
-  if (isLoading) return <div className="flex items-center justify-center h-screen">Loading...</div>
+  if (isLoading) return <FullScreenLoader />
   if (!isAuthenticated) return null
+  return <>{children}</>
+}
+
+const RedirectAuthenticatedFromLanding = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) return <FullScreenLoader />
+  if (isAuthenticated) return <Navigate to={routes.today} replace />
   return <>{children}</>
 }
 
@@ -40,7 +49,11 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: routes.landing,
-  component: LandingPage,
+  component: () => (
+    <RedirectAuthenticatedFromLanding>
+      <LandingPage />
+    </RedirectAuthenticatedFromLanding>
+  ),
 })
 
 const dashboardRoute = createRoute({
@@ -91,7 +104,7 @@ export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   scrollRestoration: true,
-  defaultPendingComponent: () => <div className="flex items-center justify-center h-screen">Loading...</div>, // Global fallback component
+  defaultPendingComponent: FullScreenLoader, // Global fallback component
   // Optional: Configure minimum display time to avoid flashes
   defaultPendingMinMs: 500,
 })

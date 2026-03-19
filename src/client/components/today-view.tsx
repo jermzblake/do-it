@@ -4,6 +4,8 @@ import TodayColumn from '@/client/components/today-column'
 import { useTodayCard } from '@/client/hooks/use-today-card'
 import { useTodayTasks } from '@/client/hooks/use-tasks'
 import type { Task } from '@/shared/task'
+import { Link } from '@tanstack/react-router'
+import { routes } from '@/client/routes/routes'
 
 const FILTERS = [
   { value: 'all', label: 'All' },
@@ -65,7 +67,14 @@ export default function TodayView() {
             COLUMNS.map((c) => <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} />)
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <p className="text-sm">No tasks for today</p>
+              <p className="text-sm">
+                No tasks for today{' '}
+                <span>
+                  <Link className="underline text-sky-400 ml-2" to={routes.dashboard}>
+                    Go to Dashboard
+                  </Link>
+                </span>
+              </p>
             </div>
           )}
         </>
