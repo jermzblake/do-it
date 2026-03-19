@@ -10,7 +10,7 @@ import { AuthProvider, useAuth } from '../auth/AuthContext'
 import { ErrorBoundary } from '@/client/components/error-boundary'
 import { useEffect } from 'react'
 import { TodayViewPage } from '../pages/today'
-import { Loader2 as Loader } from 'lucide-react'
+import { FullScreenLoader } from '@/client/components/full-screen-loader'
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth()
@@ -22,13 +22,7 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isAuthenticated, navigate, isLoading])
 
-  if (isLoading)
-    return (
-      <div className="flex items-center justify-center h-screen" role="status" aria-live="polite" aria-label="Loading">
-        <Loader className="w-8 h-8 animate-spin" aria-hidden="true" />
-        <span className="sr-only">Loading...</span>
-      </div>
-    )
+  if (isLoading) return <FullScreenLoader />
   if (!isAuthenticated) return null
   return <>{children}</>
 }
@@ -36,13 +30,7 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
 const RedirectAuthenticatedFromLanding = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth()
 
-  if (isLoading)
-    return (
-      <div className="flex items-center justify-center h-screen" role="status" aria-live="polite" aria-label="Loading">
-        <Loader className="w-8 h-8 animate-spin" aria-hidden="true" />
-        <span className="sr-only">Loading...</span>
-      </div>
-    )
+  if (isLoading) return <FullScreenLoader />
   if (isAuthenticated) return <Navigate to={routes.today} replace />
   return <>{children}</>
 }
@@ -116,11 +104,7 @@ export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   scrollRestoration: true,
-  defaultPendingComponent: () => (
-    <div className="flex items-center justify-center h-screen">
-      <Loader className="w-8 h-8 animate-spin" />
-    </div>
-  ), // Global fallback component
+  defaultPendingComponent: FullScreenLoader, // Global fallback component
   // Optional: Configure minimum display time to avoid flashes
   defaultPendingMinMs: 500,
 })
