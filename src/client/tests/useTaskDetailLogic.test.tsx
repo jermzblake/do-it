@@ -130,6 +130,42 @@ describe('useTaskDetailLogic', () => {
     })
   })
 
+  it('onSave with blocked -> in_progress status applies transition updates', async () => {
+    const qc = createClient()
+    let putBody: any = null
+    // @ts-ignore
+    apiClient.put = async (_url: string, body: any) => {
+      putBody = body
+      return makeResponse({ ...task(), ...body })
+    }
+
+    const { result } = renderHook(
+      () =>
+        useTaskDetailLogic({
+          task: task({ status: 'blocked', blockedReason: 'Waiting on review', notes: 'Original notes' }),
+        }),
+      {
+        wrapper: (p) => <Wrapper client={qc} {...p} />,
+      },
+    )
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    const before = Date.now()
+    await result.current.onSave({ status: 'in_progress' })
+    const after = Date.now()
+
+    expect(putBody?.status).toBe('in_progress')
+    expect(putBody?.blockedReason).toBe('')
+    expect(putBody?.notes).toContain('Unblocked on')
+    expect(typeof putBody?.startedAt).toBe('string')
+
+    const startedAtMs = Date.parse(putBody.startedAt)
+    expect(Number.isNaN(startedAtMs)).toBe(false)
+    expect(startedAtMs >= before).toBe(true)
+    expect(startedAtMs <= after).toBe(true)
+  })
+
   it('onStatusChange calls updateTask with new status', async () => {
     const qc = createClient()
     let putBody: any = null

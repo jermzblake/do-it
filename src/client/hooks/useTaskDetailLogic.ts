@@ -6,6 +6,10 @@ import { useIsDesktop } from '@/client/hooks/use-media-query'
 import { routes } from '@/client/routes/routes'
 import { handleQuickStatusUpdate } from '@/client/utils/task-status-update'
 
+const TASK_STATUSES: readonly TaskStatus[] = ['todo', 'in_progress', 'completed', 'blocked', 'cancelled']
+
+const isTaskStatus = (status: string): status is TaskStatus => TASK_STATUSES.includes(status as TaskStatus)
+
 interface UseTaskDetailLogicProps {
   task: Task
   onClose?: () => void // For closing sidebar on desktop
@@ -23,9 +27,31 @@ export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: 
   const onEdit = () => setIsEditing(true)
   const onCancel = () => setIsEditing(false)
 
+  const getStatusTransitionUpdates = (
+    status: TaskStatus,
+    baseUpdates: Partial<Omit<Task, 'status'>> = {},
+  ): Partial<Omit<Task, 'status'>> => {
+    if (task.status !== 'blocked' || status !== 'in_progress') {
+      return baseUpdates
+    }
+
+    const notesBase = typeof baseUpdates.notes === 'string' ? baseUpdates.notes : (task.notes ?? '')
+    return {
+      ...baseUpdates,
+      blockedReason: '',
+      notes: `${notesBase} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
+    }
+  }
+
   const onSave = async (payload: Partial<Task>) => {
     try {
-      await updateTask.mutateAsync(payload)
+      if (payload.status && isTaskStatus(payload.status)) {
+        const { status, ...restPayload } = payload
+        const additionalUpdates = getStatusTransitionUpdates(status, restPayload)
+        await handleQuickStatusUpdate(updateTask.mutateAsync, task, status, additionalUpdates)
+      } else {
+        await updateTask.mutateAsync(payload)
+      }
       setIsEditing(false)
     } catch (error) {
       console.error('Error updating task:', error)
@@ -34,13 +60,7 @@ export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: 
 
   const onStatusChange = async (status: TaskStatus) => {
     try {
-      const additionalUpdates =
-        task.status === 'blocked' && status === 'in_progress'
-          ? {
-              blockedReason: '',
-              notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
-            }
-          : {}
+      const additionalUpdates = getStatusTransitionUpdates(status)
       await handleQuickStatusUpdate(updateTask.mutateAsync, task, status, additionalUpdates)
     } catch (error) {
       console.error('Error updating task status:', error)
