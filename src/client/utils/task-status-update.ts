@@ -15,7 +15,7 @@ export const handleQuickStatusUpdate = async (
   if (newStatus === 'in_progress' && !task.startedAt) {
     updates.startedAt = new Date().toISOString()
   }
-  if (newStatus === 'completed') {
+  if (newStatus === 'completed' && !task.completedAt) {
     updates.completedAt = new Date().toISOString()
   }
 

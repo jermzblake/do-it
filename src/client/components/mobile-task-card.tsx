@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { priorityConfig } from '@/client/lib/configs'
-import type { Task, TaskStatus } from '@/shared/task'
+import type { Task } from '@/shared/task'
 import { Card, CardContent } from '@/client/components/ui/card'
 import { Input } from '@/client/components/ui/input'
 import { Badge } from '@/client/components/ui/badge'
@@ -10,6 +10,7 @@ import { useUpdateTask } from '@/client/hooks/use-tasks'
 import { isOverdue } from '@/client/utils/is-overdue'
 import { formatDate } from '@/client/utils/format-date'
 import { routes } from '@/client/routes/routes'
+import { handleQuickStatusUpdate } from '@/client/utils/task-status-update'
 import { Edit2, Play, Check, Ban, Calendar, AlertCircle, Loader2, X } from 'lucide-react'
 
 interface MobileTaskCardProps {
@@ -23,20 +24,6 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
   const updateTask = useUpdateTask(task.id)
   const [isEditingName, setIsEditingName] = React.useState(false)
   const overdue = isOverdue(task.dueDate)
-
-  const handleQuickStatusUpdate = async (newStatus: TaskStatus, additionalUpdates: Partial<Task> = {}) => {
-    const updates: Partial<Task> = { status: newStatus, ...additionalUpdates }
-
-    // Set timestamps based on status
-    if (newStatus === 'in_progress' && !task.startedAt) {
-      updates.startedAt = new Date().toISOString()
-    }
-    if (newStatus === 'completed') {
-      updates.completedAt = new Date().toISOString()
-    }
-
-    await updateTask.mutateAsync(updates)
-  }
 
   const handleNameUpdate = async (newName: string) => {
     if (newName && newName !== task.name) {
@@ -134,9 +121,14 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate('in_progress')
+                try {
+                  await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress')
+                } catch (error) {
+                  // TODO: Replace with user-facing error notification
+                  console.error('Error updating task status:', error)
+                }
               }}
               disabled={updateTask.isPending}
               title="Start task"
@@ -151,9 +143,14 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.stopPropagation()
-                  handleQuickStatusUpdate('completed')
+                  try {
+                    await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'completed')
+                  } catch (error) {
+                    // TODO: Replace with user-facing error notification
+                    console.error('Error updating task status:', error)
+                  }
                 }}
                 disabled={updateTask.isPending}
                 title="Complete task"
@@ -181,12 +178,17 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate('in_progress', {
-                  blockedReason: '',
-                  notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
-                })
+                try {
+                  await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress', {
+                    blockedReason: '',
+                    notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
+                  })
+                } catch (error) {
+                  // TODO: Replace with user-facing error notification
+                  console.error('Error updating task status:', error)
+                }
               }}
               disabled={updateTask.isPending}
               title="Resume task"
@@ -200,9 +202,14 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 ml-auto"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate('cancelled')
+                try {
+                  await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'cancelled')
+                } catch (error) {
+                  // TODO: Replace with user-facing error notification
+                  console.error('Error updating task status:', error)
+                }
               }}
               disabled={updateTask.isPending}
               title="Cancel task"

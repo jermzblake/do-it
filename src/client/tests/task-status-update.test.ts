@@ -91,7 +91,7 @@ describe('handleQuickStatusUpdate', () => {
     expect(calls[0]).toEqual({ status: 'in_progress' })
   })
 
-  it('always sets completedAt when moving to completed and can override stale completedAt from additional updates', async () => {
+  it('sets completedAt to now when moving to completed if task has no completedAt', async () => {
     restoreDate = freezeTime('2026-03-14T11:30:00.000Z')
     const calls: Partial<Task>[] = []
 
@@ -113,5 +113,21 @@ describe('handleQuickStatusUpdate', () => {
       notes: 'Finished work',
       completedAt: '2026-03-14T11:30:00.000Z',
     })
+  })
+
+  it('does not set completedAt when moving to completed if task already has completedAt', async () => {
+    restoreDate = freezeTime('2026-03-14T11:30:00.000Z')
+    const calls: Partial<Task>[] = []
+
+    await handleQuickStatusUpdate(
+      async (updates) => {
+        calls.push(updates)
+      },
+      makeTask({ status: 'in_progress', completedAt: '2026-03-10T09:00:00.000Z' }),
+      'completed',
+    )
+
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toEqual({ status: 'completed' })
   })
 })
