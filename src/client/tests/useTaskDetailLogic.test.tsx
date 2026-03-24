@@ -149,6 +149,128 @@ describe('useTaskDetailLogic', () => {
     apiClient.put = originalPut
   })
 
+  it('onStatusChange to in_progress adds startedAt when missing', async () => {
+    const qc = createClient()
+    let putBody: any = null
+    // @ts-ignore
+    apiClient.put = async (_url: string, body: any) => {
+      putBody = body
+      return makeResponse({ ...task(), ...body })
+    }
+
+    const { result } = renderHook(() => useTaskDetailLogic({ task: task({ status: 'todo' }) }), {
+      wrapper: (p) => <Wrapper client={qc} {...p} />,
+    })
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    const before = Date.now()
+    await result.current.onStatusChange('in_progress')
+    const after = Date.now()
+
+    expect(putBody?.status).toBe('in_progress')
+    expect(typeof putBody?.startedAt).toBe('string')
+
+    const startedAtMs = Date.parse(putBody.startedAt)
+    expect(Number.isNaN(startedAtMs)).toBe(false)
+    expect(startedAtMs >= before).toBe(true)
+    expect(startedAtMs <= after).toBe(true)
+
+    // restore
+    // @ts-ignore
+    apiClient.put = originalPut
+  })
+
+  it('onStatusChange to in_progress does not overwrite existing startedAt', async () => {
+    const qc = createClient()
+    let putBody: any = null
+    // @ts-ignore
+    apiClient.put = async (_url: string, body: any) => {
+      putBody = body
+      return makeResponse({ ...task(), ...body })
+    }
+
+    const existingStartedAt = '2026-01-15T08:00:00.000Z'
+    const { result } = renderHook(
+      () => useTaskDetailLogic({ task: task({ status: 'todo', startedAt: existingStartedAt }) }),
+      {
+        wrapper: (p) => <Wrapper client={qc} {...p} />,
+      },
+    )
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    await result.current.onStatusChange('in_progress')
+
+    expect(putBody?.status).toBe('in_progress')
+    expect('startedAt' in putBody).toBe(false)
+
+    // restore
+    // @ts-ignore
+    apiClient.put = originalPut
+  })
+
+  it('onStatusChange to completed adds completedAt when missing', async () => {
+    const qc = createClient()
+    let putBody: any = null
+    // @ts-ignore
+    apiClient.put = async (_url: string, body: any) => {
+      putBody = body
+      return makeResponse({ ...task(), ...body })
+    }
+
+    const { result } = renderHook(() => useTaskDetailLogic({ task: task({ status: 'in_progress' }) }), {
+      wrapper: (p) => <Wrapper client={qc} {...p} />,
+    })
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    const before = Date.now()
+    await result.current.onStatusChange('completed')
+    const after = Date.now()
+
+    expect(putBody?.status).toBe('completed')
+    expect(typeof putBody?.completedAt).toBe('string')
+
+    const completedAtMs = Date.parse(putBody.completedAt)
+    expect(Number.isNaN(completedAtMs)).toBe(false)
+    expect(completedAtMs >= before).toBe(true)
+    expect(completedAtMs <= after).toBe(true)
+
+    // restore
+    // @ts-ignore
+    apiClient.put = originalPut
+  })
+
+  it('onStatusChange to completed does not overwrite existing completedAt', async () => {
+    const qc = createClient()
+    let putBody: any = null
+    // @ts-ignore
+    apiClient.put = async (_url: string, body: any) => {
+      putBody = body
+      return makeResponse({ ...task(), ...body })
+    }
+
+    const existingCompletedAt = '2026-01-20T10:30:00.000Z'
+    const { result } = renderHook(
+      () => useTaskDetailLogic({ task: task({ status: 'in_progress', completedAt: existingCompletedAt }) }),
+      {
+        wrapper: (p) => <Wrapper client={qc} {...p} />,
+      },
+    )
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    await result.current.onStatusChange('completed')
+
+    expect(putBody?.status).toBe('completed')
+    expect('completedAt' in putBody).toBe(false)
+
+    // restore
+    // @ts-ignore
+    apiClient.put = originalPut
+  })
+
   it('onDeleteRequest calls deleteTask and invokes onClose on desktop', async () => {
     const qc = createClient()
     let closeCalled = 0
