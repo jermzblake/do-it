@@ -45,12 +45,14 @@ export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: 
 
   const onSave = async (payload: Partial<Task>) => {
     try {
-      if (payload.status && isTaskStatus(payload.status)) {
+      if (payload.status && isTaskStatus(payload.status) && payload.status !== task.status) {
         const { status, ...restPayload } = payload
         const additionalUpdates = getStatusTransitionUpdates(status, restPayload)
         await handleQuickStatusUpdate(updateTask.mutateAsync, task, status, additionalUpdates)
       } else {
-        await updateTask.mutateAsync(payload)
+        const restPayload = { ...payload }
+        delete restPayload.status
+        await updateTask.mutateAsync(restPayload)
       }
       setIsEditing(false)
     } catch (error) {
