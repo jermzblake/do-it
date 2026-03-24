@@ -1,5 +1,5 @@
 import React from 'react'
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, afterEach } from 'bun:test'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useTaskDetailLogic } from '@/client/hooks/useTaskDetailLogic'
@@ -53,6 +53,14 @@ function Wrapper({ client, children }: { client: QueryClient; children: React.Re
 
 const originalPut: typeof apiClient.put = apiClient.put.bind(apiClient)
 const originalDelete: typeof apiClient.delete = apiClient.delete.bind(apiClient)
+
+afterEach(() => {
+  // Always restore client methods to avoid test-order coupling if a test throws.
+  // @ts-ignore
+  apiClient.put = originalPut
+  // @ts-ignore
+  apiClient.delete = originalDelete
+})
 
 describe('useTaskDetailLogic', () => {
   it('starts in non-editing mode', async () => {
@@ -120,10 +128,6 @@ describe('useTaskDetailLogic', () => {
     await waitFor(() => {
       expect(result.current.isEditing).toBe(false)
     })
-
-    // restore
-    // @ts-ignore
-    apiClient.put = originalPut
   })
 
   it('onStatusChange calls updateTask with new status', async () => {
@@ -143,10 +147,6 @@ describe('useTaskDetailLogic', () => {
 
     await result.current.onStatusChange('in_progress')
     expect(putBody?.status).toBe('in_progress')
-
-    // restore
-    // @ts-ignore
-    apiClient.put = originalPut
   })
 
   it('onStatusChange to in_progress adds startedAt when missing', async () => {
@@ -175,10 +175,6 @@ describe('useTaskDetailLogic', () => {
     expect(Number.isNaN(startedAtMs)).toBe(false)
     expect(startedAtMs >= before).toBe(true)
     expect(startedAtMs <= after).toBe(true)
-
-    // restore
-    // @ts-ignore
-    apiClient.put = originalPut
   })
 
   it('onStatusChange to in_progress does not overwrite existing startedAt', async () => {
@@ -204,10 +200,6 @@ describe('useTaskDetailLogic', () => {
 
     expect(putBody?.status).toBe('in_progress')
     expect('startedAt' in putBody).toBe(false)
-
-    // restore
-    // @ts-ignore
-    apiClient.put = originalPut
   })
 
   it('onStatusChange to completed adds completedAt when missing', async () => {
@@ -236,10 +228,6 @@ describe('useTaskDetailLogic', () => {
     expect(Number.isNaN(completedAtMs)).toBe(false)
     expect(completedAtMs >= before).toBe(true)
     expect(completedAtMs <= after).toBe(true)
-
-    // restore
-    // @ts-ignore
-    apiClient.put = originalPut
   })
 
   it('onStatusChange to completed does not overwrite existing completedAt', async () => {
@@ -265,10 +253,6 @@ describe('useTaskDetailLogic', () => {
 
     expect(putBody?.status).toBe('completed')
     expect('completedAt' in putBody).toBe(false)
-
-    // restore
-    // @ts-ignore
-    apiClient.put = originalPut
   })
 
   it('onDeleteRequest calls deleteTask and invokes onClose on desktop', async () => {
@@ -299,10 +283,6 @@ describe('useTaskDetailLogic', () => {
       // On desktop with onClose provided, it should call onClose
       expect(closeCalled).toBe(1)
     })
-
-    // restore
-    // @ts-ignore
-    apiClient.delete = originalDelete
   })
 
   it('returns isUpdating and isDeleting flags', async () => {
