@@ -166,6 +166,36 @@ describe('useTaskDetailLogic', () => {
     expect(startedAtMs <= after).toBe(true)
   })
 
+  it('onSave with unchanged status omits status and does not apply transition side effects', async () => {
+    const qc = createClient()
+    let putBody: any = null
+    // @ts-ignore
+    apiClient.put = async (_url: string, body: any) => {
+      putBody = body
+      return makeResponse({ ...task(), ...body })
+    }
+
+    const { result } = renderHook(
+      () =>
+        useTaskDetailLogic({
+          task: task({ status: 'blocked', blockedReason: 'Still blocked', notes: 'Original notes' }),
+        }),
+      {
+        wrapper: (p) => <Wrapper client={qc} {...p} />,
+      },
+    )
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    await result.current.onSave({ status: 'blocked', notes: 'Updated notes' })
+
+    expect('status' in putBody).toBe(false)
+    expect(putBody?.notes).toBe('Updated notes')
+    expect('startedAt' in putBody).toBe(false)
+    expect('completedAt' in putBody).toBe(false)
+    expect('blockedReason' in putBody).toBe(false)
+  })
+
   it('onStatusChange calls updateTask with new status', async () => {
     const qc = createClient()
     let putBody: any = null
