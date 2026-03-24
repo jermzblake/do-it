@@ -80,6 +80,12 @@ export const updateTaskById = async (id: string, taskPayload: Partial<NewTask>):
     // @ts-expect-error - This is a conditional allowance for null to clear the completedAt timestamp when moving a task back to an active status. Drizzle's inferInsertModel uses undefined for optional fields which is why this field is not defined as nullable in the schema, but we want to allow it to be set to null on update to clear the timestamp when reopening a task.
     updatePayload.completedAt = null
   }
+  if (updatePayload?.status === 'completed' && !updatePayload.completedAt) {
+    updatePayload.completedAt = new Date()
+  }
+  if (updatePayload?.status === 'in_progress' && !updatePayload.startedAt) {
+    updatePayload.startedAt = new Date()
+  }
 
   try {
     const updatedTask = await TasksRepository.updateTaskById(id, updatePayload)
