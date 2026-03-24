@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Task } from '@/shared/task'
+import type { Task, TaskStatus } from '@/shared/task'
 import { statusConfig, priorityConfig } from '@/client/lib/configs'
 import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
@@ -31,7 +31,7 @@ interface TaskDetailsContentProps {
   onEdit: () => void
   onCancel: () => void
   onSave: (payload: Partial<Task>) => Promise<void>
-  onStatusChange: (status: string) => Promise<void>
+  onStatusChange: (status: TaskStatus) => Promise<void>
   onDeleteRequest: () => Promise<void>
   isUpdating: boolean
   isDeleting: boolean
