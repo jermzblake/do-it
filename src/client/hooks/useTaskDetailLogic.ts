@@ -1,9 +1,10 @@
 import React from 'react'
-import type { Task } from '@/shared/task'
+import type { Task, TaskStatus } from '@/shared/task'
 import { useUpdateTask, useDeleteTask } from './use-tasks'
 import { useNavigate } from '@tanstack/react-router'
 import { useIsDesktop } from '@/client/hooks/use-media-query'
 import { routes } from '@/client/routes/routes'
+import { handleQuickStatusUpdate } from '@/client/utils/task-status-update'
 
 interface UseTaskDetailLogicProps {
   task: Task
@@ -31,15 +32,9 @@ export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: 
     }
   }
 
-  const onStatusChange = async (status: string) => {
+  const onStatusChange = async (status: TaskStatus) => {
     try {
-      const payload: Partial<Task> = { status }
-      if (status === 'in_progress' && !task.startedAt) {
-        payload.startedAt = new Date().toISOString()
-      } else if (status === 'completed' && !task.completedAt) {
-        payload.completedAt = new Date().toISOString()
-      }
-      await updateTask.mutateAsync(payload)
+      await handleQuickStatusUpdate(updateTask.mutateAsync, task, status)
     } catch (error) {
       console.error('Error updating task status:', error)
     }
