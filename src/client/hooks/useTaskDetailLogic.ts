@@ -34,7 +34,14 @@ export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: 
 
   const onStatusChange = async (status: TaskStatus) => {
     try {
-      await handleQuickStatusUpdate(updateTask.mutateAsync, task, status)
+      const additionalUpdates =
+        task.status === 'blocked' && status === 'in_progress'
+          ? {
+              blockedReason: '',
+              notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
+            }
+          : {}
+      await handleQuickStatusUpdate(updateTask.mutateAsync, task, status, additionalUpdates)
     } catch (error) {
       console.error('Error updating task status:', error)
     }

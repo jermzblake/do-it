@@ -255,6 +255,34 @@ describe('useTaskDetailLogic', () => {
     expect('completedAt' in putBody).toBe(false)
   })
 
+  it('onStatusChange from blocked to in_progress clears blockedReason and appends unblock note', async () => {
+    const qc = createClient()
+    let putBody: any = null
+    // @ts-ignore
+    apiClient.put = async (_url: string, body: any) => {
+      putBody = body
+      return makeResponse({ ...task(), ...body })
+    }
+
+    const { result } = renderHook(
+      () =>
+        useTaskDetailLogic({
+          task: task({ status: 'blocked', blockedReason: 'Waiting for design', notes: 'Some notes' }),
+        }),
+      {
+        wrapper: (p) => <Wrapper client={qc} {...p} />,
+      },
+    )
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    await result.current.onStatusChange('in_progress')
+
+    expect(putBody?.status).toBe('in_progress')
+    expect(putBody?.blockedReason).toBe('')
+    expect(putBody?.notes).toContain('Unblocked on')
+  })
+
   it('onDeleteRequest calls deleteTask and invokes onClose on desktop', async () => {
     const qc = createClient()
     let closeCalled = 0
