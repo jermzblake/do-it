@@ -121,9 +121,14 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress')
+                try {
+                  await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress')
+                } catch (error) {
+                  // TODO: Replace with user-facing error notification
+                  console.error('Error updating task status:', error)
+                }
               }}
               disabled={updateTask.isPending}
               title="Start task"
@@ -138,9 +143,14 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.stopPropagation()
-                  handleQuickStatusUpdate(updateTask.mutateAsync, task, 'completed')
+                  try {
+                    await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'completed')
+                  } catch (error) {
+                    // TODO: Replace with user-facing error notification
+                    console.error('Error updating task status:', error)
+                  }
                 }}
                 disabled={updateTask.isPending}
                 title="Complete task"
@@ -168,12 +178,17 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress', {
-                  blockedReason: '',
-                  notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
-                })
+                try {
+                  await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'in_progress', {
+                    blockedReason: '',
+                    notes: `${task.notes || ''} \n\nUnblocked on ${new Date().toLocaleDateString()}`,
+                  })
+                } catch (error) {
+                  // TODO: Replace with user-facing error notification
+                  console.error('Error updating task status:', error)
+                }
               }}
               disabled={updateTask.isPending}
               title="Resume task"
@@ -187,9 +202,14 @@ export const MobileTaskCard = ({ task, onBlock, onSelect }: MobileTaskCardProps)
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700 ml-auto"
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation()
-                handleQuickStatusUpdate(updateTask.mutateAsync, task, 'cancelled')
+                try {
+                  await handleQuickStatusUpdate(updateTask.mutateAsync, task, 'cancelled')
+                } catch (error) {
+                  // TODO: Replace with user-facing error notification
+                  console.error('Error updating task status:', error)
+                }
               }}
               disabled={updateTask.isPending}
               title="Cancel task"
