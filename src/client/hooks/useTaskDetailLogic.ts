@@ -33,12 +33,13 @@ export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: 
 
   const onStatusChange = async (status: string) => {
     try {
+      const payload: Partial<Task> = { status }
       if (status === 'in_progress' && !task.startedAt) {
-        await updateTask.mutateAsync({ startedAt: new Date().toISOString() })
+        payload.startedAt = new Date().toISOString()
       } else if (status === 'completed' && !task.completedAt) {
-        await updateTask.mutateAsync({ completedAt: new Date().toISOString() })
+        payload.completedAt = new Date().toISOString()
       }
-      await updateTask.mutateAsync({ status })
+      await updateTask.mutateAsync(payload)
     } catch (error) {
       console.error('Error updating task status:', error)
     }
