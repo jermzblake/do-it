@@ -131,10 +131,6 @@ describe('TodayCard', () => {
   })
 
   describe('event propagation boundaries', () => {
-    beforeEach(() => {
-      setMatchMedia(true)
-    })
-
     it('clicking the status icon does NOT call onSelect', async () => {
       const qc = createClient()
       // @ts-ignore
