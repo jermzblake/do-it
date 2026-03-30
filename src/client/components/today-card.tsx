@@ -30,13 +30,6 @@ const TodayCard = ({ task, onSelect }: { task: Task; onSelect?: () => void }) =>
     }
   }
 
-  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      handleCardClick()
-    }
-  }
-
   const handleStatusChange = async (newStatus: TaskStatus, additionalUpdates: Partial<Omit<Task, 'status'>> = {}) => {
     if (updateTask.isPending) return
     if (newStatus === task.status) {
@@ -92,10 +85,6 @@ const TodayCard = ({ task, onSelect }: { task: Task; onSelect?: () => void }) =>
   return (
     <div
       onClick={handleCardClick}
-      onKeyDown={handleCardKeyDown}
-      role="button"
-      tabIndex={0}
-      aria-label={`View details for ${task.name}`}
       className={`group relative flex flex-col gap-2.5 rounded-xl border px-4 py-3.5
       bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/70 hover:border-slate-600/70
       transition-all duration-150 cursor-pointer ${dim ? 'opacity-40' : ''}`}
