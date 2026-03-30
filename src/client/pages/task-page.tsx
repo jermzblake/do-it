@@ -29,7 +29,7 @@ const TaskDetailsScreen = ({ task, initialIsEditing }: { task: Task; initialIsEd
   return (
     <MobilePageLayout
       title={renderHeaderName()}
-      onBack={() => (window.history.length > 1 ? router.history.back() : undefined)}
+      onBack={() => (window.history.length > 1 ? router.history.back() : routes.dashboard)}
       right={
         !taskDetailLogic.isEditing && (
           <Button
@@ -67,7 +67,10 @@ export const TaskPage = () => {
   if (error || !data?.data) {
     return (
       <div className="p-4">
-        <button onClick={() => (window.history.length > 1 ? router.history.back() : undefined)} className="text-sm">
+        <button
+          onClick={() => (window.history.length > 1 ? router.history.back() : routes.dashboard)}
+          className="text-sm"
+        >
           ← Back
         </button>
         <p className="mt-4 text-red-600">Unable to load task.</p>
