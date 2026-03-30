@@ -5,6 +5,9 @@ import { useUpdateTask } from '@/client/hooks/use-tasks'
 import { StatusIcon } from '@/client/components/ui/status-icon'
 import type { Task, TaskStatus } from '@/shared/task'
 import { handleQuickStatusUpdate } from '@/client/utils/task-status-update'
+import { useNavigate } from '@tanstack/react-router'
+import { useIsDesktop } from '@/client/hooks/use-media-query'
+import { routes } from '@/client/routes/routes'
 
 const SIZE_CONFIG = {
   big: { label: 'Big', Icon: Zap, cls: 'bg-amber-500/10 text-amber-400 border-amber-500/25' },
@@ -12,10 +15,20 @@ const SIZE_CONFIG = {
   small: { label: 'Small', Icon: Layers, cls: 'bg-slate-500/10 text-slate-400 border-slate-500/25' },
 }
 
-const TodayCard = ({ task }: { task: Task }) => {
+const TodayCard = ({ task, onSelect }: { task: Task; onSelect?: () => void }) => {
   const [open, setOpen] = useState(false)
   const { formatDate } = useTodayCard()
   const updateTask = useUpdateTask(task.id)
+  const navigate = useNavigate()
+  const isDesktop = useIsDesktop()
+
+  const handleCardClick = () => {
+    if (isDesktop) {
+      onSelect?.()
+    } else {
+      void navigate({ to: routes.taskDetails(task.id) })
+    }
+  }
 
   const handleStatusChange = async (newStatus: TaskStatus, additionalUpdates: Partial<Omit<Task, 'status'>> = {}) => {
     if (updateTask.isPending) return
@@ -71,14 +84,16 @@ const TodayCard = ({ task }: { task: Task }) => {
 
   return (
     <div
+      onClick={handleCardClick}
       className={`group relative flex flex-col gap-2.5 rounded-xl border px-4 py-3.5
       bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/70 hover:border-slate-600/70
-      transition-all duration-150 ${dim ? 'opacity-40' : ''}`}
+      transition-all duration-150 cursor-pointer ${dim ? 'opacity-40' : ''}`}
     >
       <span className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-full ${PIPDOT[priority]} opacity-60`} />
       <div className="flex items-start gap-2.5">
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation()
             void handleStatusChange(handleStatusIconClick())
           }}
           className="mt-0.5 shrink-0 active:scale-90 transition-transform"
@@ -101,7 +116,10 @@ const TodayCard = ({ task }: { task: Task }) => {
         </div>
         <div className="relative">
           <button
-            onClick={() => setOpen((v) => !v)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setOpen((v) => !v)
+            }}
             className="h-6 w-6 flex items-center justify-center rounded opacity-100 lg:opacity-0 lg:group-hover:opacity-100
               text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition-opacity"
             title="More actions"
@@ -116,7 +134,8 @@ const TodayCard = ({ task }: { task: Task }) => {
             >
               {task.status !== 'in_progress' && task.status !== 'completed' && (
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation()
                     if (task.status === 'blocked') {
                       void handleStatusChange('in_progress', {
                         blockedReason: '',
@@ -135,7 +154,8 @@ const TodayCard = ({ task }: { task: Task }) => {
               )}
               {task.status !== 'completed' && (
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation()
                     void handleStatusChange('completed')
                     setOpen(false)
                   }}
@@ -161,7 +181,8 @@ const TodayCard = ({ task }: { task: Task }) => {
               )} */}
               {task.status !== 'cancelled' && (
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation()
                     void handleStatusChange('cancelled')
                     setOpen(false)
                   }}

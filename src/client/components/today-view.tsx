@@ -6,6 +6,8 @@ import { useTodayTasks } from '@/client/hooks/use-tasks'
 import type { Task } from '@/shared/task'
 import { Link } from '@tanstack/react-router'
 import { routes } from '@/client/routes/routes'
+import { useIsDesktop } from '@/client/hooks/use-media-query'
+import { TaskDetailsSidebar } from '@/client/components/task-details-sidebar'
 
 const FILTERS = [
   { value: 'all', label: 'All' },
@@ -25,7 +27,9 @@ export default function TodayView() {
   const [filter, setFilter] = useState('all')
   const [showEmpty, setShowEmpty] = useState(false)
   const [showDone, setShowDone] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const { getTaskUrgency } = useTodayCard()
+  const isDesktop = useIsDesktop()
 
   const { data: todayTasks, isLoading, error, refetch } = useTodayTasks()
   const tasks = todayTasks?.data || []
@@ -64,7 +68,15 @@ export default function TodayView() {
       return (
         <>
           {filteredTasks.length > 0 ? (
-            COLUMNS.map((c) => <TodayColumn key={c} bucket={c} tasks={buckets[c] as Task[]} showEmpty={showEmpty} />)
+            COLUMNS.map((c) => (
+              <TodayColumn
+                key={c}
+                bucket={c}
+                tasks={buckets[c] as Task[]}
+                showEmpty={showEmpty}
+                onTaskSelect={isDesktop ? setSelectedTask : undefined}
+              />
+            ))
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <p className="text-sm">
@@ -189,6 +201,16 @@ export default function TodayView() {
 
         {/* Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">{renderColumns()}</div>
+
+        {isDesktop && (
+          <TaskDetailsSidebar
+            task={selectedTask!}
+            open={!!selectedTask}
+            onOpenChange={(open) => {
+              if (!open) setSelectedTask(null)
+            }}
+          />
+        )}
 
         {/* Labels Grid */}
         {filteredTasks.length > 0 ? (
