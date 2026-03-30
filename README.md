@@ -29,6 +29,7 @@ Do It is a full-stack task management solution that streamlines your workflow wi
 - **Real-time Updates** - Instant UI updates powered by optimistic mutations and smart caching
 - **Search & Filter** - Quickly find tasks using search functionality and filter by priority
 - **Kanban-Style Dashboard** - Visual task organization with status columns for desktop view
+- **Today Tasks View** - Visual task organization for tasks to be started by or due today
 - **Mobile-Optimized Views** - Dedicated mobile layouts with expandable status sections and swipe-friendly interactions
 - **Inline Editing** - Edit task names directly from cards for quick updates
 
@@ -98,7 +99,6 @@ The application follows a modern monorepo structure with clear separation of con
 
 ## Future Enhancements
 
-- **Current Tasks Dashboard** - Visualize the current days' tasks
 - **Active Timer & Time Logging** - Log time spent on tasks with built-in timer and customizable Pomodoro timer (to help with time management) and manual entry
 - **Task Comments & Activity Log** - Track changes and maintain audit history
 - **Calendar Integration** - Sync tasks with external calendars (Google Calendar, Outlook)
