@@ -36,8 +36,22 @@ export const TaskCard = ({ task, onEdit, onBlock, onSelect }: TaskCardProps) => 
     }
   }
 
+  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleCardClick()
+    }
+  }
+
   return (
-    <Card className="mb-3 hover:shadow-md transition-all group" onClick={handleCardClick}>
+    <Card
+      className="mb-3 hover:shadow-md transition-all group"
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`View details for ${task.name}`}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-2 flex-1 min-w-0">
