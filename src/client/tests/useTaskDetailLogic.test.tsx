@@ -379,6 +379,55 @@ describe('useTaskDetailLogic', () => {
     })
   })
 
+  it('onDeleteRequest on non-desktop does NOT invoke onClose', async () => {
+    // Force isDesktop → false by making every media query return non-matching.
+    const savedMatchMedia = window.matchMedia
+    // @ts-ignore
+    window.matchMedia = (query: string) =>
+      ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }) as MediaQueryList
+
+    try {
+      const qc = createClient()
+      let closeCalled = 0
+      // @ts-ignore
+      apiClient.delete = async () => makeResponse(null as any)
+
+      const { result } = renderHook(
+        () =>
+          useTaskDetailLogic({
+            task: task(),
+            onClose: () => {
+              closeCalled++
+            },
+          }),
+        {
+          wrapper: (p) => <Wrapper client={qc} {...p} />,
+        },
+      )
+
+      await new Promise((r) => setTimeout(r, 10))
+
+      await result.current.onDeleteRequest()
+
+      // Non-desktop path should navigate (history.back or dashboard), not call onClose.
+      await waitFor(() => {
+        expect(closeCalled).toBe(0)
+      })
+    } finally {
+      // @ts-ignore
+      window.matchMedia = savedMatchMedia
+    }
+  })
+
   it('returns isUpdating and isDeleting flags', async () => {
     const qc = createClient()
     const { result } = renderHook(() => useTaskDetailLogic({ task: task() }), {
