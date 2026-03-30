@@ -84,9 +84,9 @@ const TaskDashboard = () => {
             />
           ))}
         </div>
-        {isDesktop && (
+        {isDesktop && selectedTask && (
           <TaskDetailsSidebar
-            task={selectedTask!}
+            task={selectedTask}
             open={!!selectedTask}
             onOpenChange={(open) => {
               setSelectedTask(null)

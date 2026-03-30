@@ -45,10 +45,12 @@ function TodayColumn({
   bucket,
   tasks,
   showEmpty = true,
+  onTaskSelect,
 }: {
   bucket: 'overdue' | 'due-today' | 'start-today' | 'upcoming'
   tasks: Task[]
   showEmpty?: boolean
+  onTaskSelect?: (task: Task) => void
 }) {
   const config = BUCKET_CONFIG[bucket]
   if (!tasks.length && !showEmpty) return null
@@ -74,7 +76,7 @@ function TodayColumn({
       </div>
       <div className="flex flex-col gap-2">
         {tasks.map((t) => (
-          <TodayCard key={t.id} task={t} />
+          <TodayCard key={t.id} task={t} onSelect={onTaskSelect ? () => onTaskSelect(t) : undefined} />
         ))}
         {tasks.length === 0 && (
           <div

@@ -1,4 +1,4 @@
-import { useParams, Navigate, Link, useSearch } from '@tanstack/react-router'
+import { useParams, Navigate, useSearch, useRouter } from '@tanstack/react-router'
 import type { Task } from '@/shared/task'
 import { useTaskDetailLogic } from '@/client/hooks/useTaskDetailLogic'
 import { TaskDetailsContent } from '@/client/components/task-details-content'
@@ -10,6 +10,7 @@ import { MobilePageLayout } from '@/client/components/mobile-page-layout'
 
 const TaskDetailsScreen = ({ task, initialIsEditing }: { task: Task; initialIsEditing?: boolean }) => {
   const taskDetailLogic = useTaskDetailLogic({ task, initialIsEditing })
+  const router = useRouter()
 
   const renderHeaderName = () => {
     const showEdit = !taskDetailLogic.isEditing
@@ -28,6 +29,7 @@ const TaskDetailsScreen = ({ task, initialIsEditing }: { task: Task; initialIsEd
   return (
     <MobilePageLayout
       title={renderHeaderName()}
+      onBack={() => (window.history.length > 1 ? router.history.back() : routes.dashboard)}
       right={
         !taskDetailLogic.isEditing && (
           <Button
@@ -50,6 +52,7 @@ const TaskDetailsScreen = ({ task, initialIsEditing }: { task: Task; initialIsEd
 export const TaskPage = () => {
   const { taskId }: { taskId: string } = useParams({ strict: false })
   const search = useSearch({ strict: false }) as { edit?: boolean }
+  const router = useRouter()
 
   if (!taskId) {
     return <Navigate to={routes.dashboard} />
@@ -64,9 +67,12 @@ export const TaskPage = () => {
   if (error || !data?.data) {
     return (
       <div className="p-4">
-        <Link to={routes.dashboard} className="text-sm">
+        <button
+          onClick={() => (window.history.length > 1 ? router.history.back() : routes.dashboard)}
+          className="text-sm"
+        >
           ← Back
-        </Link>
+        </button>
         <p className="mt-4 text-red-600">Unable to load task.</p>
       </div>
     )

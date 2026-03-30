@@ -1,7 +1,7 @@
 import React from 'react'
 import type { Task, TaskStatus } from '@/shared/task'
 import { useUpdateTask, useDeleteTask } from './use-tasks'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useRouter } from '@tanstack/react-router'
 import { useIsDesktop } from '@/client/hooks/use-media-query'
 import { routes } from '@/client/routes/routes'
 import { handleQuickStatusUpdate } from '@/client/utils/task-status-update'
@@ -19,6 +19,7 @@ interface UseTaskDetailLogicProps {
 export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: UseTaskDetailLogicProps) => {
   const [isEditing, setIsEditing] = React.useState(initialIsEditing)
   const navigate = useNavigate()
+  const router = useRouter()
   const isDesktop = useIsDesktop()
 
   const updateTask = useUpdateTask(task.id)
@@ -75,8 +76,10 @@ export const useTaskDetailLogic = ({ task, onClose, initialIsEditing = false }: 
 
       if (isDesktop && onClose) {
         onClose()
+      } else if (window.history.length > 1) {
+        router.history.back()
       } else {
-        navigate({ to: routes.dashboard }) // Navigate back on mobile
+        navigate({ to: routes.dashboard })
       }
     } catch (error) {
       console.error('Error deleting task:', error)
