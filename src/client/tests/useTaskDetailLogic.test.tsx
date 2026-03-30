@@ -1,5 +1,5 @@
 import React from 'react'
-import { describe, it, expect, afterEach } from 'bun:test'
+import { describe, it, expect, afterEach, spyOn } from 'bun:test'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useTaskDetailLogic } from '@/client/hooks/useTaskDetailLogic'
@@ -377,6 +377,30 @@ describe('useTaskDetailLogic', () => {
       // On desktop with onClose provided, it should call onClose
       expect(closeCalled).toBe(1)
     })
+  })
+
+  it('onDeleteRequest uses browser history back when there is navigation history and no onClose', async () => {
+    const qc = createClient()
+    // @ts-ignore
+    apiClient.delete = async () => makeResponse(null as any)
+
+    // Ensure history depth is greater than 1 so the back-navigation branch is taken.
+    window.history.pushState({}, '', '/task-history-back-test')
+    const historyBackSpy = spyOn(window.history, 'back')
+
+    const { result } = renderHook(() => useTaskDetailLogic({ task: task() }), {
+      wrapper: (p) => <Wrapper client={qc} {...p} />,
+    })
+
+    await new Promise((r) => setTimeout(r, 10))
+
+    await result.current.onDeleteRequest()
+
+    await waitFor(() => {
+      expect(historyBackSpy).toHaveBeenCalledTimes(1)
+    })
+
+    historyBackSpy.mockRestore()
   })
 
   it('returns isUpdating and isDeleting flags', async () => {
