@@ -202,9 +202,9 @@ export default function TodayView() {
         {/* Columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">{renderColumns()}</div>
 
-        {isDesktop && (
+        {isDesktop && selectedTask && (
           <TaskDetailsSidebar
-            task={selectedTask!}
+            task={selectedTask}
             open={!!selectedTask}
             onOpenChange={(open) => {
               if (!open) setSelectedTask(null)
