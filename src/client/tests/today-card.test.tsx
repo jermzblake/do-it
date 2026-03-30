@@ -91,9 +91,7 @@ describe('TodayCard', () => {
         </Wrapper>,
       )
 
-      await new Promise((r) => setTimeout(r, 10))
-
-      const card = screen.getByRole('button', { name: /view details for test task/i })
+      const card = await screen.findByRole('button', { name: /view details for test task/i })
       fireEvent.click(card)
 
       await waitFor(() => {
@@ -104,21 +102,23 @@ describe('TodayCard', () => {
     it('does not throw when card is clicked with no onSelect provided', async () => {
       const qc = createClient()
 
-      const { container } = render(
+      render(
         <Wrapper client={qc}>
           <TodayCard task={task()} />
         </Wrapper>,
       )
 
-      await new Promise((r) => setTimeout(r, 10))
-
-      const card = container.querySelector('.group') as Element
+      const card = await screen.findByRole('button', { name: /view details for test task/i })
       // Must not throw
       fireEvent.click(card)
     })
   })
 
   describe('event propagation boundaries', () => {
+    beforeEach(() => {
+      setMatchMedia(true)
+    })
+
     it('clicking the status icon does NOT call onSelect', async () => {
       const qc = createClient()
       // @ts-ignore
@@ -135,9 +135,7 @@ describe('TodayCard', () => {
         </Wrapper>,
       )
 
-      await new Promise((r) => setTimeout(r, 10))
-
-      const statusBtn = screen.getByTitle('Mark as Completed')
+      const statusBtn = await screen.findByTitle('Mark as Completed')
       fireEvent.click(statusBtn)
 
       // Give any async handlers a chance to run, then assert no side-effect
@@ -160,13 +158,12 @@ describe('TodayCard', () => {
         </Wrapper>,
       )
 
-      await new Promise((r) => setTimeout(r, 10))
-
-      const overflowBtn = screen.getByTitle('More actions')
+      const overflowBtn = await screen.findByTitle('More actions')
       fireEvent.click(overflowBtn)
 
-      await new Promise((r) => setTimeout(r, 10))
-      expect(selectCalled).toBe(0)
+      await waitFor(() => {
+        expect(selectCalled).toBe(0)
+      })
     })
 
     it('clicking an overflow menu action does NOT call onSelect', async () => {
@@ -185,14 +182,11 @@ describe('TodayCard', () => {
         </Wrapper>,
       )
 
-      await new Promise((r) => setTimeout(r, 10))
-
       // Open the overflow menu
-      fireEvent.click(screen.getByTitle('More actions'))
-      await new Promise((r) => setTimeout(r, 10))
+      fireEvent.click(await screen.findByTitle('More actions'))
 
       // Click "Mark Complete" from the menu
-      fireEvent.click(screen.getByText('Mark Complete'))
+      fireEvent.click(await screen.findByText('Mark Complete'))
 
       await waitFor(() => {
         expect(selectCalled).toBe(0)
@@ -215,12 +209,9 @@ describe('TodayCard', () => {
         </Wrapper>,
       )
 
-      await new Promise((r) => setTimeout(r, 10))
+      fireEvent.click(await screen.findByTitle('More actions'))
 
-      fireEvent.click(screen.getByTitle('More actions'))
-      await new Promise((r) => setTimeout(r, 10))
-
-      fireEvent.click(screen.getByText('Cancel'))
+      fireEvent.click(await screen.findByText('Cancel'))
 
       await waitFor(() => {
         expect(selectCalled).toBe(0)
