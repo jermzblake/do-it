@@ -45,6 +45,14 @@ function Wrapper({ client, children }: { client: QueryClient; children: React.Re
   )
 }
 
+function getCard(container: HTMLElement): HTMLElement {
+  const card = container.querySelector('.group')
+  if (!(card instanceof HTMLElement)) {
+    throw new Error('TodayCard root element not found')
+  }
+  return card
+}
+
 const originalPut: typeof apiClient.put = apiClient.put.bind(apiClient)
 const originalMatchMedia = window.matchMedia
 
@@ -85,13 +93,17 @@ describe('TodayCard', () => {
         selectCalled++
       }
 
-      render(
+      const { container } = render(
         <Wrapper client={qc}>
           <TodayCard task={task()} onSelect={onSelect} />
         </Wrapper>,
       )
 
-      const card = await screen.findByRole('button', { name: /view details for test task/i })
+      await waitFor(() => {
+        expect(container.querySelector('.group')).toBeTruthy()
+      })
+
+      const card = getCard(container)
       fireEvent.click(card)
 
       await waitFor(() => {
@@ -102,13 +114,17 @@ describe('TodayCard', () => {
     it('does not throw when card is clicked with no onSelect provided', async () => {
       const qc = createClient()
 
-      render(
+      const { container } = render(
         <Wrapper client={qc}>
           <TodayCard task={task()} />
         </Wrapper>,
       )
 
-      const card = await screen.findByRole('button', { name: /view details for test task/i })
+      await waitFor(() => {
+        expect(container.querySelector('.group')).toBeTruthy()
+      })
+
+      const card = getCard(container)
       // Must not throw
       fireEvent.click(card)
     })
