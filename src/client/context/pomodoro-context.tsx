@@ -96,7 +96,7 @@ const INITIAL_STATE: PomodoroState = {
 
 interface PomodoroContextValue {
   state: PomodoroState
-  startSession: (task: Pick<Task, 'id' | 'name'>) => void
+  startSession: (task: Pick<Task, 'id' | 'name'>, modeOverride?: PomodoroModeKey) => void
   pauseResume: () => void
   reset: () => void
   endSession: () => void
@@ -218,16 +218,17 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   // ---------------------------------------------------------------------------
 
   const startSession = useCallback(
-    (task: Pick<Task, 'id' | 'name'>) => {
+    (task: Pick<Task, 'id' | 'name'>, modeOverride?: PomodoroModeKey) => {
       requestNotificationPermission()
       clearTick()
       flowtimeStopwatchRef.current = 0
 
       setState((prev) => {
-        const mode = POMODORO_MODES[prev.mode]
+        const activeMode = modeOverride ?? prev.mode
+        const mode = POMODORO_MODES[activeMode]
         const newState: PomodoroState = {
           ...INITIAL_STATE,
-          mode: prev.mode,
+          mode: activeMode,
           flowtimeRestMinutes: prev.flowtimeRestMinutes,
           taskId: task.id,
           taskName: task.name,
