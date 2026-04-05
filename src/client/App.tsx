@@ -3,6 +3,8 @@ import { router } from './routes'
 import '.././index.css'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
 import { Toaster } from '@/client/components/ui/sonner'
+import { PomodoroProvider } from '@/client/context/pomodoro-context'
+import { PomodoroPanel } from '@/client/components/pomodoro-panel'
 
 const queryClient = new QueryClient()
 
@@ -10,8 +12,11 @@ const queryClient = new QueryClient()
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster />
+      <PomodoroProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+        <PomodoroPanel />
+      </PomodoroProvider>
     </QueryClientProvider>
   )
 }
