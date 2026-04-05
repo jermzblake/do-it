@@ -77,8 +77,8 @@ export function PomodoroPanel() {
   return (
     <div
       className={cn(
-        'fixed z-50 bottom-0 left-0 right-0',
-        'md:bottom-4 md:left-auto md:right-4 md:w-80',
+        'fixed z-[60] bottom-0 left-0 right-0',
+        'md:top-4 md:left-4 md:bottom-auto md:right-auto md:w-80',
         'bg-white border border-slate-200 shadow-2xl',
         'rounded-t-2xl md:rounded-2xl',
         'transition-all duration-200',
