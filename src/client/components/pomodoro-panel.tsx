@@ -54,8 +54,8 @@ export function PomodoroPanel() {
 
   const [collapsed, setCollapsed] = useState(false)
 
-  // Stopwatch display for Flowtime work phase (counts up using elapsed work time)
-  const stopwatchSeconds = state.secondsElapsedWork
+  // Flowtime uses a per-interval stopwatch; total elapsed work is displayed separately below.
+  const stopwatchSeconds = state.flowtimeWorkSeconds
 
   // Don't render when no session is active
   if (state.status === 'idle' && state.taskId === null) return null

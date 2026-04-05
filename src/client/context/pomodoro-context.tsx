@@ -72,6 +72,8 @@ export interface PomodoroState {
   secondsRemaining: number | null
   /** Elapsed seconds spent in work phases across all intervals. */
   secondsElapsedWork: number
+  /** Stopwatch seconds for the current Flowtime work interval only. */
+  flowtimeWorkSeconds: number
   /** Elapsed seconds spent in rest phases across all intervals. */
   secondsElapsedRest: number
   /** Configurable rest duration for Flowtime mode, in minutes. */
@@ -86,6 +88,7 @@ const INITIAL_STATE: PomodoroState = {
   status: 'idle',
   secondsRemaining: null,
   secondsElapsedWork: 0,
+  flowtimeWorkSeconds: 0,
   secondsElapsedRest: 0,
   flowtimeRestMinutes: 10,
 }
@@ -121,9 +124,6 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
   const startTickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Track whether notification permission has been requested this session
   const notificationRequestedRef = useRef(false)
-
-  // Stopwatch counter for Flowtime work phase (seconds elapsed this interval)
-  const flowtimeStopwatchRef = useRef(0)
 
   const clearPendingTickStart = useCallback(() => {
     if (startTickTimeoutRef.current !== null) {
@@ -161,8 +161,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
 
           // Flowtime work phase: count up (stopwatch)
           if (prev.phase === 'work' && mode.workSeconds === null) {
-            flowtimeStopwatchRef.current += 1
-            return { ...prev, secondsElapsedWork: prev.secondsElapsedWork + 1 }
+            return {
+              ...prev,
+              secondsElapsedWork: prev.secondsElapsedWork + 1,
+              flowtimeWorkSeconds: prev.flowtimeWorkSeconds + 1,
+            }
           }
 
           if (prev.secondsRemaining === null) return prev
@@ -239,7 +242,6 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     (task: Pick<Task, 'id' | 'name'>, modeOverride?: PomodoroModeKey) => {
       requestNotificationPermission()
       clearTick()
-      flowtimeStopwatchRef.current = 0
 
       setState((prev) => {
         const activeMode = modeOverride ?? prev.mode
@@ -294,15 +296,11 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       const secondsRemaining =
         prev.phase === 'work' ? mode.workSeconds : (mode.restSeconds ?? prev.flowtimeRestMinutes * 60)
 
-      // Flowtime work resets stopwatch
-      if (prev.phase === 'work' && mode.workSeconds === null) {
-        flowtimeStopwatchRef.current = 0
-      }
-
       return {
         ...prev,
         status: 'running',
         secondsRemaining,
+        flowtimeWorkSeconds: prev.phase === 'work' && mode.workSeconds === null ? 0 : prev.flowtimeWorkSeconds,
       }
     })
     scheduleTickStart()
@@ -310,7 +308,6 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
 
   const endSession = useCallback(() => {
     clearTick()
-    flowtimeStopwatchRef.current = 0
     setState(INITIAL_STATE)
   }, [clearTick])
 
