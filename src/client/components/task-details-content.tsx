@@ -51,7 +51,12 @@ export const TaskDetailsContent = ({
   isDeleting,
 }: TaskDetailsContentProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
-  const { buttonLabel: pomodoroButtonLabel, startPomodoroForTask } = useTaskPomodoroAction({
+  const {
+    buttonLabel: pomodoroButtonLabel,
+    selectedMode: pomodoroSelectedMode,
+    onSelectedModeChange: onPomodoroSelectedModeChange,
+    startPomodoroForTask,
+  } = useTaskPomodoroAction({
     id: task.id,
     name: task.name,
   })
@@ -227,6 +232,8 @@ export const TaskDetailsContent = ({
       {!isEditing && (task?.status === 'todo' || task?.status === 'in_progress') && (
         <TaskFocusSessionAction
           buttonLabel={pomodoroButtonLabel}
+          selectedMode={pomodoroSelectedMode}
+          onSelectedModeChange={onPomodoroSelectedModeChange}
           onStart={startPomodoroForTask}
           disabled={isUpdating || isDeleting}
         />
