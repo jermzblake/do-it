@@ -117,18 +117,28 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
 
   // Use a ref for the interval so tick callbacks always have fresh access
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Track deferred tick starts so they can be canceled during resets/ends
+  const startTickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Track whether notification permission has been requested this session
   const notificationRequestedRef = useRef(false)
 
   // Stopwatch counter for Flowtime work phase (seconds elapsed this interval)
   const flowtimeStopwatchRef = useRef(0)
 
+  const clearPendingTickStart = useCallback(() => {
+    if (startTickTimeoutRef.current !== null) {
+      clearTimeout(startTickTimeoutRef.current)
+      startTickTimeoutRef.current = null
+    }
+  }, [])
+
   const clearTick = useCallback(() => {
+    clearPendingTickStart()
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current)
       intervalRef.current = null
     }
-  }, [])
+  }, [clearPendingTickStart])
 
   // Request notification permission once on first session start
   const requestNotificationPermission = useCallback(async () => {
@@ -210,6 +220,14 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
     stateRef.current = state
   }, [state])
 
+  const scheduleTickStart = useCallback(() => {
+    clearPendingTickStart()
+    startTickTimeoutRef.current = setTimeout(() => {
+      startTickTimeoutRef.current = null
+      startTick(() => stateRef.current)
+    }, 0)
+  }, [clearPendingTickStart, startTick])
+
   // Clean up on unmount
   useEffect(() => () => clearTick(), [clearTick])
 
@@ -241,11 +259,9 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
       })
 
       // We can't call startTick inside setState, so defer 1 frame
-      setTimeout(() => {
-        startTick(() => stateRef.current)
-      }, 0)
+      scheduleTickStart()
     },
-    [clearTick, requestNotificationPermission, startTick],
+    [clearTick, requestNotificationPermission, scheduleTickStart],
   )
 
   const pauseResume = useCallback(() => {
@@ -289,10 +305,8 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         secondsRemaining,
       }
     })
-    setTimeout(() => {
-      startTick(() => stateRef.current)
-    }, 0)
-  }, [clearTick, startTick])
+    scheduleTickStart()
+  }, [clearTick, scheduleTickStart])
 
   const endSession = useCallback(() => {
     clearTick()
@@ -324,10 +338,8 @@ export function PomodoroProvider({ children }: { children: React.ReactNode }) {
         secondsRemaining: prev.flowtimeRestMinutes * 60,
       }
     })
-    setTimeout(() => {
-      startTick(() => stateRef.current)
-    }, 0)
-  }, [clearTick, startTick])
+    scheduleTickStart()
+  }, [clearTick, scheduleTickStart])
 
   const value: PomodoroContextValue = {
     state,
