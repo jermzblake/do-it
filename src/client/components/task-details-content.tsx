@@ -18,12 +18,14 @@ import {
   AlertDialogTitle,
 } from '@/client/components/ui/alert-dialog'
 import { Clock, AlertCircle, CheckCircle2, Pause, Trash2, Edit2, MessageSquare, Loader2 } from 'lucide-react'
+import { useTaskPomodoroAction } from '@/client/hooks/use-task-pomodoro-action'
 import { DateTimePicker } from '@/client/components/datetime-picker'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { TaskFormSchema } from '@/client/types/form.types'
 import { Label } from './ui/label'
+import { TaskFocusSessionAction } from '@/client/components/task-focus-session-action'
 
 interface TaskDetailsContentProps {
   task: Task
@@ -49,6 +51,10 @@ export const TaskDetailsContent = ({
   isDeleting,
 }: TaskDetailsContentProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
+  const { buttonLabel: pomodoroButtonLabel, startPomodoroForTask } = useTaskPomodoroAction({
+    id: task.id,
+    name: task.name,
+  })
 
   const {
     register,
@@ -215,6 +221,15 @@ export const TaskDetailsContent = ({
             </Button>
           )}
         </div>
+      )}
+
+      {/* POMODORO ACTION */}
+      {!isEditing && (task?.status === 'todo' || task?.status === 'in_progress') && (
+        <TaskFocusSessionAction
+          buttonLabel={pomodoroButtonLabel}
+          onStart={startPomodoroForTask}
+          disabled={isUpdating || isDeleting}
+        />
       )}
 
       <Separator />
