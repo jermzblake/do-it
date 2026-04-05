@@ -1,9 +1,11 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { Task } from '@/shared/task'
-import { usePomodoroTimer } from '@/client/context/pomodoro-context'
+import { DEFAULT_MODE, type PomodoroModeKey, usePomodoroTimer } from '@/client/context/pomodoro-context'
 
 interface UseTaskPomodoroActionResult {
   buttonLabel: string
+  selectedMode: PomodoroModeKey
+  onSelectedModeChange: (mode: PomodoroModeKey) => void
   startPomodoroForTask: () => void
 }
 
@@ -13,6 +15,7 @@ interface UseTaskPomodoroActionResult {
  */
 export function useTaskPomodoroAction(task: Pick<Task, 'id' | 'name'>): UseTaskPomodoroActionResult {
   const { state, startSession } = usePomodoroTimer()
+  const [selectedMode, setSelectedMode] = useState<PomodoroModeKey>(state.mode ?? DEFAULT_MODE)
 
   const buttonLabel = useMemo(
     () => (state.taskId === task.id ? 'Restart Focus Timer' : 'Start Focus Timer'),
@@ -29,11 +32,13 @@ export function useTaskPomodoroAction(task: Pick<Task, 'id' | 'name'>): UseTaskP
       if (!confirmed) return
     }
 
-    startSession({ id: task.id, name: task.name })
-  }, [startSession, state.taskId, state.taskName, task.id, task.name])
+    startSession({ id: task.id, name: task.name }, selectedMode)
+  }, [selectedMode, startSession, state.taskId, state.taskName, task.id, task.name])
 
   return {
     buttonLabel,
+    selectedMode,
+    onSelectedModeChange: setSelectedMode,
     startPomodoroForTask,
   }
 }
