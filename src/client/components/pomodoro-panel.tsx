@@ -58,15 +58,6 @@ export function PomodoroPanel() {
   // Flowtime uses a per-interval stopwatch; total elapsed work is displayed separately below.
   const stopwatchSeconds = state.flowtimeWorkSeconds
 
-  // Don't render when no session is active
-  if (state.status === 'idle' && state.taskId === null) return null
-
-  const isFlowtime = state.mode === 'flowtime'
-  const isFlowtimeWork = isFlowtime && state.phase === 'work'
-  const showFlowtimeRestSelector = isFlowtimeWork && state.status === 'paused'
-  const showModeChangeResetHint =
-    state.status === 'paused' && modeAtPauseStart !== null && state.mode !== modeAtPauseStart
-
   useEffect(() => {
     if (state.status !== 'paused') {
       setModeAtPauseStart(null)
@@ -75,6 +66,15 @@ export function PomodoroPanel() {
 
     setModeAtPauseStart((prev) => prev ?? state.mode)
   }, [state.mode, state.status])
+
+  // Don't render when no session is active
+  if (state.status === 'idle' && state.taskId === null) return null
+
+  const isFlowtime = state.mode === 'flowtime'
+  const isFlowtimeWork = isFlowtime && state.phase === 'work'
+  const showFlowtimeRestSelector = isFlowtimeWork && state.status === 'paused'
+  const showModeChangeResetHint =
+    state.status === 'paused' && modeAtPauseStart !== null && state.mode !== modeAtPauseStart
 
   const timeDisplay = isFlowtimeWork
     ? formatSeconds(stopwatchSeconds) // Stopwatch counts up
