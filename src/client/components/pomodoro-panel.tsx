@@ -85,10 +85,10 @@ export function PomodoroPanel() {
       )}
     >
       {/* Header — always visible */}
-      <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer select-none"
+      <button
+        type="button"
+        className="flex w-full items-center justify-between px-4 py-3 cursor-pointer select-none"
         onClick={() => setCollapsed((c) => !c)}
-        role="button"
         aria-expanded={!collapsed}
         aria-label={collapsed ? 'Expand pomodoro timer' : 'Collapse pomodoro timer'}
       >
@@ -109,7 +109,7 @@ export function PomodoroPanel() {
             <ChevronDown className="size-4 text-slate-500" />
           )}
         </div>
-      </div>
+      </button>
 
       {/* Expanded body */}
       {!collapsed && (
