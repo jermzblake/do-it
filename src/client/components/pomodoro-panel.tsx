@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronUp, Play, Pause, RotateCcw, X, Timer, Coffee, Minus, Plus } from 'lucide-react'
 import { Button } from '@/client/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/client/components/ui/select'
@@ -53,6 +53,7 @@ export function PomodoroPanel() {
     usePomodoroTimer()
 
   const [collapsed, setCollapsed] = useState(false)
+  const [modeAtPauseStart, setModeAtPauseStart] = useState<PomodoroModeKey | null>(null)
 
   // Flowtime uses a per-interval stopwatch; total elapsed work is displayed separately below.
   const stopwatchSeconds = state.flowtimeWorkSeconds
@@ -63,6 +64,17 @@ export function PomodoroPanel() {
   const isFlowtime = state.mode === 'flowtime'
   const isFlowtimeWork = isFlowtime && state.phase === 'work'
   const showFlowtimeRestSelector = isFlowtimeWork && state.status === 'paused'
+  const showModeChangeResetHint =
+    state.status === 'paused' && modeAtPauseStart !== null && state.mode !== modeAtPauseStart
+
+  useEffect(() => {
+    if (state.status !== 'paused') {
+      setModeAtPauseStart(null)
+      return
+    }
+
+    setModeAtPauseStart((prev) => prev ?? state.mode)
+  }, [state.mode, state.status])
 
   const timeDisplay = isFlowtimeWork
     ? formatSeconds(stopwatchSeconds) // Stopwatch counts up
@@ -129,6 +141,12 @@ export function PomodoroPanel() {
                 ))}
               </SelectContent>
             </Select>
+
+            {showModeChangeResetHint && (
+              <p className="mt-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-800">
+                Mode changed while paused. Press Reset for the new timing to take effect.
+              </p>
+            )}
           </div>
 
           {/* Big time display */}
@@ -208,6 +226,9 @@ export function PomodoroPanel() {
               onClick={reset}
               title="Reset current phase"
               aria-label="Reset current phase"
+              className={cn(
+                showModeChangeResetHint && 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100',
+              )}
             >
               <RotateCcw className="size-4" />
             </Button>
