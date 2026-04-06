@@ -68,6 +68,15 @@ bun start
 - `bun test` - Run tests with the configured test setup
 - `bun docker:dev` - Start the Docker PostgreSQL container
 
+## Pomodoro Quick Check
+
+After `bun dev`, verify the Pomodoro feature quickly:
+
+1. Open any task and use the **Focus Session** split button to select a mode and start.
+2. Confirm the floating panel appears (mobile: bottom dock, desktop: top-left).
+3. Pause, resume, reset, and end the session.
+4. In Flowtime mode, verify reset clears the visible stopwatch and rest duration can be adjusted in 5-minute steps.
+
 ## Tech Stack
 
 This project uses:

@@ -17,11 +17,27 @@ Focused tests validate our React Query hooks and cache behavior:
 - `useDeleteTask`
   - Optimistically removes the task from all lists; no refetch
 
+Pomodoro timer tests validate protocol selection, start behavior, and timer-phase transitions:
+
+- `pomodoro-context`
+  - Starts with default mode and honors mode overrides
+  - Protects mode changes while running
+  - Automatically transitions from work to rest when work time completes
+  - Flowtime reset clears the current stopwatch display while preserving aggregate elapsed work
+- `use-task-pomodoro-action`
+  - Uses selected mode when starting
+  - Handles replace-session confirmation branches (accept/decline)
+  - Returns correct button labels for start vs. restart
+- `task-focus-session-action`
+  - Renders split-button UI (start + mode picker)
+  - Wires primary click and disabled state behavior
+
 Test files live here:
 
 - Hook tests: `src/client/tests/use-tasks.test.tsx`
 - Component/Dialog tests: `src/client/tests/create-task-dialog.guard.test.tsx`, `src/client/tests/edit-task-dialog.guard.test.tsx`
 - Utility/Helper tests: `src/client/tests/is-overdue.test.ts`
+- Pomodoro tests: `src/client/tests/pomodoro-context.test.tsx`, `src/client/tests/use-task-pomodoro-action.test.tsx`, `src/client/tests/task-focus-session-action.test.tsx`
 - Test utilities: `src/client/tests/test-utils.tsx`
 - Test environment setup: `tests/setup.ts`
 
@@ -65,6 +81,12 @@ Alternatively, use the npm script:
 
 ```sh
 bun run test
+```
+
+Run only Pomodoro-related tests:
+
+```sh
+bun run test src/client/tests/pomodoro-context.test.tsx src/client/tests/use-task-pomodoro-action.test.tsx src/client/tests/task-focus-session-action.test.tsx
 ```
 
 ## Test environment

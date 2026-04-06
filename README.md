@@ -36,6 +36,9 @@ Do It is a full-stack task management solution that streamlines your workflow wi
 ### Advanced Functionality
 
 - **Task Details Sidebar** - Desktop side panel for viewing and editing full task details without page navigation
+- **Pomodoro Focus Timer** - Start focused work sessions directly from task details with selectable protocols: Standard (25/5), Feature Development (50/10), Architecture/Refactoring (90/20), Incident Response (15/3), and Flowtime (stopwatch work + configurable rest)
+- **Floating Session Panel** - Active timer persists across navigation with a collapsible panel (mobile bottom dock, desktop top-left) and controls for pause/resume, reset, and end session
+- **Phase Completion Alerts** - Audible kitchen-style alarm plus browser notification support when work/rest phases complete
 - **Status Transitions** - Intelligent status change handling with automatic timestamp tracking (startedAt, completedAt)
 - **Query Performance Monitoring** - Built-in developer tools for tracking API performance and optimizing database queries
 - **Comprehensive Testing** - Full test coverage for forms, guards, hooks, and status transition logic
@@ -99,7 +102,7 @@ The application follows a modern monorepo structure with clear separation of con
 
 ## Future Enhancements
 
-- **Active Timer & Time Logging** - Log time spent on tasks with built-in timer and customizable Pomodoro timer (to help with time management) and manual entry
+- **Time Logging History & Reports** - Persist work/rest history and add reporting around time spent per task and mode
 - **Task Comments & Activity Log** - Track changes and maintain audit history
 - **Calendar Integration** - Sync tasks with external calendars (Google Calendar, Outlook)
 - **Analytics Dashboard** - Visualize productivity trends, completion rates, and time tracking insights
