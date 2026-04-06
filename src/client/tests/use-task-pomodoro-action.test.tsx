@@ -1,18 +1,22 @@
 import React from 'react'
-import { describe, it, expect, spyOn, afterEach } from 'bun:test'
+import { describe, it, expect, spyOn, beforeEach, afterEach, mock } from 'bun:test'
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { PomodoroProvider, usePomodoroTimer } from '@/client/context/pomodoro-context'
 import { useTaskPomodoroAction } from '@/client/hooks/use-task-pomodoro-action'
+
+const defaultConfirm = globalThis.confirm
 
 function wrapper({ children }: { children: React.ReactNode }) {
   return <PomodoroProvider>{children}</PomodoroProvider>
 }
 
+beforeEach(() => {
+  window.confirm = defaultConfirm
+})
+
 afterEach(() => {
-  if (typeof window !== 'undefined') {
-    // @ts-ignore
-    window.confirm = globalThis.confirm
-  }
+  mock.restore()
+  window.confirm = defaultConfirm
 })
 
 describe('useTaskPomodoroAction', () => {
