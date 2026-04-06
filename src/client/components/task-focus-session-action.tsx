@@ -41,8 +41,12 @@ export const TaskFocusSessionAction = ({
           onValueChange={(value) => onSelectedModeChange(value as PomodoroModeKey)}
           disabled={disabled}
         >
-          <SelectTrigger size="sm" className="min-w-[150px] bg-white text-slate-900" aria-label="Choose focus mode">
-            <SelectValue />
+          <SelectTrigger
+            size="sm"
+            className="w-10 justify-center bg-white px-2 text-slate-900 md:min-w-[200px] md:justify-between md:px-3"
+            aria-label="Choose focus mode"
+          >
+            <SelectValue className="hidden md:flex" />
           </SelectTrigger>
           <SelectContent>
             {Object.values(POMODORO_MODES).map((mode) => (
