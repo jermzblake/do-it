@@ -121,7 +121,7 @@ export function PomodoroPanel() {
               <SelectTrigger className="w-full h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent side="top" className="z-[80]">
                 {Object.values(POMODORO_MODES).map((m) => (
                   <SelectItem key={m.key} value={m.key} className="text-xs">
                     {m.label}
